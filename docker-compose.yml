@@ -1,0 +1,43 @@
+services:
+  postgres-auth:
+    container_name: "postgres-auth"
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    networks:
+      - e-commerce-backend
+
+  auth-service:
+    container_name: "auth-service"
+    build: ./auth-service
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+    env_file:
+      - ./auth-service/.env
+    environment:
+      SERVER_PORT: 8081
+      POSTGRES_URL: postgres://root:password@postgres-auth:5432/db?sslmode=disable
+    ports:
+      - "8081:8081"
+    networks:
+      - e-commerce-backend
+
+networks:
+  e-commerce-backend:
+    driver: bridge
+
+volumes:
+  postgres-auth-data:
