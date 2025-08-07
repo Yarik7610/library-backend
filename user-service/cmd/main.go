@@ -1,8 +1,8 @@
 package main
 
 import (
-	"auth-service/config"
-	"auth-service/internal/model"
+	"user-service/config"
+	"user-service/internal/model"
 
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"

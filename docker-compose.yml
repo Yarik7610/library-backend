@@ -19,14 +19,14 @@ services:
     networks:
       - e-commerce-backend
 
-  auth-service:
-    container_name: "auth-service"
-    build: ./auth-service
+  user-service:
+    container_name: "user-service"
+    build: ./user-service
     depends_on:
       postgres-auth:
         condition: service_healthy
     env_file:
-      - ./auth-service/.env
+      - ./user-service/.env
     environment:
       SERVER_PORT: 8081
       POSTGRES_URL: postgres://root:password@postgres-auth:5432/db?sslmode=disable
