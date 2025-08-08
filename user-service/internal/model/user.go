@@ -11,10 +11,5 @@ type User struct {
 	Password string `gorm:"type:varchar(100);not null"`
 	IsAdmin  bool   `gorm:"default:false"`
 
-	SubscribedBookCategories []BookCategory
-}
-
-type BookCategory struct {
-	gorm.Model
-	Name string `gorm:"type:varchar(100);unique;not null"`
+	SubscribedBookCategories []*BookCategory `gorm:"many2many:user_book_categories;"`
 }

@@ -26,7 +26,7 @@ func main() {
 	}
 	logger.Info("Successfully connected to Postgres")
 
-	err = db.AutoMigrate(&model.User{})
+	err = db.AutoMigrate(&model.User{}, &model.BookCategory{})
 	if err != nil {
 		logger.Fatalf("Gorm auto migrate error: %v", err)
 	}
