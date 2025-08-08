@@ -1,4 +1,4 @@
-module user-service
+module github.com/Yarik7610/library-backend/user-service
 
 go 1.24.4
 
