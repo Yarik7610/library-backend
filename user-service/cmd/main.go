@@ -12,27 +12,27 @@ import (
 	"gorm.io/gorm"
 )
 
-func main() {
-	baseLogger, _ := zap.NewDevelopment()
-	defer baseLogger.Sync()
-	logger := baseLogger.Sugar()
+func init() {
+	zap.ReplaceGlobals(zap.Must(zap.NewDevelopment()))
+}
 
+func main() {
 	config, err := config.Load()
 	if err != nil {
-		logger.Fatalf("Config load error: %v\n", err)
+		zap.S().Fatalf("Config load error: %v\n", err)
 	}
 
 	db, err := gorm.Open(postgres.Open(config.PostgresURL), &gorm.Config{})
 	if err != nil {
-		logger.Fatalf("Gorm open error: %v\n", err)
+		zap.S().Fatalf("Gorm open error: %v\n", err)
 	}
-	logger.Info("Successfully connected to Postgres")
+	zap.S().Info("Successfully connected to Postgres")
 
 	err = db.AutoMigrate(&model.User{}, &model.BookCategory{})
 	if err != nil {
-		logger.Fatalf("Gorm auto migrate error: %v", err)
+		zap.S().Fatalf("Gorm auto migrate error: %v", err)
 	}
-	logger.Info("Successfully made auto migrate")
+	zap.S().Info("Successfully made auto migrate")
 
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
@@ -43,7 +43,6 @@ func main() {
 	r.POST("/sign-up", userController.SignUp)
 
 	if err := r.Run(":" + config.ServerPort); err != nil {
-		logger.Fatalf("Server start error on port %s: %v", config.ServerPort, err)
+		zap.S().Fatalf("Server start error on port %s: %v", config.ServerPort, err)
 	}
-	logger.Info("Server started on port %s", config.ServerPort)
 }
