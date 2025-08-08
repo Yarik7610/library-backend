@@ -2,18 +2,20 @@ package main
 
 import (
 	"github.com/Yarik7610/library-backend/user-service/config"
+	"github.com/Yarik7610/library-backend/user-service/internal/controller"
 	"github.com/Yarik7610/library-backend/user-service/internal/model"
+	"github.com/Yarik7610/library-backend/user-service/internal/repository"
+	"github.com/Yarik7610/library-backend/user-service/internal/service"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-var logger *zap.SugaredLogger
-
 func main() {
 	baseLogger, _ := zap.NewDevelopment()
 	defer baseLogger.Sync()
-	logger = baseLogger.Sugar()
+	logger := baseLogger.Sugar()
 
 	config, err := config.Load()
 	if err != nil {
@@ -31,4 +33,17 @@ func main() {
 		logger.Fatalf("Gorm auto migrate error: %v", err)
 	}
 	logger.Info("Successfully made auto migrate")
+
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo)
+	userController := controller.NewUserController(userService)
+
+	r := gin.Default()
+
+	r.POST("/sign-up", userController.SignUp)
+
+	if err := r.Run(":" + config.ServerPort); err != nil {
+		logger.Fatalf("Server start error on port %s: %v", config.ServerPort, err)
+	}
+	logger.Info("Server started on port %s", config.ServerPort)
 }
