@@ -26,7 +26,7 @@ services:
       postgres-auth:
         condition: service_healthy
     env_file:
-      - ./user-service/.env
+      - ./.env
     environment:
       SERVER_PORT: 8081
       POSTGRES_URL: postgres://root:password@postgres-auth:5432/db?sslmode=disable

@@ -16,7 +16,6 @@ FROM golang:1.24-alpine
 
 WORKDIR /app
 COPY --from=builder /app/main .
-COPY --from=builder /app/.env .
 COPY --from=builder /go/bin/air /usr/local/bin/
 
 # CMD ["./main"]

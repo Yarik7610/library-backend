@@ -10,6 +10,7 @@ import (
 
 type UserController interface {
 	SignUp(ctx *gin.Context)
+	SignIn(ctx *gin.Context)
 }
 
 type userController struct {
@@ -30,9 +31,25 @@ func (c *userController) SignUp(ctx *gin.Context) {
 
 	user, err := c.userService.SignUp(&signUpUserDTO)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(err.Code, gin.H{"error": err.Message})
 		return
 	}
 
 	ctx.JSON(http.StatusCreated, user)
+}
+
+func (c *userController) SignIn(ctx *gin.Context) {
+	var signInUserDTO dto.SignInUser
+
+	if err := ctx.ShouldBindJSON(&signInUserDTO); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := c.userService.SignIn(&signInUserDTO)
+	if err != nil {
+		ctx.JSON(err.Code, gin.H{"error": err.Message})
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"token": token})
 }

@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/Yarik7610/library-backend/user-service/internal/model"
 	"gorm.io/gorm"
 )
@@ -26,6 +28,9 @@ func (r *userRepository) Create(user *model.User) error {
 func (r *userRepository) FindByID(ID uint) (*model.User, error) {
 	var user model.User
 	if err := r.db.Where("id = ?", ID).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &user, nil
@@ -34,6 +39,9 @@ func (r *userRepository) FindByID(ID uint) (*model.User, error) {
 func (r *userRepository) FindByEmail(email string) (*model.User, error) {
 	var user model.User
 	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &user, nil
