@@ -12,6 +12,7 @@ import (
 type UserController interface {
 	SignUp(ctx *gin.Context)
 	SignIn(ctx *gin.Context)
+	Me(ctx *gin.Context)
 }
 
 type userController struct {
@@ -56,4 +57,8 @@ func (c *userController) SignIn(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+func (c *userController) Me(ctx *gin.Context) {
+
 }

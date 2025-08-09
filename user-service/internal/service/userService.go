@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Yarik7610/library-backend/user-service/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/dto"
 	"github.com/Yarik7610/library-backend/user-service/internal/model"
 	"github.com/Yarik7610/library-backend/user-service/internal/repository"
@@ -67,7 +66,7 @@ func (s *userService) SignIn(user *dto.SignInUser) (string, *apperror.Err) {
 		return "", apperror.New(http.StatusBadRequest, "wrong email or password")
 	}
 
-	token, err := utils.CreateJWTToken(foundUser.ID, foundUser.IsAdmin, config.Data.JWTSecret)
+	token, err := utils.CreateJWTToken(foundUser.ID, foundUser.IsAdmin)
 	if err != nil {
 		return "", apperror.New(http.StatusInternalServerError, err.Error())
 	}

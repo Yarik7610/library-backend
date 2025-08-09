@@ -35,8 +35,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.user-service.entrypoints=web"
-      - "traefik.http.routers.user-service.rule=Host(`user-service.localhost`)"
       - "traefik.http.services.user-service.loadbalancer.server.port=8081"
+      - "traefik.http.routers.user-service.rule=PathPrefix(`/`)"
     volumes:
       - ./user-service:/app
     networks:
