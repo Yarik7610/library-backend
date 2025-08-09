@@ -6,10 +6,10 @@ import (
 
 type User struct {
 	gorm.Model
-	Name     string `gorm:"type:varchar(100);not null"`
-	Email    string `gorm:"type:varchar(100);unique;not null"`
-	Password string `gorm:"type:varchar(100);not null"`
-	IsAdmin  bool   `gorm:"default:false"`
+	Name     string
+	Email    string `gorm:"unique"`
+	Password string
+	IsAdmin  bool
 
 	SubscribedBookCategories []*BookCategory `gorm:"many2many:user_book_categories;"`
 }
