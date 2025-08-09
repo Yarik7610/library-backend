@@ -30,7 +30,7 @@ func main() {
 	}
 	zap.S().Info("Successfully connected to Postgres")
 
-	err = db.AutoMigrate(&model.User{}, &model.BookCategory{})
+	err = db.AutoMigrate(&model.User{})
 	if err != nil {
 		zap.S().Fatalf("Gorm auto migrate error: %v", err)
 	}
