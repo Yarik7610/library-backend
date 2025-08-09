@@ -3,6 +3,7 @@ module github.com/Yarik7610/library-backend/user-service
 go 1.24.5
 
 require (
+	github.com/Yarik7610/library-backend-common v0.0.0-20250809195419-23717f38a3ab
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/spf13/viper v1.20.1
@@ -13,7 +14,6 @@ require (
 )
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20250809195419-23717f38a3ab // indirect
 	github.com/bytedance/sonic v1.14.0 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
