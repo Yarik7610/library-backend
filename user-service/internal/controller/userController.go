@@ -6,6 +6,7 @@ import (
 	"github.com/Yarik7610/library-backend/user-service/internal/dto"
 	"github.com/Yarik7610/library-backend/user-service/internal/service"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type UserController interface {
@@ -31,6 +32,7 @@ func (c *userController) SignUp(ctx *gin.Context) {
 
 	user, err := c.userService.SignUp(&signUpUserDTO)
 	if err != nil {
+		zap.S().Error("Sign up error: ", err)
 		ctx.JSON(err.Code, gin.H{"error": err.Message})
 		return
 	}
@@ -48,7 +50,9 @@ func (c *userController) SignIn(ctx *gin.Context) {
 
 	token, err := c.userService.SignIn(&signInUserDTO)
 	if err != nil {
+		zap.S().Error("Sign in error: ", err)
 		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"token": token})

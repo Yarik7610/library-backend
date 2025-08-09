@@ -10,17 +10,15 @@ type Config struct {
 	JWTSecret   string `mapstructure:"JWT_SECRET"`
 }
 
-func Load() (*Config, error) {
+var Data Config
+
+func Init() error {
 	viper.AutomaticEnv()
 
 	viper.BindEnv("SERVER_PORT")
 	viper.BindEnv("POSTGRES_URL")
 	viper.BindEnv("JWT_SECRET")
 
-	var config Config
-	err := viper.Unmarshal(&config)
-	if err != nil {
-		return nil, err
-	}
-	return &config, nil
+	err := viper.Unmarshal(&Data)
+	return err
 }

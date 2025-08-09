@@ -17,12 +17,12 @@ func init() {
 }
 
 func main() {
-	config, err := config.Load()
+	err := config.Init()
 	if err != nil {
 		zap.S().Fatalf("Config load error: %v\n", err)
 	}
 
-	db, err := gorm.Open(postgres.Open(config.PostgresURL), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(config.Data.PostgresURL), &gorm.Config{})
 	if err != nil {
 		zap.S().Fatalf("Gorm open error: %v\n", err)
 	}
@@ -38,14 +38,12 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 
-	zap.S().Debug("ARGS", config)
-
 	r := gin.Default()
 
 	r.POST("/sign-up", userController.SignUp)
 	r.POST("/sign-in", userController.SignIn)
 
-	if err := r.Run(":" + config.ServerPort); err != nil {
-		zap.S().Fatalf("Server start error on port %s: %v", config.ServerPort, err)
+	if err := r.Run(":" + config.Data.ServerPort); err != nil {
+		zap.S().Fatalf("Server start error on port %s: %v", config.Data.ServerPort, err)
 	}
 }
