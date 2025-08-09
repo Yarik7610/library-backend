@@ -38,13 +38,13 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userID := claims.Subject
+		userID, _ := strconv.ParseUint(claims.Subject, 10, 64)
 		isAdmin := false
 		if len(claims.Audience) > 0 {
 			isAdmin, _ = strconv.ParseBool(claims.Audience[0])
 		}
 
-		ctx.Set("userID", userID)
+		ctx.Set("userID", uint(userID))
 		ctx.Set("isAdmin", isAdmin)
 
 		zap.S().Infow("Authenticated", "userID", userID, "isAdmin", isAdmin)

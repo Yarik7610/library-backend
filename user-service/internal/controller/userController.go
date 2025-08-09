@@ -60,5 +60,14 @@ func (c *userController) SignIn(ctx *gin.Context) {
 }
 
 func (c *userController) Me(ctx *gin.Context) {
+	userID := ctx.MustGet("userID").(uint)
 
+	user, err := c.userService.Me(userID)
+	if err != nil {
+		zap.S().Error("Me error: ", err)
+		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
 }

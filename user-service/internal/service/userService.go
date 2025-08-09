@@ -14,6 +14,7 @@ import (
 type UserService interface {
 	SignUp(user *dto.SignUpUser) (*model.User, *apperror.Err)
 	SignIn(user *dto.SignInUser) (string, *apperror.Err)
+	Me(userID uint) (*model.User, *apperror.Err)
 }
 
 type userService struct {
@@ -72,4 +73,12 @@ func (s *userService) SignIn(user *dto.SignInUser) (string, *apperror.Err) {
 	}
 
 	return token, nil
+}
+
+func (s *userService) Me(userID uint) (*model.User, *apperror.Err) {
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return nil, apperror.New(http.StatusInternalServerError, err.Error())
+	}
+	return user, nil
 }
