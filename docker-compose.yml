@@ -32,8 +32,29 @@ services:
       POSTGRES_URL: postgres://root:password@postgres-auth:5432/db?sslmode=disable
     ports:
       - "8081:8081"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.user-service.entrypoints=web"
+      - "traefik.http.routers.user-service.rule=Host(`user-service.localhost`)"
+      - "traefik.http.services.user-service.loadbalancer.server.port=8081"
     volumes:
       - ./user-service:/app
+    networks:
+      - e-commerce-backend
+
+  traefik:
+    image: traefik:v3.5
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - e-commerce-backend
 

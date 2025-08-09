@@ -8,9 +8,9 @@ import (
 
 const EXPIRATION_TIME_DAYS = 7
 
-func CreateJWTToken(ID uint, isAdmin bool, secret string) (string, error) {
+func CreateJWTToken(userID uint, isAdmin bool, secret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":     ID,
+		"sub":     userID,
 		"isAdmin": isAdmin,
 		"exp":     time.Now().Add(time.Hour * 24 * EXPIRATION_TIME_DAYS).Unix(),
 	})
