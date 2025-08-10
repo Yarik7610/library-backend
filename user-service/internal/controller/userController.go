@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Yarik7610/library-backend/user-service/internal/constants"
+	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/user-service/internal/dto"
 	"github.com/Yarik7610/library-backend/user-service/internal/service"
 	"github.com/gin-gonic/gin"
@@ -62,10 +62,10 @@ func (c *userController) SignIn(ctx *gin.Context) {
 }
 
 func (c *userController) Me(ctx *gin.Context) {
-	stringUserID := ctx.GetHeader(constants.HEADER_USER_ID)
+	stringUserID := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
 	userID, err := strconv.ParseUint(stringUserID, 10, 64)
 	if err != nil {
-		zap.S().Errorf("%s header: %v\n", constants.HEADER_USER_ID, err)
+		zap.S().Errorf("%s header error: %v\n", sharedconstants.HEADER_USER_ID, err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

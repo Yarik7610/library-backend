@@ -1,10 +1,12 @@
 package main
 
 import (
+	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/api-gateway/config"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/constants"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/core"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/middleware"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -22,9 +24,9 @@ func main() {
 	r := gin.Default()
 	r.Use(middleware.AuthMiddleware())
 
-	r.POST(constants.SIGN_UP_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, constants.SIGN_UP_ROUTE))
-	r.POST(constants.SIGN_IN_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, constants.SIGN_IN_ROUTE))
-	r.GET(constants.ME_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, constants.ME_ROUTE))
+	r.POST(sharedconstants.SIGN_UP_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, sharedconstants.SIGN_UP_ROUTE))
+	r.POST(sharedconstants.SIGN_IN_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, sharedconstants.SIGN_IN_ROUTE))
+	r.GET(sharedconstants.ME_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, sharedconstants.ME_ROUTE))
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
 		zap.S().Fatalf("API-gateway start error on port %s: %v", config.Data.ServerPort, err)

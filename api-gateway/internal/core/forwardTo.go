@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/Yarik7610/library-backend/api-gateway/internal/constants"
+	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -27,13 +27,13 @@ func ForwardTo(target, path string) gin.HandlerFunc {
 
 		req.Header = req.Header.Clone()
 
-		userID, ok := req.Context().Value(constants.HEADER_USER_ID).(uint)
+		userID, ok := req.Context().Value(sharedconstants.HEADER_USER_ID).(uint)
 		if ok {
-			req.Header.Set(constants.HEADER_USER_ID, strconv.FormatUint(uint64(userID), 64))
+			req.Header.Set(sharedconstants.HEADER_USER_ID, strconv.FormatUint(uint64(userID), 64))
 		}
-		isAdmin, ok := req.Context().Value(constants.HEADER_IS_ADMIN).(bool)
+		isAdmin, ok := req.Context().Value(sharedconstants.HEADER_IS_ADMIN).(bool)
 		if ok {
-			req.Header.Set(constants.HEADER_IS_ADMIN, strconv.FormatBool(isAdmin))
+			req.Header.Set(sharedconstants.HEADER_IS_ADMIN, strconv.FormatBool(isAdmin))
 		}
 	}
 

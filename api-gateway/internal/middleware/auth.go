@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Yarik7610/library-backend/api-gateway/internal/constants"
+	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -46,10 +46,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			isAdmin, _ = strconv.ParseBool(claims.Audience[0])
 		}
 
-		ctx.Request.Header.Set(constants.HEADER_USER_ID, fmt.Sprintf("%d", userID))
-		ctx.Request.Header.Set(constants.HEADER_IS_ADMIN, strconv.FormatBool(isAdmin))
+		ctx.Request.Header.Set(sharedconstants.HEADER_USER_ID, fmt.Sprintf("%d", userID))
+		ctx.Request.Header.Set(sharedconstants.HEADER_IS_ADMIN, strconv.FormatBool(isAdmin))
 
-		zap.S().Infow("Authenticated", constants.HEADER_USER_ID, userID, constants.HEADER_IS_ADMIN, isAdmin)
+		zap.S().Infow("Authenticated", sharedconstants.HEADER_USER_ID, userID, sharedconstants.HEADER_IS_ADMIN, isAdmin)
 		ctx.Next()
 	}
 }

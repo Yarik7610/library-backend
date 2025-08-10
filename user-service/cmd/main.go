@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/user-service/config"
-	"github.com/Yarik7610/library-backend/user-service/internal/constants"
 	"github.com/Yarik7610/library-backend/user-service/internal/controller"
 	"github.com/Yarik7610/library-backend/user-service/internal/model"
 	"github.com/Yarik7610/library-backend/user-service/internal/repository"
@@ -41,9 +41,9 @@ func main() {
 
 	r := gin.Default()
 
-	r.POST(constants.SIGN_UP_ROUTE, userController.SignUp)
-	r.POST(constants.SIGN_IN_ROUTE, userController.SignIn)
-	r.GET(constants.ME_ROUTE, userController.Me)
+	r.POST(sharedconstants.SIGN_UP_ROUTE, userController.SignUp)
+	r.POST(sharedconstants.SIGN_IN_ROUTE, userController.SignIn)
+	r.GET(sharedconstants.ME_ROUTE, userController.Me)
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
 		zap.S().Fatalf("User-service start error on port %s: %v", config.Data.ServerPort, err)
