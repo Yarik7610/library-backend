@@ -3,7 +3,7 @@ package utils
 import (
 	"slices"
 
-	"github.com/Yarik7610/library-backend/user-service/internal/constants"
+	"github.com/Yarik7610/library-backend/api-gateway/internal/constants"
 )
 
 func IsPrivateRoute(path string) bool {

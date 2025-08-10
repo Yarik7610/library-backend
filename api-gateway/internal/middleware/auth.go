@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/Yarik7610/library-backend/user-service/internal/utils"
+	"github.com/Yarik7610/library-backend/api-gateway/internal/constants"
+	"github.com/Yarik7610/library-backend/api-gateway/internal/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -44,10 +46,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			isAdmin, _ = strconv.ParseBool(claims.Audience[0])
 		}
 
-		ctx.Set("userID", uint(userID))
-		ctx.Set("isAdmin", isAdmin)
+		ctx.Request.Header.Set(constants.HEADER_USER_ID, fmt.Sprintf("%d", userID))
+		ctx.Request.Header.Set(constants.HEADER_IS_ADMIN, strconv.FormatBool(isAdmin))
 
-		zap.S().Infow("Authenticated", "userID", userID, "isAdmin", isAdmin)
+		zap.S().Infow("Authenticated", constants.HEADER_USER_ID, userID, constants.HEADER_IS_ADMIN, isAdmin)
 		ctx.Next()
 	}
 }

@@ -2,7 +2,9 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/Yarik7610/library-backend/user-service/internal/constants"
 	"github.com/Yarik7610/library-backend/user-service/internal/dto"
 	"github.com/Yarik7610/library-backend/user-service/internal/service"
 	"github.com/gin-gonic/gin"
@@ -60,12 +62,18 @@ func (c *userController) SignIn(ctx *gin.Context) {
 }
 
 func (c *userController) Me(ctx *gin.Context) {
-	userID := ctx.MustGet("userID").(uint)
-
-	user, err := c.userService.Me(userID)
+	stringUserID := ctx.GetHeader(constants.HEADER_USER_ID)
+	userID, err := strconv.ParseUint(stringUserID, 10, 64)
 	if err != nil {
-		zap.S().Error("Me error: ", err)
-		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		zap.S().Errorf("%s header: %v\n", constants.HEADER_USER_ID, err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, customErr := c.userService.Me(uint(userID))
+	if customErr != nil {
+		zap.S().Error("Me error: ", customErr)
+		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
 		return
 	}
 

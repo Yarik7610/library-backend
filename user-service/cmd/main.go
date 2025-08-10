@@ -4,7 +4,6 @@ import (
 	"github.com/Yarik7610/library-backend/user-service/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/constants"
 	"github.com/Yarik7610/library-backend/user-service/internal/controller"
-	"github.com/Yarik7610/library-backend/user-service/internal/middleware"
 	"github.com/Yarik7610/library-backend/user-service/internal/model"
 	"github.com/Yarik7610/library-backend/user-service/internal/repository"
 	"github.com/Yarik7610/library-backend/user-service/internal/service"
@@ -26,13 +25,13 @@ func main() {
 
 	db, err := gorm.Open(postgres.Open(config.Data.PostgresURL), &gorm.Config{})
 	if err != nil {
-		zap.S().Fatalf("Gorm open error: %v\n", err)
+		zap.S().Fatalf("GORM open error: %v\n", err)
 	}
 	zap.S().Info("Successfully connected to Postgres")
 
 	err = db.AutoMigrate(&model.User{})
 	if err != nil {
-		zap.S().Fatalf("Gorm auto migrate error: %v", err)
+		zap.S().Fatalf("GORM auto migrate error: %v", err)
 	}
 	zap.S().Info("Successfully made auto migrate")
 
@@ -41,13 +40,12 @@ func main() {
 	userController := controller.NewUserController(userService)
 
 	r := gin.Default()
-	r.Use(middleware.AuthMiddleware())
 
 	r.POST(constants.SIGN_UP_ROUTE, userController.SignUp)
 	r.POST(constants.SIGN_IN_ROUTE, userController.SignIn)
 	r.GET(constants.ME_ROUTE, userController.Me)
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
-		zap.S().Fatalf("Server start error on port %s: %v", config.Data.ServerPort, err)
+		zap.S().Fatalf("User-service start error on port %s: %v", config.Data.ServerPort, err)
 	}
 }

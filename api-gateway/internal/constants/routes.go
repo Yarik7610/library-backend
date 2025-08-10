@@ -5,3 +5,5 @@ const (
 	SIGN_IN_ROUTE = "/sign-in"
 	ME_ROUTE      = "/me"
 )
+
+var PRIVATE_ROUTES = []string{ME_ROUTE}
