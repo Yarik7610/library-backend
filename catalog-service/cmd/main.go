@@ -30,26 +30,22 @@ func main() {
 	}
 	zap.S().Info("Successfully connected to Postgres")
 
-	err = db.AutoMigrate(&model.Book{}, &model.Category{}, &model.Page{})
+	err = db.AutoMigrate(&model.Book{}, &model.Page{})
 	if err != nil {
 		zap.S().Fatalf("GORM auto migrate error: %v", err)
 	}
 	zap.S().Info("Successfully made auto migrate")
 
 	bookRepo := repository.NewBookRepository(db)
-	categoryRepo := repository.NewCategoryRepository(db)
-
-	bookService := service.NewBookService(bookRepo)
-	categoryService := service.NewCategoryService(categoryRepo)
-
-	bookController := controller.NewBookController(bookService)
-	categoryController := controller.NewCategoryController(categoryService)
+	pageRepo := repository.NewPageRepository(db)
+	catalogService := service.NewCatalogService(bookRepo, pageRepo)
+	catalogController := controller.NewCatalogController(catalogService)
 
 	r := gin.Default()
 	catalogRouter := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
-		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, categoryController.ListCategories)
-		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE, bookController.PreviewBook)
+		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, catalogController.ListCategories)
+		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE, catalogController.PreviewBook)
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
