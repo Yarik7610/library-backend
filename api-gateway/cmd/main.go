@@ -28,6 +28,12 @@ func main() {
 	r.POST(sharedconstants.SIGN_IN_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, sharedconstants.SIGN_IN_ROUTE))
 	r.GET(sharedconstants.ME_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, sharedconstants.ME_ROUTE))
 
+	catalogRouter := r.Group(sharedconstants.CATALOG_ROUTE)
+	{
+		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET, sharedconstants.CATALOG_ROUTE+sharedconstants.CATEGORIES_ROUTE))
+		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET, sharedconstants.CATALOG_ROUTE+sharedconstants.PREVIEW_ROUTE))
+	}
+
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
 		zap.S().Fatalf("API-gateway start error on port %s: %v", config.Data.ServerPort, err)
 	}

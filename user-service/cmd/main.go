@@ -46,6 +46,6 @@ func main() {
 	r.GET(sharedconstants.ME_ROUTE, userController.Me)
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
-		zap.S().Fatalf("User-service start error on port %s: %v", config.Data.ServerPort, err)
+		zap.S().Fatalf("Start error on port %s: %v", config.Data.ServerPort, err)
 	}
 }
