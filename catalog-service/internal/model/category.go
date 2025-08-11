@@ -2,7 +2,7 @@ package model
 
 import "gorm.io/gorm"
 
-type BookCategory struct {
+type Category struct {
 	gorm.Model
 	Name string `gorm:"unique"`
 }
