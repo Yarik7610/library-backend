@@ -65,7 +65,6 @@ func (r *bookRepository) GetAuthorsBooks(authorName string) ([]dto.AuthorBooksRa
 					'id', b.id,
 					'created_at', b.created_at,
 					'title', b.title,
-  				'author_id', b.author_id,
 					'year', b.year,
 					'category', b.category
 				)

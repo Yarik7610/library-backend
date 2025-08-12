@@ -52,7 +52,7 @@ func (s *catalogService) GetAuthorsBooks(authorName string) ([]dto.AuthorBooks, 
 
 	authorsBooks := make([]dto.AuthorBooks, 0, len(rawAuthorsBooks))
 	for _, row := range rawAuthorsBooks {
-		var books []model.Book
+		var books []dto.AuthorBookRaw
 		if err := json.Unmarshal(row.Books, &books); err != nil {
 			return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 		}
