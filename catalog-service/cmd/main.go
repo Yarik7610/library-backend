@@ -6,6 +6,7 @@ import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/controller"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/seed"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -38,6 +39,9 @@ func main() {
 
 	bookRepo := repository.NewBookRepository(db)
 	pageRepo := repository.NewPageRepository(db)
+
+	seed.Books(bookRepo, pageRepo)
+
 	catalogService := service.NewCatalogService(bookRepo, pageRepo)
 	catalogController := controller.NewCatalogController(catalogService)
 
@@ -47,6 +51,8 @@ func main() {
 		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, catalogController.ListCategories)
 		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE, catalogController.PreviewBook)
 	}
+
+	zap.S().Info("KEK")
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
 		zap.S().Fatalf("User-service start error on port %s: %v", config.Data.ServerPort, err)

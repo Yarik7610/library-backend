@@ -35,7 +35,7 @@ func (c *userController) SignUp(ctx *gin.Context) {
 
 	user, err := c.userService.SignUp(&signUpUserDTO)
 	if err != nil {
-		zap.S().Error("Sign up error: ", err)
+		zap.S().Errorf("Sign up error: %v\n", err)
 		ctx.JSON(err.Code, gin.H{"error": err.Message})
 		return
 	}
@@ -53,7 +53,7 @@ func (c *userController) SignIn(ctx *gin.Context) {
 
 	token, err := c.userService.SignIn(&signInUserDTO)
 	if err != nil {
-		zap.S().Error("Sign in error: ", err)
+		zap.S().Errorf("Sign in error: %v\n", err)
 		ctx.JSON(err.Code, gin.H{"error": err.Message})
 		return
 	}
@@ -72,7 +72,7 @@ func (c *userController) Me(ctx *gin.Context) {
 
 	user, customErr := c.userService.Me(uint(userID))
 	if customErr != nil {
-		zap.S().Error("Me error: ", customErr)
+		zap.S().Errorf("Me error: %v\n", customErr)
 		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
 		return
 	}
