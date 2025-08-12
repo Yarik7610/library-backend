@@ -24,14 +24,15 @@ func main() {
 	r := gin.Default()
 	r.Use(middleware.AuthMiddleware())
 
-	r.POST(sharedconstants.SIGN_UP_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, sharedconstants.SIGN_UP_ROUTE))
-	r.POST(sharedconstants.SIGN_IN_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, sharedconstants.SIGN_IN_ROUTE))
-	r.GET(sharedconstants.ME_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET, sharedconstants.ME_ROUTE))
+	r.POST(sharedconstants.SIGN_UP_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET))
+	r.POST(sharedconstants.SIGN_IN_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET))
+	r.GET(sharedconstants.ME_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET))
 
 	catalogRouter := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
-		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET, sharedconstants.CATALOG_ROUTE+sharedconstants.CATEGORIES_ROUTE))
-		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET, sharedconstants.CATALOG_ROUTE+sharedconstants.PREVIEW_ROUTE))
+		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
+		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE+"/:bookID", core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
+		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:authorName", core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {

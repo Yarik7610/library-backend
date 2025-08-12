@@ -5,7 +5,7 @@ go 1.24.5
 require gorm.io/gorm v1.30.1
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20250811105439-75119260684b // indirect
+	github.com/Yarik7610/library-backend-common v0.0.0-20250812092719-d21fa1385b9e // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect

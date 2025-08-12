@@ -80,5 +80,8 @@ func (s *userService) Me(userID uint) (*model.User, *custom.Err) {
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
+	if user == nil {
+		return nil, custom.NewErr(http.StatusNotFound, "user not found")
+	}
 	return user, nil
 }

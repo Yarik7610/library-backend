@@ -4,6 +4,8 @@ github.com/Yarik7610/library-backend-common v0.0.0-20250810151027-aa1fab1b3bb1 h
 github.com/Yarik7610/library-backend-common v0.0.0-20250810151027-aa1fab1b3bb1/go.mod h1:LLZ3LHjfMwkYb9D0I4a6aAg/MFgUsnIScr3zuBoB51o=
 github.com/Yarik7610/library-backend-common v0.0.0-20250811105439-75119260684b h1:PrFvLnSuObgMwN4z8MiYjwZ5ZeMas8GCSpOCpJUSXYQ=
 github.com/Yarik7610/library-backend-common v0.0.0-20250811105439-75119260684b/go.mod h1:LLZ3LHjfMwkYb9D0I4a6aAg/MFgUsnIScr3zuBoB51o=
+github.com/Yarik7610/library-backend-common v0.0.0-20250812092719-d21fa1385b9e h1:IJcrlIbE7y+xVh4RfYs/Kc+shjA2RzBXACruYJ0cfx8=
+github.com/Yarik7610/library-backend-common v0.0.0-20250812092719-d21fa1385b9e/go.mod h1:LLZ3LHjfMwkYb9D0I4a6aAg/MFgUsnIScr3zuBoB51o=
 github.com/bytedance/sonic v1.14.0 h1:/OfKt8HFw0kh2rj8N0F6C/qPGRESq0BbaNZgcNXXzQQ=
 github.com/bytedance/sonic v1.14.0/go.mod h1:WoEbx8WTcFJfzCe0hbmyTGrfjt8PzNEBdxlNUO24NhA=
 github.com/bytedance/sonic/loader v0.3.0 h1:dskwH8edlzNMctoruo8FPTJDF3vLtDT0sXZwvZJyqeA=

@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func ForwardTo(target, path string) gin.HandlerFunc {
+func ForwardTo(target string) gin.HandlerFunc {
 	targetURL, err := url.Parse(target)
 	if err != nil {
 		zap.S().Fatalf("Failed to parse target URL %s: %v", target, err)
@@ -22,7 +22,6 @@ func ForwardTo(target, path string) gin.HandlerFunc {
 	proxy.Director = func(req *http.Request) {
 		req.URL.Scheme = targetURL.Scheme
 		req.URL.Host = targetURL.Host
-		req.URL.Path = path
 		req.Host = targetURL.Host
 
 		req.Header = req.Header.Clone()

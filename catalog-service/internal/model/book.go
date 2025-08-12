@@ -12,8 +12,8 @@ type Book struct {
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 	Title     string
-	Author    string
+	AuthorID  uint `json:"author_id"`
 	Year      int
 	Category  string `gorm:"uniqueIndex:book_id_number_index"`
-	Pages     []Page `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Pages     []Page `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"pages,omitempty"`
 }

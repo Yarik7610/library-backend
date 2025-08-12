@@ -31,7 +31,7 @@ func main() {
 	}
 	zap.S().Info("Successfully connected to Postgres")
 
-	err = db.AutoMigrate(&model.Book{}, &model.Page{})
+	err = db.AutoMigrate(&model.Author{}, &model.Book{}, &model.Page{})
 	if err != nil {
 		zap.S().Fatalf("GORM auto migrate error: %v", err)
 	}
@@ -39,8 +39,9 @@ func main() {
 
 	bookRepo := repository.NewBookRepository(db)
 	pageRepo := repository.NewPageRepository(db)
+	authorRepo := repository.NewAuthorRepository(db)
 
-	seed.Books(bookRepo, pageRepo)
+	seed.Books(bookRepo, pageRepo, authorRepo)
 
 	catalogService := service.NewCatalogService(bookRepo, pageRepo)
 	catalogController := controller.NewCatalogController(catalogService)
@@ -48,13 +49,12 @@ func main() {
 	r := gin.Default()
 	catalogRouter := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
-		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, catalogController.ListCategories)
-		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE, catalogController.PreviewBook)
+		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, catalogController.GetCategories)
+		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogController.PreviewBook)
+		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:authorName", catalogController.GetAuthorsBooks)
 	}
 
-	zap.S().Info("KEK")
-
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
-		zap.S().Fatalf("User-service start error on port %s: %v", config.Data.ServerPort, err)
+		zap.S().Fatalf("Start error on port %s: %v", config.Data.ServerPort, err)
 	}
 }
