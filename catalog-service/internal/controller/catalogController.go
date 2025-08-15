@@ -59,21 +59,21 @@ func (c *catalogController) GetCategories(ctx *gin.Context) {
 
 func (c *catalogController) GetBooksByAuthor(ctx *gin.Context) {
 	authorName := ctx.Param("authorName")
-	authorsBooks, err := c.catalogService.GetBooksByAuthor(authorName)
+	books, err := c.catalogService.GetBooksByAuthor(authorName)
 	if err != nil {
 		zap.S().Errorf("Get books by author error: %v\n", err)
 		ctx.JSON(err.Code, gin.H{"error": err.Message})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, authorsBooks)
+	ctx.JSON(http.StatusOK, books)
 }
 
 func (c *catalogController) SearchBooks(ctx *gin.Context) {
-	author := ctx.Query("author")
+	authorName := ctx.Query("author")
 	title := ctx.Query("title")
 
-	if author == "" && title == "" {
+	if authorName == "" && title == "" {
 		zap.S().Errorf("Search books error: can't have both query strings author and title empty")
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Can't have both empty author and title"})
 		return
@@ -82,10 +82,10 @@ func (c *catalogController) SearchBooks(ctx *gin.Context) {
 	var books []dto.Books
 	var err *custom.Err
 
-	if author != "" && title != "" {
-		books, err = c.catalogService.GetBooksByAuthorAndTitle(author, title)
-	} else if author != "" {
-		books, err = c.catalogService.GetBooksByAuthor(author)
+	if authorName != "" && title != "" {
+		books, err = c.catalogService.GetBooksByAuthorAndTitle(authorName, title)
+	} else if authorName != "" {
+		books, err = c.catalogService.GetBooksByAuthor(authorName)
 	} else {
 		books, err = c.catalogService.GetBooksByTitle(title)
 	}

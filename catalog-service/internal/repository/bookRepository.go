@@ -13,9 +13,9 @@ type BookRepository interface {
 	CreateBook(book *model.Book) error
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
-	GetBooksByAuthor(author string) ([]dto.BooksRaw, error)
+	GetBooksByAuthor(authorName string) ([]dto.BooksRaw, error)
 	GetBooksByTitle(title string) ([]dto.BooksRaw, error)
-	GetBooksByAuthorAndTitle(author, title string) ([]dto.BooksRaw, error)
+	GetBooksByAuthorAndTitle(authorName, title string) ([]dto.BooksRaw, error)
 }
 
 type bookRepository struct {
@@ -55,7 +55,7 @@ func (r *bookRepository) FindByID(ID uint) (*model.Book, error) {
 	return &book, nil
 }
 
-func (r *bookRepository) GetBooksByAuthor(author string) ([]dto.BooksRaw, error) {
+func (r *bookRepository) GetBooksByAuthor(authorName string) ([]dto.BooksRaw, error) {
 	var rawBooks []dto.BooksRaw
 
 	const query = `
@@ -79,7 +79,7 @@ func (r *bookRepository) GetBooksByAuthor(author string) ([]dto.BooksRaw, error)
 		ORDER BY b.author_id
 	`
 
-	if err := r.db.Raw(query, "%"+author+"%").Scan(&rawBooks).Error; err != nil {
+	if err := r.db.Raw(query, "%"+authorName+"%").Scan(&rawBooks).Error; err != nil {
 		return nil, err
 	}
 
@@ -116,7 +116,7 @@ func (r *bookRepository) GetBooksByTitle(title string) ([]dto.BooksRaw, error) {
 	return rawBooks, nil
 }
 
-func (r *bookRepository) GetBooksByAuthorAndTitle(author, title string) ([]dto.BooksRaw, error) {
+func (r *bookRepository) GetBooksByAuthorAndTitle(authorName, title string) ([]dto.BooksRaw, error) {
 	var rawBooks []dto.BooksRaw
 
 	const query = `
@@ -139,7 +139,7 @@ func (r *bookRepository) GetBooksByAuthorAndTitle(author, title string) ([]dto.B
 		ORDER BY b.author_id
 	`
 
-	if err := r.db.Raw(query, "%"+author+"%", "%"+title+"%").Scan(&rawBooks).Error; err != nil {
+	if err := r.db.Raw(query, "%"+authorName+"%", "%"+title+"%").Scan(&rawBooks).Error; err != nil {
 		return nil, err
 	}
 
