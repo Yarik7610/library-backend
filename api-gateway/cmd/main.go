@@ -24,20 +24,23 @@ func main() {
 	r := gin.Default()
 	r.Use(middleware.AuthMiddleware())
 
-	r.POST(sharedconstants.SIGN_UP_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET))
-	r.POST(sharedconstants.SIGN_IN_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET))
-	r.GET(sharedconstants.ME_ROUTE, core.ForwardTo(constants.USER_MICROSERVICE_SOCKET))
+	userMicroserviceHandler := core.ForwardTo(constants.USER_MICROSERVICE_SOCKET)
+	catalogMicroserviceHandler := core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET)
+
+	r.POST(sharedconstants.SIGN_UP_ROUTE, userMicroserviceHandler)
+	r.POST(sharedconstants.SIGN_IN_ROUTE, userMicroserviceHandler)
+	r.GET(sharedconstants.ME_ROUTE, userMicroserviceHandler)
 
 	catalogRouter := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
-		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
-		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName"+sharedconstants.BOOKS_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
-		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE+sharedconstants.BOOK_ROUTE+"/:bookID", core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
-		catalogRouter.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
-		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
+		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
+		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
+		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE+sharedconstants.BOOK_ROUTE+"/:bookID", catalogMicroserviceHandler)
+		catalogRouter.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
+		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogMicroserviceHandler)
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
-		zap.S().Fatalf("API-gateway start error on port %s: %v", config.Data.ServerPort, err)
+		zap.S().Fatalf("Start error on port %s: %v", config.Data.ServerPort, err)
 	}
 }
