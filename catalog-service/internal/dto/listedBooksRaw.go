@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-type BooksRaw struct {
+type ListedBooksRaw struct {
 	AuthorID uint            `json:"author_id"`
 	Fullname string          `json:"fullname"`
 	Books    json.RawMessage `json:"books"`

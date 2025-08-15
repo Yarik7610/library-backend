@@ -16,10 +16,10 @@ type BookRepository interface {
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
 	GetBooksByAuthorID(authorID int) ([]model.Book, error)
-	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.BooksRaw, error)
-	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.BooksRaw, error)
-	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.BooksRaw, error)
-	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.BooksRaw, error)
+	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
+	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
+	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
+	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
 }
 
 type bookRepository struct {
@@ -67,24 +67,24 @@ func (r *bookRepository) GetBooksByAuthorID(authorID int) ([]model.Book, error) 
 	return books, nil
 }
 
-func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
+func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
 	return r.listBooksBy(map[string]string{"author": authorName}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
+func (r *bookRepository) ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
 	return r.listBooksBy(map[string]string{"title": title}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
+func (r *bookRepository) ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
 	return r.listBooksBy(map[string]string{"author": authorName, "title": title}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByCategory(category string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
+func (r *bookRepository) ListBooksByCategory(category string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
 	return r.listBooksBy(map[string]string{"category": category}, page, count, sort, order)
 }
 
-func (r *bookRepository) listBooksBy(filters map[string]string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
-	var rawBooks []dto.BooksRaw
+func (r *bookRepository) listBooksBy(filters map[string]string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
+	var rawBooks []dto.ListedBooksRaw
 	offset := (page - 1) * count
 
 	sort, order = validateOrderParams(sort, order)

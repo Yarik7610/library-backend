@@ -14,10 +14,10 @@ type CatalogService interface {
 	GetCategories() ([]string, *custom.Err)
 	PreviewBook(bookID uint) (*model.Book, *custom.Err)
 	GetBooksByAuthorID(authorID int) ([]model.Book, *custom.Err)
-	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.Books, *custom.Err)
-	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.Books, *custom.Err)
-	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.Books, *custom.Err)
-	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.Books, *custom.Err)
+	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
+	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
+	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
+	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
 }
 
 type catalogService struct {
@@ -57,42 +57,42 @@ func (s *catalogService) GetBooksByAuthorID(authorID int) ([]model.Book, *custom
 	return books, nil
 }
 
-func (s *catalogService) ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.Books, *custom.Err) {
+func (s *catalogService) ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err) {
 	rawBooks, err := s.bookRepository.ListBooksByAuthorName(authorName, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 
-	return s.convertRawBooks(rawBooks)
+	return s.parseListedBooksRaw(rawBooks)
 }
 
-func (s *catalogService) ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.Books, *custom.Err) {
+func (s *catalogService) ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err) {
 	rawBooks, err := s.bookRepository.ListBooksByTitle(title, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 
-	return s.convertRawBooks(rawBooks)
+	return s.parseListedBooksRaw(rawBooks)
 }
 
-func (s *catalogService) ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.Books, *custom.Err) {
+func (s *catalogService) ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err) {
 	rawBooks, err := s.bookRepository.ListBooksByAuthorNameAndTitle(authorName, title, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 
-	return s.convertRawBooks(rawBooks)
+	return s.parseListedBooksRaw(rawBooks)
 }
 
-func (s *catalogService) convertRawBooks(raw []dto.BooksRaw) ([]dto.Books, *custom.Err) {
-	converted := make([]dto.Books, 0, len(raw))
+func (s *catalogService) parseListedBooksRaw(raw []dto.ListedBooksRaw) ([]dto.ListedBooks, *custom.Err) {
+	converted := make([]dto.ListedBooks, 0, len(raw))
 	for _, row := range raw {
-		var books []dto.Book
+		var books []dto.ListedBook
 		if err := json.Unmarshal(row.Books, &books); err != nil {
 			return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 		}
 
-		converted = append(converted, dto.Books{
+		converted = append(converted, dto.ListedBooks{
 			AuthorID: row.AuthorID,
 			Fullname: row.Fullname,
 			Books:    books,
@@ -101,11 +101,11 @@ func (s *catalogService) convertRawBooks(raw []dto.BooksRaw) ([]dto.Books, *cust
 	return converted, nil
 }
 
-func (s *catalogService) ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.Books, *custom.Err) {
+func (s *catalogService) ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err) {
 	rawBooks, err := s.bookRepository.ListBooksByCategory(categoryName, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 
-	return s.convertRawBooks(rawBooks)
+	return s.parseListedBooksRaw(rawBooks)
 }

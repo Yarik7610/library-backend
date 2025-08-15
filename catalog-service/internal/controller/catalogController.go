@@ -31,7 +31,6 @@ func NewCatalogController(catalogService service.CatalogService) CatalogControll
 func (c *catalogController) PreviewBook(ctx *gin.Context) {
 	bookIDStr := ctx.Param("bookID")
 	bookID, err := strconv.ParseUint(bookIDStr, 10, 64)
-
 	if err != nil {
 		zap.S().Errorf("Preview book id param error: %v\n", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -81,7 +80,6 @@ func (c *catalogController) GetBooksByAuthorID(ctx *gin.Context) {
 
 func (c *catalogController) SearchBooks(ctx *gin.Context) {
 	var q query.SearchBooks
-
 	if err := ctx.ShouldBindQuery(&q); err != nil {
 		zap.S().Errorf("Search books query bind error: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -96,7 +94,7 @@ func (c *catalogController) SearchBooks(ctx *gin.Context) {
 
 	sort, order := initOrderParams(q.Sort, q.Order)
 
-	var books []dto.Books
+	var books []dto.ListedBooks
 	var err *custom.Err
 
 	if q.Author != "" && q.Title != "" {
