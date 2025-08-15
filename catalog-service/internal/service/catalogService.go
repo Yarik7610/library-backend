@@ -13,7 +13,9 @@ import (
 type CatalogService interface {
 	GetCategories() ([]string, *custom.Err)
 	PreviewBook(bookID uint) (*model.Book, *custom.Err)
-	GetAuthorsBooks(authorName string) ([]dto.AuthorBooks, *custom.Err)
+	GetBooksByAuthor(author string) ([]dto.Books, *custom.Err)
+	GetBooksByTitle(title string) ([]dto.Books, *custom.Err)
+	GetBooksByAuthorAndTitle(author, title string) ([]dto.Books, *custom.Err)
 }
 
 type catalogService struct {
@@ -44,25 +46,46 @@ func (s *catalogService) PreviewBook(bookID uint) (*model.Book, *custom.Err) {
 	return book, nil
 }
 
-func (s *catalogService) GetAuthorsBooks(authorName string) ([]dto.AuthorBooks, *custom.Err) {
-	rawAuthorsBooks, err := s.bookRepository.GetAuthorsBooks(authorName)
+func (s *catalogService) GetBooksByAuthor(author string) ([]dto.Books, *custom.Err) {
+	rawBooks, err := s.bookRepository.GetBooksByAuthor(author)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 
-	authorsBooks := make([]dto.AuthorBooks, 0, len(rawAuthorsBooks))
-	for _, row := range rawAuthorsBooks {
-		var books []dto.AuthorBookRaw
+	return s.convertRawBooks(rawBooks)
+}
+
+func (s *catalogService) GetBooksByTitle(title string) ([]dto.Books, *custom.Err) {
+	rawBooks, err := s.bookRepository.GetBooksByTitle(title)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	return s.convertRawBooks(rawBooks)
+}
+
+func (s *catalogService) GetBooksByAuthorAndTitle(author, title string) ([]dto.Books, *custom.Err) {
+	rawBooks, err := s.bookRepository.GetBooksByAuthorAndTitle(author, title)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	return s.convertRawBooks(rawBooks)
+}
+
+func (s *catalogService) convertRawBooks(raw []dto.BooksRaw) ([]dto.Books, *custom.Err) {
+	booksByAuthor := make([]dto.Books, 0, len(raw))
+	for _, row := range raw {
+		var books []dto.BookRaw
 		if err := json.Unmarshal(row.Books, &books); err != nil {
 			return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 		}
 
-		authorsBooks = append(authorsBooks, dto.AuthorBooks{
+		booksByAuthor = append(booksByAuthor, dto.Books{
 			AuthorID: row.AuthorID,
 			Fullname: row.Fullname,
 			Books:    books,
 		})
 	}
-
-	return authorsBooks, nil
+	return booksByAuthor, nil
 }

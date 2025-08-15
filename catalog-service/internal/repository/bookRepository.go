@@ -13,7 +13,9 @@ type BookRepository interface {
 	CreateBook(book *model.Book) error
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
-	GetAuthorsBooks(authorName string) ([]dto.AuthorBooksRaw, error)
+	GetBooksByAuthor(author string) ([]dto.BooksRaw, error)
+	GetBooksByTitle(title string) ([]dto.BooksRaw, error)
+	GetBooksByAuthorAndTitle(author, title string) ([]dto.BooksRaw, error)
 }
 
 type bookRepository struct {
@@ -53,8 +55,8 @@ func (r *bookRepository) FindByID(ID uint) (*model.Book, error) {
 	return &book, nil
 }
 
-func (r *bookRepository) GetAuthorsBooks(authorName string) ([]dto.AuthorBooksRaw, error) {
-	var rawAuthorsBooks []dto.AuthorBooksRaw
+func (r *bookRepository) GetBooksByAuthor(author string) ([]dto.BooksRaw, error) {
+	var rawBooks []dto.BooksRaw
 
 	const query = `
 		SELECT 
@@ -77,9 +79,69 @@ func (r *bookRepository) GetAuthorsBooks(authorName string) ([]dto.AuthorBooksRa
 		ORDER BY b.author_id
 	`
 
-	if err := r.db.Raw(query, "%"+authorName+"%").Scan(&rawAuthorsBooks).Error; err != nil {
+	if err := r.db.Raw(query, "%"+author+"%").Scan(&rawBooks).Error; err != nil {
 		return nil, err
 	}
 
-	return rawAuthorsBooks, nil
+	return rawBooks, nil
+}
+
+func (r *bookRepository) GetBooksByTitle(title string) ([]dto.BooksRaw, error) {
+	var rawBooks []dto.BooksRaw
+
+	const query = `
+		SELECT 
+			b.author_id, 
+			a.fullname,
+			json_agg(
+				json_build_object(
+					'id', b.id,
+					'created_at', b.created_at,
+					'title', b.title,
+					'year', b.year,
+					'category', b.category
+				)
+			) books
+		FROM books b
+		INNER JOIN authors a ON b.author_id = a.id
+		WHERE b.title ILIKE ?
+		GROUP BY b.author_id, a.fullname
+		ORDER BY b.author_id
+	`
+
+	if err := r.db.Raw(query, "%"+title+"%").Scan(&rawBooks).Error; err != nil {
+		return nil, err
+	}
+
+	return rawBooks, nil
+}
+
+func (r *bookRepository) GetBooksByAuthorAndTitle(author, title string) ([]dto.BooksRaw, error) {
+	var rawBooks []dto.BooksRaw
+
+	const query = `
+		SELECT 
+			b.author_id, 
+			a.fullname,
+			json_agg(
+				json_build_object(
+					'id', b.id,
+					'created_at', b.created_at,
+					'title', b.title,
+					'year', b.year,
+					'category', b.category
+				)
+			) books
+		FROM books b
+		INNER JOIN authors a ON b.author_id = a.id
+		WHERE a.fullname ILIKE ? AND b.title ILIKE ?
+		GROUP BY b.author_id, a.fullname
+		ORDER BY b.author_id
+	`
+
+	if err := r.db.Raw(query, "%"+author+"%", "%"+title+"%").Scan(&rawBooks).Error; err != nil {
+		return nil, err
+	}
+
+	return rawBooks, nil
 }
