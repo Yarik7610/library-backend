@@ -50,8 +50,9 @@ func main() {
 	catalogRouter := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
 		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, catalogController.GetCategories)
-		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogController.PreviewBook)
-		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:authorName", catalogController.GetBooksByAuthor)
+		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName"+sharedconstants.BOOKS_ROUTE, catalogController.ListBooksByCategory)
+		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE+sharedconstants.BOOK_ROUTE+"/:bookID", catalogController.PreviewBook)
+		catalogRouter.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogController.GetBooksByAuthorID)
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogController.SearchBooks)
 	}
 

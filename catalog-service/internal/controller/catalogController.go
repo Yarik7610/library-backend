@@ -12,9 +12,10 @@ import (
 )
 
 type CatalogController interface {
-	PreviewBook(ctx *gin.Context)
 	GetCategories(ctx *gin.Context)
-	GetBooksByAuthor(ctx *gin.Context)
+	ListBooksByCategory(ctx *gin.Context)
+	PreviewBook(ctx *gin.Context)
+	GetBooksByAuthorID(ctx *gin.Context)
 	SearchBooks(ctx *gin.Context)
 }
 
@@ -57,12 +58,20 @@ func (c *catalogController) GetCategories(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, categories)
 }
 
-func (c *catalogController) GetBooksByAuthor(ctx *gin.Context) {
-	authorName := ctx.Param("authorName")
-	books, err := c.catalogService.GetBooksByAuthor(authorName)
+func (c *catalogController) GetBooksByAuthorID(ctx *gin.Context) {
+	authorIDString := ctx.Param("authorID")
+	authorID, err := strconv.Atoi(authorIDString)
 	if err != nil {
-		zap.S().Errorf("Get books by author error: %v\n", err)
-		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		zap.S().Errorf("Get books by author ID atoi error: %v\n", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var customErr *custom.Err
+	books, customErr := c.catalogService.GetBooksByAuthorID(authorID)
+	if customErr != nil {
+		zap.S().Errorf("Get books by author ID error: %v\n", err)
+		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
 		return
 	}
 
@@ -83,15 +92,49 @@ func (c *catalogController) SearchBooks(ctx *gin.Context) {
 	var err *custom.Err
 
 	if authorName != "" && title != "" {
-		books, err = c.catalogService.GetBooksByAuthorAndTitle(authorName, title)
+		books, err = c.catalogService.GetBooksByAuthorNameAndTitle(authorName, title)
 	} else if authorName != "" {
-		books, err = c.catalogService.GetBooksByAuthor(authorName)
+		books, err = c.catalogService.GetBooksByAuthorName(authorName)
 	} else {
 		books, err = c.catalogService.GetBooksByTitle(title)
 	}
 
 	if err != nil {
 		zap.S().Errorf("Search books error: %v\n", err.Message)
+		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, books)
+}
+
+type ListBooksByCategoryQuery struct {
+	Page  int    `form:"page" binding:"required,min=1"`
+	Count int    `form:"count" binding:"required,min=1,max=100"`
+	Sort  string `form:"sort"`
+	Order string `form:"order"`
+}
+
+func (c *catalogController) ListBooksByCategory(ctx *gin.Context) {
+	categoryName := ctx.Param("categoryName")
+	var query ListBooksByCategoryQuery
+
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		zap.S().Errorf("List books by query params error: %v", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if query.Sort == "" {
+		query.Sort = "title"
+	}
+	if query.Order == "" {
+		query.Sort = "asc"
+	}
+
+	books, err := c.catalogService.ListBooksByCategory(categoryName, query.Page, query.Count, query.Sort, query.Order)
+	if err != nil {
+		zap.S().Errorf("List books by category error: %v\n", err)
 		ctx.JSON(err.Code, gin.H{"error": err.Message})
 		return
 	}

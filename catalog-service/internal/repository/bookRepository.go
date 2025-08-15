@@ -2,6 +2,8 @@ package repository
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
@@ -13,9 +15,11 @@ type BookRepository interface {
 	CreateBook(book *model.Book) error
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
-	GetBooksByAuthor(authorName string) ([]dto.BooksRaw, error)
+	GetBooksByAuthorID(authorID int) ([]model.Book, error)
+	GetBooksByAuthorName(authorName string) ([]dto.BooksRaw, error)
 	GetBooksByTitle(title string) ([]dto.BooksRaw, error)
-	GetBooksByAuthorAndTitle(authorName, title string) ([]dto.BooksRaw, error)
+	GetBooksByAuthorNameAndTitle(authorName, title string) ([]dto.BooksRaw, error)
+	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.BooksRaw, error)
 }
 
 type bookRepository struct {
@@ -55,7 +59,15 @@ func (r *bookRepository) FindByID(ID uint) (*model.Book, error) {
 	return &book, nil
 }
 
-func (r *bookRepository) GetBooksByAuthor(authorName string) ([]dto.BooksRaw, error) {
+func (r *bookRepository) GetBooksByAuthorID(authorID int) ([]model.Book, error) {
+	var books []model.Book
+	if err := r.db.Where("author_id = ?", authorID).Find(&books).Error; err != nil {
+		return nil, err
+	}
+	return books, nil
+}
+
+func (r *bookRepository) GetBooksByAuthorName(authorName string) ([]dto.BooksRaw, error) {
 	var rawBooks []dto.BooksRaw
 
 	const query = `
@@ -116,7 +128,7 @@ func (r *bookRepository) GetBooksByTitle(title string) ([]dto.BooksRaw, error) {
 	return rawBooks, nil
 }
 
-func (r *bookRepository) GetBooksByAuthorAndTitle(authorName, title string) ([]dto.BooksRaw, error) {
+func (r *bookRepository) GetBooksByAuthorNameAndTitle(authorName, title string) ([]dto.BooksRaw, error) {
 	var rawBooks []dto.BooksRaw
 
 	const query = `
@@ -140,6 +152,47 @@ func (r *bookRepository) GetBooksByAuthorAndTitle(authorName, title string) ([]d
 	`
 
 	if err := r.db.Raw(query, "%"+authorName+"%", "%"+title+"%").Scan(&rawBooks).Error; err != nil {
+		return nil, err
+	}
+
+	return rawBooks, nil
+}
+
+func (r *bookRepository) ListBooksByCategory(category string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
+	var rawBooks []dto.BooksRaw
+	offset := (page - 1) * count
+
+	sort = strings.ToLower(sort)
+	if sort != "title" && sort != "year" && sort != "category" {
+		sort = "title"
+	}
+
+	order = strings.ToUpper(order)
+	if order != "ASC" && order != "DESC" {
+		order = "ASC"
+	}
+
+	query := fmt.Sprintf(`
+		SELECT 
+			b.author_id, 
+			a.fullname,
+			json_agg(
+				json_build_object(
+					'id', b.id,
+					'created_at', b.created_at,
+					'title', b.title,
+					'year', b.year,
+					'category', b.category
+				) ORDER BY %s %s
+			) books
+		FROM books b
+		INNER JOIN authors a ON b.author_id = a.id
+		WHERE b.category ILIKE ?
+		GROUP BY b.author_id, a.fullname
+		LIMIT ? OFFSET ?
+	`, sort, order)
+
+	if err := r.db.Raw(query, category, count, offset).Scan(&rawBooks).Error; err != nil {
 		return nil, err
 	}
 

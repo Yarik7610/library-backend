@@ -31,10 +31,10 @@ func main() {
 	catalogRouter := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
 		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
-		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE+"/:bookID", core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
-		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:authorName", core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
+		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName"+sharedconstants.BOOKS_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
+		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE+sharedconstants.BOOK_ROUTE+"/:bookID", core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
+		catalogRouter.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
-		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:categoryName", core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET))
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {

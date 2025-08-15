@@ -13,9 +13,11 @@ import (
 type CatalogService interface {
 	GetCategories() ([]string, *custom.Err)
 	PreviewBook(bookID uint) (*model.Book, *custom.Err)
-	GetBooksByAuthor(authorName string) ([]dto.Books, *custom.Err)
+	GetBooksByAuthorID(authorID int) ([]model.Book, *custom.Err)
+	GetBooksByAuthorName(authorName string) ([]dto.Books, *custom.Err)
 	GetBooksByTitle(title string) ([]dto.Books, *custom.Err)
-	GetBooksByAuthorAndTitle(authorName, title string) ([]dto.Books, *custom.Err)
+	GetBooksByAuthorNameAndTitle(authorName, title string) ([]dto.Books, *custom.Err)
+	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.Books, *custom.Err)
 }
 
 type catalogService struct {
@@ -46,8 +48,17 @@ func (s *catalogService) PreviewBook(bookID uint) (*model.Book, *custom.Err) {
 	return book, nil
 }
 
-func (s *catalogService) GetBooksByAuthor(authorName string) ([]dto.Books, *custom.Err) {
-	rawBooks, err := s.bookRepository.GetBooksByAuthor(authorName)
+func (s *catalogService) GetBooksByAuthorID(authorID int) ([]model.Book, *custom.Err) {
+	books, err := s.bookRepository.GetBooksByAuthorID(authorID)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	return books, nil
+}
+
+func (s *catalogService) GetBooksByAuthorName(authorName string) ([]dto.Books, *custom.Err) {
+	rawBooks, err := s.bookRepository.GetBooksByAuthorName(authorName)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
@@ -64,8 +75,8 @@ func (s *catalogService) GetBooksByTitle(title string) ([]dto.Books, *custom.Err
 	return s.convertRawBooks(rawBooks)
 }
 
-func (s *catalogService) GetBooksByAuthorAndTitle(authorName, title string) ([]dto.Books, *custom.Err) {
-	rawBooks, err := s.bookRepository.GetBooksByAuthorAndTitle(authorName, title)
+func (s *catalogService) GetBooksByAuthorNameAndTitle(authorName, title string) ([]dto.Books, *custom.Err) {
+	rawBooks, err := s.bookRepository.GetBooksByAuthorNameAndTitle(authorName, title)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
@@ -88,4 +99,13 @@ func (s *catalogService) convertRawBooks(raw []dto.BooksRaw) ([]dto.Books, *cust
 		})
 	}
 	return converted, nil
+}
+
+func (s *catalogService) ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.Books, *custom.Err) {
+	rawBooks, err := s.bookRepository.ListBooksByCategory(categoryName, page, count, sort, order)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	return s.convertRawBooks(rawBooks)
 }
