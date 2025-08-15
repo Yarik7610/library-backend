@@ -6,6 +6,7 @@ import (
 
 	"github.com/Yarik7610/library-backend-common/custom"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/query"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -79,28 +80,35 @@ func (c *catalogController) GetBooksByAuthorID(ctx *gin.Context) {
 }
 
 func (c *catalogController) SearchBooks(ctx *gin.Context) {
-	authorName := ctx.Query("author")
-	title := ctx.Query("title")
+	var q query.SearchBooks
 
-	if authorName == "" && title == "" {
-		zap.S().Errorf("Search books error: can't have both query strings author and title empty")
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Can't have both empty author and title"})
+	if err := ctx.ShouldBindQuery(&q); err != nil {
+		zap.S().Errorf("Search books query bind error: %v", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	if q.Author == "" && q.Title == "" {
+		zap.S().Error("Search books error: both author and title are empty")
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Can't have both empty author and title query strings"})
+		return
+	}
+
+	sort, order := initOrderParams(q.Sort, q.Order)
 
 	var books []dto.Books
 	var err *custom.Err
 
-	if authorName != "" && title != "" {
-		books, err = c.catalogService.GetBooksByAuthorNameAndTitle(authorName, title)
-	} else if authorName != "" {
-		books, err = c.catalogService.GetBooksByAuthorName(authorName)
+	if q.Author != "" && q.Title != "" {
+		books, err = c.catalogService.ListBooksByAuthorNameAndTitle(q.Author, q.Title, q.Page, q.Count, sort, order)
+	} else if q.Author != "" {
+		books, err = c.catalogService.ListBooksByAuthorName(q.Author, q.Page, q.Count, sort, order)
 	} else {
-		books, err = c.catalogService.GetBooksByTitle(title)
+		books, err = c.catalogService.ListBooksByTitle(q.Title, q.Page, q.Count, sort, order)
 	}
 
 	if err != nil {
-		zap.S().Errorf("Search books error: %v\n", err.Message)
+		zap.S().Errorf("Search books error: %v", err.Message)
 		ctx.JSON(err.Code, gin.H{"error": err.Message})
 		return
 	}
@@ -108,31 +116,19 @@ func (c *catalogController) SearchBooks(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, books)
 }
 
-type ListBooksByCategoryQuery struct {
-	Page  int    `form:"page" binding:"required,min=1"`
-	Count int    `form:"count" binding:"required,min=1,max=100"`
-	Sort  string `form:"sort"`
-	Order string `form:"order"`
-}
-
 func (c *catalogController) ListBooksByCategory(ctx *gin.Context) {
 	categoryName := ctx.Param("categoryName")
-	var query ListBooksByCategoryQuery
+	var q query.ListBooksByCategory
 
-	if err := ctx.ShouldBindQuery(&query); err != nil {
+	if err := ctx.ShouldBindQuery(&q); err != nil {
 		zap.S().Errorf("List books by query params error: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if query.Sort == "" {
-		query.Sort = "title"
-	}
-	if query.Order == "" {
-		query.Sort = "asc"
-	}
+	sort, order := initOrderParams(q.Sort, q.Order)
 
-	books, err := c.catalogService.ListBooksByCategory(categoryName, query.Page, query.Count, query.Sort, query.Order)
+	books, err := c.catalogService.ListBooksByCategory(categoryName, q.Page, q.Count, sort, order)
 	if err != nil {
 		zap.S().Errorf("List books by category error: %v\n", err)
 		ctx.JSON(err.Code, gin.H{"error": err.Message})
@@ -140,4 +136,14 @@ func (c *catalogController) ListBooksByCategory(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, books)
+}
+
+func initOrderParams(sort, order string) (string, string) {
+	if sort == "" {
+		sort = "title"
+	}
+	if order == "" {
+		order = "asc"
+	}
+	return sort, order
 }

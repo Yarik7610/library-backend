@@ -14,9 +14,9 @@ type CatalogService interface {
 	GetCategories() ([]string, *custom.Err)
 	PreviewBook(bookID uint) (*model.Book, *custom.Err)
 	GetBooksByAuthorID(authorID int) ([]model.Book, *custom.Err)
-	GetBooksByAuthorName(authorName string) ([]dto.Books, *custom.Err)
-	GetBooksByTitle(title string) ([]dto.Books, *custom.Err)
-	GetBooksByAuthorNameAndTitle(authorName, title string) ([]dto.Books, *custom.Err)
+	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.Books, *custom.Err)
+	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.Books, *custom.Err)
+	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.Books, *custom.Err)
 	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.Books, *custom.Err)
 }
 
@@ -57,8 +57,8 @@ func (s *catalogService) GetBooksByAuthorID(authorID int) ([]model.Book, *custom
 	return books, nil
 }
 
-func (s *catalogService) GetBooksByAuthorName(authorName string) ([]dto.Books, *custom.Err) {
-	rawBooks, err := s.bookRepository.GetBooksByAuthorName(authorName)
+func (s *catalogService) ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.Books, *custom.Err) {
+	rawBooks, err := s.bookRepository.ListBooksByAuthorName(authorName, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
@@ -66,8 +66,8 @@ func (s *catalogService) GetBooksByAuthorName(authorName string) ([]dto.Books, *
 	return s.convertRawBooks(rawBooks)
 }
 
-func (s *catalogService) GetBooksByTitle(title string) ([]dto.Books, *custom.Err) {
-	rawBooks, err := s.bookRepository.GetBooksByTitle(title)
+func (s *catalogService) ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.Books, *custom.Err) {
+	rawBooks, err := s.bookRepository.ListBooksByTitle(title, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
@@ -75,8 +75,8 @@ func (s *catalogService) GetBooksByTitle(title string) ([]dto.Books, *custom.Err
 	return s.convertRawBooks(rawBooks)
 }
 
-func (s *catalogService) GetBooksByAuthorNameAndTitle(authorName, title string) ([]dto.Books, *custom.Err) {
-	rawBooks, err := s.bookRepository.GetBooksByAuthorNameAndTitle(authorName, title)
+func (s *catalogService) ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.Books, *custom.Err) {
+	rawBooks, err := s.bookRepository.ListBooksByAuthorNameAndTitle(authorName, title, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}

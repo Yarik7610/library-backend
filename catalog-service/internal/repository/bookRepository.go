@@ -16,9 +16,9 @@ type BookRepository interface {
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
 	GetBooksByAuthorID(authorID int) ([]model.Book, error)
-	GetBooksByAuthorName(authorName string) ([]dto.BooksRaw, error)
-	GetBooksByTitle(title string) ([]dto.BooksRaw, error)
-	GetBooksByAuthorNameAndTitle(authorName, title string) ([]dto.BooksRaw, error)
+	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.BooksRaw, error)
+	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.BooksRaw, error)
+	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.BooksRaw, error)
 	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.BooksRaw, error)
 }
 
@@ -67,109 +67,47 @@ func (r *bookRepository) GetBooksByAuthorID(authorID int) ([]model.Book, error) 
 	return books, nil
 }
 
-func (r *bookRepository) GetBooksByAuthorName(authorName string) ([]dto.BooksRaw, error) {
-	var rawBooks []dto.BooksRaw
-
-	const query = `
-		SELECT 
-			b.author_id, 
-			a.fullname,
-			json_agg(
-				json_build_object(
-					'id', b.id,
-					'created_at', b.created_at,
-					'title', b.title,
-					'year', b.year,
-					'category', b.category
-				)
-			) books
-		FROM books b
-		INNER JOIN authors a
-		ON b.author_id = a.id
-		WHERE a.fullname ILIKE ?
-		GROUP BY b.author_id, a.fullname
-		ORDER BY b.author_id
-	`
-
-	if err := r.db.Raw(query, "%"+authorName+"%").Scan(&rawBooks).Error; err != nil {
-		return nil, err
-	}
-
-	return rawBooks, nil
+func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
+	return r.listBooksBy(map[string]string{"author": authorName}, page, count, sort, order)
 }
 
-func (r *bookRepository) GetBooksByTitle(title string) ([]dto.BooksRaw, error) {
-	var rawBooks []dto.BooksRaw
-
-	const query = `
-		SELECT 
-			b.author_id, 
-			a.fullname,
-			json_agg(
-				json_build_object(
-					'id', b.id,
-					'created_at', b.created_at,
-					'title', b.title,
-					'year', b.year,
-					'category', b.category
-				)
-			) books
-		FROM books b
-		INNER JOIN authors a ON b.author_id = a.id
-		WHERE b.title ILIKE ?
-		GROUP BY b.author_id, a.fullname
-		ORDER BY b.author_id
-	`
-
-	if err := r.db.Raw(query, "%"+title+"%").Scan(&rawBooks).Error; err != nil {
-		return nil, err
-	}
-
-	return rawBooks, nil
+func (r *bookRepository) ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
+	return r.listBooksBy(map[string]string{"title": title}, page, count, sort, order)
 }
 
-func (r *bookRepository) GetBooksByAuthorNameAndTitle(authorName, title string) ([]dto.BooksRaw, error) {
-	var rawBooks []dto.BooksRaw
-
-	const query = `
-		SELECT 
-			b.author_id, 
-			a.fullname,
-			json_agg(
-				json_build_object(
-					'id', b.id,
-					'created_at', b.created_at,
-					'title', b.title,
-					'year', b.year,
-					'category', b.category
-				)
-			) books
-		FROM books b
-		INNER JOIN authors a ON b.author_id = a.id
-		WHERE a.fullname ILIKE ? AND b.title ILIKE ?
-		GROUP BY b.author_id, a.fullname
-		ORDER BY b.author_id
-	`
-
-	if err := r.db.Raw(query, "%"+authorName+"%", "%"+title+"%").Scan(&rawBooks).Error; err != nil {
-		return nil, err
-	}
-
-	return rawBooks, nil
+func (r *bookRepository) ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
+	return r.listBooksBy(map[string]string{"author": authorName, "title": title}, page, count, sort, order)
 }
 
 func (r *bookRepository) ListBooksByCategory(category string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
+	return r.listBooksBy(map[string]string{"category": category}, page, count, sort, order)
+}
+
+func (r *bookRepository) listBooksBy(filters map[string]string, page, count int, sort, order string) ([]dto.BooksRaw, error) {
 	var rawBooks []dto.BooksRaw
 	offset := (page - 1) * count
 
-	sort = strings.ToLower(sort)
-	if sort != "title" && sort != "year" && sort != "category" {
-		sort = "title"
+	sort, order = validateOrderParams(sort, order)
+
+	whereClauses := []string{}
+	args := []any{}
+
+	if v, ok := filters["author"]; ok && v != "" {
+		whereClauses = append(whereClauses, "a.fullname ILIKE ?")
+		args = append(args, "%"+v+"%")
+	}
+	if v, ok := filters["title"]; ok && v != "" {
+		whereClauses = append(whereClauses, "b.title ILIKE ?")
+		args = append(args, "%"+v+"%")
+	}
+	if v, ok := filters["category"]; ok && v != "" {
+		whereClauses = append(whereClauses, "b.category ILIKE ?")
+		args = append(args, "%"+v+"%")
 	}
 
-	order = strings.ToUpper(order)
-	if order != "ASC" && order != "DESC" {
-		order = "ASC"
+	whereSQL := ""
+	if len(whereClauses) > 0 {
+		whereSQL = "WHERE " + strings.Join(whereClauses, " AND ")
 	}
 
 	query := fmt.Sprintf(`
@@ -184,17 +122,32 @@ func (r *bookRepository) ListBooksByCategory(category string, page, count int, s
 					'year', b.year,
 					'category', b.category
 				) ORDER BY %s %s
-			) books
+			) AS books
 		FROM books b
 		INNER JOIN authors a ON b.author_id = a.id
-		WHERE b.category ILIKE ?
+		%s
 		GROUP BY b.author_id, a.fullname
+		ORDER BY b.author_id
 		LIMIT ? OFFSET ?
-	`, sort, order)
+	`, sort, order, whereSQL)
 
-	if err := r.db.Raw(query, category, count, offset).Scan(&rawBooks).Error; err != nil {
+	args = append(args, count, offset)
+
+	if err := r.db.Raw(query, args...).Scan(&rawBooks).Error; err != nil {
 		return nil, err
 	}
 
 	return rawBooks, nil
+}
+
+func validateOrderParams(sort, order string) (string, string) {
+	sort = strings.ToLower(sort)
+	if sort != "title" && sort != "year" && sort != "category" {
+		sort = "title"
+	}
+	order = strings.ToUpper(order)
+	if order != "ASC" && order != "DESC" {
+		order = "ASC"
+	}
+	return sort, order
 }
