@@ -7,6 +7,7 @@ import (
 
 type AuthorRepository interface {
 	CreateAuthor(author *model.Author) error
+	DeleteAuthor(ID uint) error
 }
 
 type authorRepository struct {
@@ -19,4 +20,8 @@ func NewAuthorRepository(db *gorm.DB) AuthorRepository {
 
 func (r *authorRepository) CreateAuthor(author *model.Author) error {
 	return r.db.Create(author).Error
+}
+
+func (r *authorRepository) DeleteAuthor(ID uint) error {
+	return r.db.Delete(&model.Author{}, ID).Error
 }

@@ -7,5 +7,5 @@ type Author struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Fullname  string
-	Books     []Book `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Books     []Book `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"books,omitempty"`
 }

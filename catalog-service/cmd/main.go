@@ -43,7 +43,7 @@ func main() {
 
 	seed.Books(bookRepo, pageRepo, authorRepo)
 
-	catalogService := service.NewCatalogService(bookRepo, pageRepo)
+	catalogService := service.NewCatalogService(authorRepo, bookRepo, pageRepo)
 	catalogController := controller.NewCatalogController(catalogService)
 
 	r := gin.Default()
@@ -55,8 +55,11 @@ func main() {
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogController.PreviewBook)
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.GetBookPage)
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogController.SearchBooks)
+		// TODO make this for admin only
 		catalogRouter.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.DeleteBook)
 		catalogRouter.POST(sharedconstants.BOOKS_ROUTE, catalogController.AddBook)
+		catalogRouter.DELETE(sharedconstants.AUTHORS_ROUTE+"/:authorID", catalogController.DeleteAuthor)
+		catalogRouter.POST(sharedconstants.AUTHORS_ROUTE, catalogController.CreateAuthor)
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {

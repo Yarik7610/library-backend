@@ -21,6 +21,8 @@ type CatalogController interface {
 	GetBookPage(ctx *gin.Context)
 	DeleteBook(ctx *gin.Context)
 	AddBook(ctx *gin.Context)
+	DeleteAuthor(ctx *gin.Context)
+	CreateAuthor(ctx *gin.Context)
 }
 
 type catalogController struct {
@@ -198,6 +200,42 @@ func (c *catalogController) AddBook(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, book)
+}
+
+func (c *catalogController) DeleteAuthor(ctx *gin.Context) {
+	authorIDString := ctx.Param("authorID")
+	authorID, err := strconv.ParseUint(authorIDString, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	customErr := c.catalogService.DeleteAuthor(uint(authorID))
+	if customErr != nil {
+		zap.S().Errorf("Delete author error: %v\n", err)
+		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+	ctx.Abort()
+}
+
+func (c *catalogController) CreateAuthor(ctx *gin.Context) {
+	var createAuthorDTO dto.CreateAuthor
+	if err := ctx.ShouldBindJSON(&createAuthorDTO); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	author, customErr := c.catalogService.CreateAuthor(createAuthorDTO.Fullname)
+	if customErr != nil {
+		zap.S().Errorf("Create author error: %v\n", customErr.Error())
+		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, author)
 }
 
 func initOrderParams(sort, order string) (string, string) {

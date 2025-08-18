@@ -22,15 +22,18 @@ type CatalogService interface {
 	GetBookPage(bookID, pageNumber uint) (*model.Page, *custom.Err)
 	DeleteBook(bookID uint) *custom.Err
 	AddBook(book *dto.AddBook) (*model.Book, *custom.Err)
+	DeleteAuthor(authorID uint) *custom.Err
+	CreateAuthor(fullname string) (*model.Author, *custom.Err)
 }
 
 type catalogService struct {
-	bookRepository repository.BookRepository
-	pageRepository repository.PageRepository
+	authorRepository repository.AuthorRepository
+	bookRepository   repository.BookRepository
+	pageRepository   repository.PageRepository
 }
 
-func NewCatalogService(bookRepository repository.BookRepository, pageRepository repository.PageRepository) CatalogService {
-	return &catalogService{bookRepository: bookRepository, pageRepository: pageRepository}
+func NewCatalogService(authorRepository repository.AuthorRepository, bookRepository repository.BookRepository, pageRepository repository.PageRepository) CatalogService {
+	return &catalogService{authorRepository: authorRepository, bookRepository: bookRepository, pageRepository: pageRepository}
 }
 
 func (s *catalogService) GetCategories() ([]string, *custom.Err) {
@@ -140,4 +143,23 @@ func (s *catalogService) AddBook(book *dto.AddBook) (*model.Book, *custom.Err) {
 	}
 
 	return created, nil
+}
+
+func (s *catalogService) DeleteAuthor(authorID uint) *custom.Err {
+	err := s.authorRepository.DeleteAuthor(authorID)
+	if err != nil {
+		return custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+	return nil
+}
+
+func (s *catalogService) CreateAuthor(fullname string) (*model.Author, *custom.Err) {
+	author := model.Author{
+		Fullname: fullname,
+	}
+	err := s.authorRepository.CreateAuthor(&author)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+	return &author, nil
 }
