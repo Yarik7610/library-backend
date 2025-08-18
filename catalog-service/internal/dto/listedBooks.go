@@ -10,8 +10,8 @@ type ListedBooks struct {
 
 type ListedBook struct {
 	ID        uint      `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
 	Title     string    `json:"title"`
 	Year      int       `json:"year"`
 	Category  string    `json:"category"`
+	CreatedAt time.Time `json:"created_at"`
 }

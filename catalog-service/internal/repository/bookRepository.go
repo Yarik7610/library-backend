@@ -123,10 +123,10 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint
 			json_agg(
 				json_build_object(
 					'id', b.id,
-					'created_at', b.created_at,
 					'title', b.title,
 					'year', b.year,
-					'category', b.category
+					'category', b.category,
+					'created_at', b.created_at
 				) ORDER BY %s %s
 			) AS books
 		FROM books b

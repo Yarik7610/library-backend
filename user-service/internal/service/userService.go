@@ -12,9 +12,9 @@ import (
 )
 
 type UserService interface {
-	SignUp(user *dto.SignUpUser) (*model.User, *custom.Err)
+	SignUp(user *dto.SignUpUser) (*dto.User, *custom.Err)
 	SignIn(user *dto.SignInUser) (string, *custom.Err)
-	Me(userID uint) (*model.User, *custom.Err)
+	Me(userID uint) (*dto.User, *custom.Err)
 }
 
 type userService struct {
@@ -25,7 +25,7 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 	return &userService{userRepo: userRepo}
 }
 
-func (s *userService) SignUp(user *dto.SignUpUser) (*model.User, *custom.Err) {
+func (s *userService) SignUp(user *dto.SignUpUser) (*dto.User, *custom.Err) {
 	foundUser, err := s.userRepo.FindByEmail(user.Email)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -50,7 +50,12 @@ func (s *userService) SignUp(user *dto.SignUpUser) (*model.User, *custom.Err) {
 		return nil, custom.NewErr(http.StatusInternalServerError, fmt.Sprintf("user create error: %v", err))
 	}
 
-	return newUser, nil
+	return &dto.User{
+		Name:      newUser.Name,
+		Email:     newUser.Email,
+		CreatedAt: newUser.CreatedAt,
+		IsAdmin:   newUser.IsAdmin,
+	}, nil
 }
 
 func (s *userService) SignIn(user *dto.SignInUser) (string, *custom.Err) {
@@ -75,7 +80,7 @@ func (s *userService) SignIn(user *dto.SignInUser) (string, *custom.Err) {
 	return token, nil
 }
 
-func (s *userService) Me(userID uint) (*model.User, *custom.Err) {
+func (s *userService) Me(userID uint) (*dto.User, *custom.Err) {
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -83,5 +88,10 @@ func (s *userService) Me(userID uint) (*model.User, *custom.Err) {
 	if user == nil {
 		return nil, custom.NewErr(http.StatusNotFound, "user not found")
 	}
-	return user, nil
+	return &dto.User{
+		Name:      user.Name,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		IsAdmin:   user.IsAdmin,
+	}, nil
 }

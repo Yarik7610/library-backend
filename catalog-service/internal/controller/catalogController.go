@@ -64,7 +64,7 @@ func (c *catalogController) GetCategories(ctx *gin.Context) {
 }
 
 func (c *catalogController) GetBooksByAuthorID(ctx *gin.Context) {
-	authorIDString := ctx.Param("bookID")
+	authorIDString := ctx.Param("authorID")
 	authorID, err := strconv.ParseUint(authorIDString, 10, 64)
 	if err != nil {
 		zap.S().Errorf("Get books by author ID param error: %v\n", err)
