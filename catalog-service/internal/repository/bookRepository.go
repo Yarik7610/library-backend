@@ -20,6 +20,7 @@ type BookRepository interface {
 	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
 	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
 	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
+	DeleteBook(ID uint) error
 }
 
 type bookRepository struct {
@@ -138,6 +139,10 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count int,
 	}
 
 	return rawBooks, nil
+}
+
+func (r *bookRepository) DeleteBook(ID uint) error {
+	return r.db.Delete(&model.Book{}, ID).Error
 }
 
 func validateOrderParams(sort, order string) (string, string) {

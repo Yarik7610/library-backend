@@ -2,15 +2,12 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Book struct {
 	ID        uint `gorm:"primarykey;uniqueIndex:book_id_number_index"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
 	Title     string
 	AuthorID  uint `json:"author_id"`
 	Year      int

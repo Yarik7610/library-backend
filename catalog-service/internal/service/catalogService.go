@@ -20,6 +20,7 @@ type CatalogService interface {
 	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
 	PreviewBook(bookID uint) (*model.Book, *custom.Err)
 	GetBookPage(bookID uint, pageNumber int) (*model.Page, *custom.Err)
+	DeleteBook(bookID uint) *custom.Err
 }
 
 type catalogService struct {
@@ -118,7 +119,15 @@ func (s *catalogService) GetBookPage(bookID uint, pageNumber int) (*model.Page, 
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 	if page == nil {
-		return nil, custom.NewErr(http.StatusNotFound, fmt.Sprintf("book's page with number %d not found", pageNumber))
+		return nil, custom.NewErr(http.StatusNotFound, fmt.Sprintf("book with ID %d and page number %d not found", bookID, pageNumber))
 	}
 	return page, nil
+}
+
+func (s *catalogService) DeleteBook(bookID uint) *custom.Err {
+	err := s.bookRepository.DeleteBook(bookID)
+	if err != nil {
+		return custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+	return nil
 }

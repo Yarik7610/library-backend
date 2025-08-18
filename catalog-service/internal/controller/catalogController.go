@@ -19,7 +19,7 @@ type CatalogController interface {
 	GetBooksByAuthorID(ctx *gin.Context)
 	SearchBooks(ctx *gin.Context)
 	GetBookPage(ctx *gin.Context)
-	// DeleteBook(ctx *gin.Context)
+	DeleteBook(ctx *gin.Context)
 }
 
 type catalogController struct {
@@ -165,24 +165,25 @@ func (c *catalogController) GetBookPage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, page)
 }
 
-// func (c *catalogController) DeleteBook(ctx *gin.Context) {
-// 	bookIDString := ctx.Param("bookID")
-// 	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
-// 	if err != nil {
-// 		zap.S().Errorf("Delete book ID param error: %v\n", err)
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
+func (c *catalogController) DeleteBook(ctx *gin.Context) {
+	bookIDString := ctx.Param("bookID")
+	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
+	if err != nil {
+		zap.S().Errorf("Delete book ID param error: %v\n", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-// 	book, customErr := c.catalogService.DeleteBook(uint(bookID))
-// 	if customErr != nil {
-// 		zap.S().Errorf("Preview book error: %v\n", err)
-// 		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
-// 		return
-// 	}
+	customErr := c.catalogService.DeleteBook(uint(bookID))
+	if customErr != nil {
+		zap.S().Errorf("Delete book error: %v\n", err)
+		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
+		return
+	}
 
-// 	ctx.JSON(http.StatusOK, book)
-// }
+	ctx.Status(http.StatusNoContent)
+	ctx.Abort()
+}
 
 func initOrderParams(sort, order string) (string, string) {
 	if sort == "" {

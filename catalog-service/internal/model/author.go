@@ -1,9 +1,11 @@
 package model
 
-import "gorm.io/gorm"
+import "time"
 
 type Author struct {
-	gorm.Model
-	Fullname string
-	Books    []Book `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	ID        uint `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Fullname  string
+	Books     []Book `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
