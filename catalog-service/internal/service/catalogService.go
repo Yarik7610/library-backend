@@ -13,14 +13,15 @@ import (
 
 type CatalogService interface {
 	GetCategories() ([]string, *custom.Err)
-	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
+	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
 	GetBooksByAuthorID(authorID uint) ([]model.Book, *custom.Err)
-	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
-	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
-	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
+	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
+	ListBooksByTitle(title string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
+	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
 	PreviewBook(bookID uint) (*model.Book, *custom.Err)
-	GetBookPage(bookID uint, pageNumber int) (*model.Page, *custom.Err)
+	GetBookPage(bookID, pageNumber uint) (*model.Page, *custom.Err)
 	DeleteBook(bookID uint) *custom.Err
+	AddBook(book *dto.AddBook) (*model.Book, *custom.Err)
 }
 
 type catalogService struct {
@@ -60,7 +61,7 @@ func (s *catalogService) GetBooksByAuthorID(authorID uint) ([]model.Book, *custo
 	return books, nil
 }
 
-func (s *catalogService) ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err) {
+func (s *catalogService) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err) {
 	rawBooks, err := s.bookRepository.ListBooksByAuthorName(authorName, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -69,7 +70,7 @@ func (s *catalogService) ListBooksByAuthorName(authorName string, page, count in
 	return s.parseListedBooksRaw(rawBooks)
 }
 
-func (s *catalogService) ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err) {
+func (s *catalogService) ListBooksByTitle(title string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err) {
 	rawBooks, err := s.bookRepository.ListBooksByTitle(title, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -78,7 +79,7 @@ func (s *catalogService) ListBooksByTitle(title string, page, count int, sort, o
 	return s.parseListedBooksRaw(rawBooks)
 }
 
-func (s *catalogService) ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err) {
+func (s *catalogService) ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err) {
 	rawBooks, err := s.bookRepository.ListBooksByAuthorNameAndTitle(authorName, title, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -104,7 +105,7 @@ func (s *catalogService) parseListedBooksRaw(raw []dto.ListedBooksRaw) ([]dto.Li
 	return converted, nil
 }
 
-func (s *catalogService) ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err) {
+func (s *catalogService) ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err) {
 	rawBooks, err := s.bookRepository.ListBooksByCategory(categoryName, page, count, sort, order)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -113,7 +114,7 @@ func (s *catalogService) ListBooksByCategory(categoryName string, page, count in
 	return s.parseListedBooksRaw(rawBooks)
 }
 
-func (s *catalogService) GetBookPage(bookID uint, pageNumber int) (*model.Page, *custom.Err) {
+func (s *catalogService) GetBookPage(bookID, pageNumber uint) (*model.Page, *custom.Err) {
 	page, err := s.pageRepository.GetPage(bookID, pageNumber)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -130,4 +131,13 @@ func (s *catalogService) DeleteBook(bookID uint) *custom.Err {
 		return custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 	return nil
+}
+
+func (s *catalogService) AddBook(book *dto.AddBook) (*model.Book, *custom.Err) {
+	created, err := s.bookRepository.AddBook(book)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	return created, nil
 }

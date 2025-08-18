@@ -20,6 +20,7 @@ type CatalogController interface {
 	SearchBooks(ctx *gin.Context)
 	GetBookPage(ctx *gin.Context)
 	DeleteBook(ctx *gin.Context)
+	AddBook(ctx *gin.Context)
 }
 
 type catalogController struct {
@@ -83,7 +84,6 @@ func (c *catalogController) GetBooksByAuthorID(ctx *gin.Context) {
 func (c *catalogController) SearchBooks(ctx *gin.Context) {
 	var q query.SearchBooks
 	if err := ctx.ShouldBindQuery(&q); err != nil {
-		zap.S().Errorf("Search books query bind error: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -121,7 +121,6 @@ func (c *catalogController) ListBooksByCategory(ctx *gin.Context) {
 
 	var q query.ListBooksByCategory
 	if err := ctx.ShouldBindQuery(&q); err != nil {
-		zap.S().Errorf("List books by query string params error: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -149,7 +148,6 @@ func (c *catalogController) GetBookPage(ctx *gin.Context) {
 
 	var q query.GetBookPage
 	if err := ctx.ShouldBindQuery(&q); err != nil {
-		zap.S().Errorf("Get book page query string params error: %v\n", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -183,6 +181,23 @@ func (c *catalogController) DeleteBook(ctx *gin.Context) {
 
 	ctx.Status(http.StatusNoContent)
 	ctx.Abort()
+}
+
+func (c *catalogController) AddBook(ctx *gin.Context) {
+	var createBookDTO dto.AddBook
+	if err := ctx.ShouldBindJSON(&createBookDTO); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	book, customErr := c.catalogService.AddBook(&createBookDTO)
+	if customErr != nil {
+		zap.S().Errorf("Create book error: %v\n", customErr.Error())
+		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, book)
 }
 
 func initOrderParams(sort, order string) (string, string) {

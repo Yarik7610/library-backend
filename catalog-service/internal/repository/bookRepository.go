@@ -12,15 +12,16 @@ import (
 
 type BookRepository interface {
 	GetCategories() ([]string, error)
-	CreateBook(book *model.Book) error
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
 	GetBooksByAuthorID(authorID uint) ([]model.Book, error)
-	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
-	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
-	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
-	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
+	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
+	ListBooksByTitle(title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
+	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
+	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
+	CreateBook(book *model.Book) error
 	DeleteBook(ID uint) error
+	AddBook(bookDTO *dto.AddBook) (*model.Book, error)
 }
 
 type bookRepository struct {
@@ -41,6 +42,10 @@ func (r *bookRepository) GetCategories() ([]string, error) {
 
 func (r *bookRepository) CreateBook(book *model.Book) error {
 	return r.db.Create(book).Error
+}
+
+func (r *bookRepository) DeleteBook(ID uint) error {
+	return r.db.Delete(&model.Book{}, ID).Error
 }
 
 func (r *bookRepository) CountBooks() (int64, error) {
@@ -68,23 +73,23 @@ func (r *bookRepository) GetBooksByAuthorID(authorID uint) ([]model.Book, error)
 	return books, nil
 }
 
-func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
+func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
 	return r.listBooksBy(map[string]string{"author": authorName}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
+func (r *bookRepository) ListBooksByTitle(title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
 	return r.listBooksBy(map[string]string{"title": title}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
+func (r *bookRepository) ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
 	return r.listBooksBy(map[string]string{"author": authorName, "title": title}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByCategory(category string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
+func (r *bookRepository) ListBooksByCategory(category string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
 	return r.listBooksBy(map[string]string{"category": category}, page, count, sort, order)
 }
 
-func (r *bookRepository) listBooksBy(filters map[string]string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error) {
+func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
 	var rawBooks []dto.ListedBooksRaw
 	offset := (page - 1) * count
 
@@ -141,8 +146,17 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count int,
 	return rawBooks, nil
 }
 
-func (r *bookRepository) DeleteBook(ID uint) error {
-	return r.db.Delete(&model.Book{}, ID).Error
+func (r *bookRepository) AddBook(bookDTO *dto.AddBook) (*model.Book, error) {
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		var author model.Author
+		if err := tx.Where("author_id = ?", bookDTO.AuthorID).First(&author).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+			}
+		}
+
+		return nil
+	})
+	return nil, err
 }
 
 func validateOrderParams(sort, order string) (string, string) {

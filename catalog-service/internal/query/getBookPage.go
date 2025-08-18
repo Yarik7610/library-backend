@@ -1,5 +1,5 @@
 package query
 
 type GetBookPage struct {
-	PageNumber int `form:"page" binding:"required,min=1"`
+	PageNumber uint `form:"page" binding:"required,min=1"`
 }

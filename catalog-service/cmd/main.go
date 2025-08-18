@@ -56,6 +56,7 @@ func main() {
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.GetBookPage)
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogController.SearchBooks)
 		catalogRouter.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.DeleteBook)
+		catalogRouter.POST(sharedconstants.BOOKS_ROUTE, catalogController.AddBook)
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {

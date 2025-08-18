@@ -27,7 +27,6 @@ func NewUserController(userService service.UserService) UserController {
 
 func (c *userController) SignUp(ctx *gin.Context) {
 	var signUpUserDTO dto.SignUpUser
-
 	if err := ctx.ShouldBindJSON(&signUpUserDTO); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -45,7 +44,6 @@ func (c *userController) SignUp(ctx *gin.Context) {
 
 func (c *userController) SignIn(ctx *gin.Context) {
 	var signInUserDTO dto.SignInUser
-
 	if err := ctx.ShouldBindJSON(&signInUserDTO); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
