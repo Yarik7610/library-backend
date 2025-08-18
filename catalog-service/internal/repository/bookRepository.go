@@ -15,7 +15,7 @@ type BookRepository interface {
 	CreateBook(book *model.Book) error
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
-	GetBooksByAuthorID(authorID int) ([]model.Book, error)
+	GetBooksByAuthorID(authorID uint) ([]model.Book, error)
 	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
 	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
 	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooksRaw, error)
@@ -59,7 +59,7 @@ func (r *bookRepository) FindByID(ID uint) (*model.Book, error) {
 	return &book, nil
 }
 
-func (r *bookRepository) GetBooksByAuthorID(authorID int) ([]model.Book, error) {
+func (r *bookRepository) GetBooksByAuthorID(authorID uint) ([]model.Book, error) {
 	var books []model.Book
 	if err := r.db.Where("author_id = ?", authorID).Find(&books).Error; err != nil {
 		return nil, err

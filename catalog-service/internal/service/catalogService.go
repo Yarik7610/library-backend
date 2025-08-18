@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/Yarik7610/library-backend-common/custom"
@@ -12,12 +13,13 @@ import (
 
 type CatalogService interface {
 	GetCategories() ([]string, *custom.Err)
-	PreviewBook(bookID uint) (*model.Book, *custom.Err)
-	GetBooksByAuthorID(authorID int) ([]model.Book, *custom.Err)
+	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
+	GetBooksByAuthorID(authorID uint) ([]model.Book, *custom.Err)
 	ListBooksByAuthorName(authorName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
 	ListBooksByTitle(title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
 	ListBooksByAuthorNameAndTitle(authorName, title string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
-	ListBooksByCategory(categoryName string, page, count int, sort, order string) ([]dto.ListedBooks, *custom.Err)
+	PreviewBook(bookID uint) (*model.Book, *custom.Err)
+	GetBookPage(bookID uint, pageNumber int) (*model.Page, *custom.Err)
 }
 
 type catalogService struct {
@@ -43,12 +45,12 @@ func (s *catalogService) PreviewBook(bookID uint) (*model.Book, *custom.Err) {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 	if book == nil {
-		return nil, custom.NewErr(http.StatusNotFound, "book not found")
+		return nil, custom.NewErr(http.StatusNotFound, fmt.Sprintf("book with ID %d not found", bookID))
 	}
 	return book, nil
 }
 
-func (s *catalogService) GetBooksByAuthorID(authorID int) ([]model.Book, *custom.Err) {
+func (s *catalogService) GetBooksByAuthorID(authorID uint) ([]model.Book, *custom.Err) {
 	books, err := s.bookRepository.GetBooksByAuthorID(authorID)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -108,4 +110,15 @@ func (s *catalogService) ListBooksByCategory(categoryName string, page, count in
 	}
 
 	return s.parseListedBooksRaw(rawBooks)
+}
+
+func (s *catalogService) GetBookPage(bookID uint, pageNumber int) (*model.Page, *custom.Err) {
+	page, err := s.pageRepository.GetPage(bookID, pageNumber)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+	if page == nil {
+		return nil, custom.NewErr(http.StatusNotFound, fmt.Sprintf("book's page with number %d not found", pageNumber))
+	}
+	return page, nil
 }

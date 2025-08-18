@@ -35,9 +35,11 @@ func main() {
 	{
 		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
 		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
-		catalogRouter.GET(sharedconstants.PREVIEW_ROUTE+sharedconstants.BOOK_ROUTE+"/:bookID", catalogMicroserviceHandler)
 		catalogRouter.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
+		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogMicroserviceHandler)
+		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogMicroserviceHandler)
+		catalogRouter.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
