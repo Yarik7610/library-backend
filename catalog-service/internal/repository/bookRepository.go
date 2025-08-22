@@ -14,6 +14,7 @@ type BookRepository interface {
 	GetCategories() ([]string, error)
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
+	FindByTitleAndAuthorID(title string, authorID uint) (*model.Book, error)
 	GetBooksByAuthorID(authorID uint) ([]model.Book, error)
 	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
 	ListBooksByTitle(title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
@@ -21,7 +22,6 @@ type BookRepository interface {
 	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
 	CreateBook(book *model.Book) error
 	DeleteBook(ID uint) error
-	AddBook(bookDTO *dto.AddBook) (*model.Book, error)
 }
 
 type bookRepository struct {
@@ -34,13 +34,14 @@ func NewBookRepository(db *gorm.DB) BookRepository {
 
 func (r *bookRepository) GetCategories() ([]string, error) {
 	categories := make([]string, 0)
-	if err := r.db.Model(&model.Book{}).Distinct().Pluck("category", &categories).Error; err != nil {
+	if err := r.db.Model(&model.Book{}).Distinct().Order("category").Pluck("category", &categories).Error; err != nil {
 		return nil, err
 	}
 	return categories, nil
 }
 
 func (r *bookRepository) CreateBook(book *model.Book) error {
+	book.Category = strings.ToLower(book.Category)
 	return r.db.Create(book).Error
 }
 
@@ -57,6 +58,17 @@ func (r *bookRepository) CountBooks() (int64, error) {
 func (r *bookRepository) FindByID(ID uint) (*model.Book, error) {
 	var book model.Book
 	if err := r.db.Where("id = ?", ID).First(&book).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &book, nil
+}
+
+func (r *bookRepository) FindByTitleAndAuthorID(title string, authorID uint) (*model.Book, error) {
+	var book model.Book
+	if err := r.db.Where("title = ?", title).Where("author_id = ?", authorID).First(&book).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
+	"gorm.io/gorm"
 )
 
 type CatalogService interface {
@@ -27,13 +28,19 @@ type CatalogService interface {
 }
 
 type catalogService struct {
+	db               *gorm.DB
 	authorRepository repository.AuthorRepository
 	bookRepository   repository.BookRepository
 	pageRepository   repository.PageRepository
 }
 
-func NewCatalogService(authorRepository repository.AuthorRepository, bookRepository repository.BookRepository, pageRepository repository.PageRepository) CatalogService {
-	return &catalogService{authorRepository: authorRepository, bookRepository: bookRepository, pageRepository: pageRepository}
+func NewCatalogService(db *gorm.DB, authorRepository repository.AuthorRepository, bookRepository repository.BookRepository, pageRepository repository.PageRepository) CatalogService {
+	return &catalogService{
+		db:               db,
+		authorRepository: authorRepository,
+		bookRepository:   bookRepository,
+		pageRepository:   pageRepository,
+	}
 }
 
 func (s *catalogService) GetCategories() ([]string, *custom.Err) {
@@ -137,12 +144,60 @@ func (s *catalogService) DeleteBook(bookID uint) *custom.Err {
 }
 
 func (s *catalogService) AddBook(book *dto.AddBook) (*model.Book, *custom.Err) {
-	created, err := s.bookRepository.AddBook(book)
+	var created model.Book
+
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		authorRepositoryTX := repository.NewAuthorRepository(tx)
+		pageRepositoryTX := repository.NewPageRepository(tx)
+		bookRepositoryTX := repository.NewBookRepository(tx)
+
+		author, err := authorRepositoryTX.FindByID(book.AuthorID)
+		if err != nil {
+			return err
+		}
+		if author == nil {
+			return fmt.Errorf("author with ID %d doesn't exist, create author first", book.AuthorID)
+		}
+
+		foundBook, err := bookRepositoryTX.FindByTitleAndAuthorID(book.Title, book.AuthorID)
+		if err != nil {
+			return nil
+		}
+		if foundBook != nil {
+			return fmt.Errorf("book with author ID %d and title %s already exists", foundBook.AuthorID, foundBook.Title)
+		}
+
+		created = model.Book{
+			AuthorID: book.AuthorID,
+			Title:    book.Title,
+			Year:     book.Year,
+			Category: book.Category,
+		}
+		err = bookRepositoryTX.CreateBook(&created)
+		if err != nil {
+			return err
+		}
+
+		for _, page := range book.Pages {
+			newPage := model.Page{
+				BookID:  created.ID,
+				Number:  page.Number,
+				Content: page.Content,
+			}
+			err := pageRepositoryTX.CreatePage(&newPage)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 
-	return created, nil
+	return &created, nil
 }
 
 func (s *catalogService) DeleteAuthor(authorID uint) *custom.Err {

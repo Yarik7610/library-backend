@@ -43,7 +43,7 @@ func main() {
 
 	seed.Books(bookRepo, pageRepo, authorRepo)
 
-	catalogService := service.NewCatalogService(authorRepo, bookRepo, pageRepo)
+	catalogService := service.NewCatalogService(db, authorRepo, bookRepo, pageRepo)
 	catalogController := controller.NewCatalogController(catalogService)
 
 	r := gin.Default()

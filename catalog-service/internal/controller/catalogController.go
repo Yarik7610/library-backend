@@ -194,7 +194,7 @@ func (c *catalogController) AddBook(ctx *gin.Context) {
 
 	book, customErr := c.catalogService.AddBook(&createBookDTO)
 	if customErr != nil {
-		zap.S().Errorf("Create book error: %v\n", customErr.Error())
+		zap.S().Errorf("Add book error: %v\n", customErr.Error())
 		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
 		return
 	}

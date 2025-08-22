@@ -68,7 +68,7 @@ func seedBooks(bookRepository repository.BookRepository, pageRepository reposito
 			for p := 1; p <= bookPagesCount; p++ {
 				page := model.Page{
 					BookID:  book.ID,
-					Number:  p,
+					Number:  uint(p),
 					Content: fmt.Sprintf("page%d", p),
 				}
 				if err := pageRepository.CreatePage(&page); err != nil {
