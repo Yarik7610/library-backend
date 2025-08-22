@@ -39,7 +39,6 @@ func main() {
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogMicroserviceHandler)
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogMicroserviceHandler)
-		// TODO make this for admin only
 		catalogRouter.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 		catalogRouter.POST(sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
 		catalogRouter.DELETE(sharedconstants.AUTHORS_ROUTE+"/:authorID", catalogMicroserviceHandler)

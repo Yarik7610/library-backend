@@ -55,7 +55,6 @@ func main() {
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogController.PreviewBook)
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.GetBookPage)
 		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogController.SearchBooks)
-		// TODO make this for admin only
 		catalogRouter.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.DeleteBook)
 		catalogRouter.POST(sharedconstants.BOOKS_ROUTE, catalogController.AddBook)
 		catalogRouter.DELETE(sharedconstants.AUTHORS_ROUTE+"/:authorID", catalogController.DeleteAuthor)

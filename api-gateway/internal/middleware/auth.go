@@ -14,7 +14,10 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if !utils.IsPrivateRoute(ctx.Request.URL.Path) {
+		fullPath := ctx.FullPath()
+		method := ctx.Request.Method
+
+		if !utils.IsPrivateRoute(method, fullPath) && !utils.IsAdminRoute(method, fullPath) {
 			ctx.Next()
 			return
 		}
@@ -44,6 +47,12 @@ func AuthMiddleware() gin.HandlerFunc {
 		isAdmin := false
 		if len(claims.Audience) > 0 {
 			isAdmin, _ = strconv.ParseBool(claims.Audience[0])
+		}
+
+		if utils.IsAdminRoute(method, fullPath) && !isAdmin {
+			ctx.JSON(http.StatusForbidden, gin.H{"error": "route allowed for admin only"})
+			ctx.Abort()
+			return
 		}
 
 		ctx.Request.Header.Set(sharedconstants.HEADER_USER_ID, fmt.Sprintf("%d", userID))
