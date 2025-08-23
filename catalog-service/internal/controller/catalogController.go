@@ -23,6 +23,7 @@ type CatalogController interface {
 	AddBook(ctx *gin.Context)
 	DeleteAuthor(ctx *gin.Context)
 	CreateAuthor(ctx *gin.Context)
+	GetNewBooks(ctx *gin.Context)
 }
 
 type catalogController struct {
@@ -236,6 +237,17 @@ func (c *catalogController) CreateAuthor(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, author)
+}
+
+func (c *catalogController) GetNewBooks(ctx *gin.Context) {
+	newBooks, err := c.catalogService.GetNewBooks()
+	if err != nil {
+		zap.S().Errorf("Get new books error: %v\n", err)
+		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, newBooks)
 }
 
 func initOrderParams(sort, order string) (string, string) {

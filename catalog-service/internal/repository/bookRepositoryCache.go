@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
@@ -51,11 +52,24 @@ func (r *bookRepositoryCache) GetCategories() ([]string, error) {
 }
 
 func (r *bookRepositoryCache) SetNewBooks(newBooks []model.Book) {
-
+	ctx := context.Background()
+	newBooksByteSlice, _ := json.Marshal(newBooks)
+	r.rdb.Set(ctx, NEW_BOOKS_KEY, newBooksByteSlice, NEW_BOOKS_KEY_EXPIRATION)
 }
 
 func (r *bookRepositoryCache) GetNewBooks() ([]model.Book, error) {
-	return nil, nil
+	ctx := context.Background()
+	newBooksString, err := r.rdb.Get(ctx, NEW_BOOKS_KEY).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	var newBooks []model.Book
+	if err := json.Unmarshal([]byte(newBooksString), &newBooks); err != nil {
+		return nil, err
+	}
+
+	return newBooks, nil
 }
 
 func (r *bookRepositoryCache) SetPopularBooks(newBooks []model.Book) {

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
@@ -14,6 +13,7 @@ import (
 type BookRepository interface {
 	WithinTX(tx *gorm.DB) BookRepository
 	GetCategories() ([]string, error)
+	GetNewBooks() ([]model.Book, error)
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
 	FindByTitleAndAuthorID(title string, authorID uint) (*model.Book, error)
@@ -39,12 +39,19 @@ func (r *bookRepository) WithinTX(tx *gorm.DB) BookRepository {
 }
 
 func (r *bookRepository) GetCategories() ([]string, error) {
-	time.Sleep(200 * time.Millisecond)
 	categories := make([]string, 0)
 	if err := r.db.Model(&model.Book{}).Distinct().Order("category").Pluck("category", &categories).Error; err != nil {
 		return nil, err
 	}
 	return categories, nil
+}
+
+func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
+	var newBooks []model.Book
+	if err := r.db.Order("created_at DESC").Limit(10).Find(&newBooks).Error; err != nil {
+		return nil, err
+	}
+	return newBooks, nil
 }
 
 func (r *bookRepository) CreateBook(book *model.Book) error {

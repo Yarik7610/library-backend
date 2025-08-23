@@ -16,6 +16,7 @@ import (
 
 type CatalogService interface {
 	GetCategories() ([]string, *custom.Err)
+	GetNewBooks() ([]model.Book, *custom.Err)
 	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
 	GetBooksByAuthorID(authorID uint) ([]model.Book, *custom.Err)
 	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
@@ -67,6 +68,24 @@ func (s *catalogService) GetCategories() ([]string, *custom.Err) {
 	}
 
 	return categories, nil
+}
+
+func (s *catalogService) GetNewBooks() ([]model.Book, *custom.Err) {
+	newBooks, err := s.bookRepositoryCache.GetNewBooks()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	if len(newBooks) == 0 {
+		var err error
+		newBooks, err = s.bookRepository.GetNewBooks()
+		if err != nil {
+			return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+		}
+		go s.bookRepositoryCache.SetNewBooks(newBooks)
+	}
+
+	return newBooks, nil
 }
 
 func (s *catalogService) PreviewBook(bookID uint) (*model.Book, *custom.Err) {
