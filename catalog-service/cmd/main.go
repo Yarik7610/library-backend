@@ -36,18 +36,23 @@ func main() {
 	catalogController := controller.NewCatalogController(catalogService)
 
 	r := gin.Default()
-	catalogRouter := r.Group(sharedconstants.CATALOG_ROUTE)
+	catalogGroup := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
-		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE, catalogController.GetCategories)
-		catalogRouter.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName"+sharedconstants.BOOKS_ROUTE, catalogController.ListBooksByCategory)
-		catalogRouter.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogController.GetBooksByAuthorID)
-		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogController.PreviewBook)
-		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.GetBookPage)
-		catalogRouter.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogController.SearchBooks)
-		catalogRouter.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.DeleteBook)
-		catalogRouter.POST(sharedconstants.BOOKS_ROUTE, catalogController.AddBook)
-		catalogRouter.DELETE(sharedconstants.AUTHORS_ROUTE+"/:authorID", catalogController.DeleteAuthor)
-		catalogRouter.POST(sharedconstants.AUTHORS_ROUTE, catalogController.CreateAuthor)
+		catalogGroup.GET(sharedconstants.CATEGORIES_ROUTE, catalogController.GetCategories)
+		catalogGroup.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName"+sharedconstants.BOOKS_ROUTE, catalogController.ListBooksByCategory)
+		catalogGroup.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogController.GetBooksByAuthorID)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogController.PreviewBook)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.GetBookPage)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogController.SearchBooks)
+
+		adminGroup := catalogGroup.Group("")
+		{
+			adminGroup.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.DeleteBook)
+			adminGroup.POST(sharedconstants.BOOKS_ROUTE, catalogController.AddBook)
+			adminGroup.DELETE(sharedconstants.AUTHORS_ROUTE+"/:authorID", catalogController.DeleteAuthor)
+			adminGroup.POST(sharedconstants.AUTHORS_ROUTE, catalogController.CreateAuthor)
+		}
+
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
