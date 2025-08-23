@@ -26,13 +26,14 @@ func main() {
 	db := connect.DB()
 	rdb := connect.Cache()
 
-	bookRepo := repository.NewBookRepository(db, rdb)
+	bookRepoCache := repository.NewBookRepositoryCache(rdb)
+	bookRepo := repository.NewBookRepository(db)
 	pageRepo := repository.NewPageRepository(db)
 	authorRepo := repository.NewAuthorRepository(db)
 
 	seed.Books(bookRepo, pageRepo, authorRepo)
 
-	catalogService := service.NewCatalogService(db, authorRepo, bookRepo, pageRepo)
+	catalogService := service.NewCatalogService(db, authorRepo, bookRepoCache, bookRepo, pageRepo)
 	catalogController := controller.NewCatalogController(catalogService)
 
 	r := gin.Default()

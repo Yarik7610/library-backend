@@ -4,15 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type BookRepository interface {
-	WithTX(tx *gorm.DB) BookRepository
+	WithinTX(tx *gorm.DB) BookRepository
 	GetCategories() ([]string, error)
 	CountBooks() (int64, error)
 	FindByID(ID uint) (*model.Book, error)
@@ -27,25 +27,19 @@ type BookRepository interface {
 }
 
 type bookRepository struct {
-	db  *gorm.DB
-	rdb *redis.Client
+	db *gorm.DB
 }
 
-func NewBookRepository(db *gorm.DB, rdb *redis.Client) BookRepository {
-	return &bookRepository{
-		db:  db,
-		rdb: rdb,
-	}
+func NewBookRepository(db *gorm.DB) BookRepository {
+	return &bookRepository{db: db}
 }
 
-func (r *bookRepository) WithTX(tx *gorm.DB) BookRepository {
-	return &bookRepository{
-		db:  tx,
-		rdb: r.rdb,
-	}
+func (r *bookRepository) WithinTX(tx *gorm.DB) BookRepository {
+	return &bookRepository{db: tx}
 }
 
 func (r *bookRepository) GetCategories() ([]string, error) {
+	time.Sleep(200 * time.Millisecond)
 	categories := make([]string, 0)
 	if err := r.db.Model(&model.Book{}).Distinct().Order("category").Pluck("category", &categories).Error; err != nil {
 		return nil, err

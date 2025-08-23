@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -28,26 +30,42 @@ type CatalogService interface {
 }
 
 type catalogService struct {
-	db               *gorm.DB
-	authorRepository repository.AuthorRepository
-	bookRepository   repository.BookRepository
-	pageRepository   repository.PageRepository
+	db                  *gorm.DB
+	authorRepository    repository.AuthorRepository
+	bookRepositoryCache repository.BookRepositoryCache
+	bookRepository      repository.BookRepository
+	pageRepository      repository.PageRepository
 }
 
-func NewCatalogService(db *gorm.DB, authorRepository repository.AuthorRepository, bookRepository repository.BookRepository, pageRepository repository.PageRepository) CatalogService {
+func NewCatalogService(db *gorm.DB,
+	authorRepository repository.AuthorRepository,
+	bookRepositoryCache repository.BookRepositoryCache,
+	bookRepository repository.BookRepository,
+	pageRepository repository.PageRepository) CatalogService {
 	return &catalogService{
-		db:               db,
-		authorRepository: authorRepository,
-		bookRepository:   bookRepository,
-		pageRepository:   pageRepository,
+		db:                  db,
+		authorRepository:    authorRepository,
+		bookRepositoryCache: bookRepositoryCache,
+		bookRepository:      bookRepository,
+		pageRepository:      pageRepository,
 	}
 }
 
 func (s *catalogService) GetCategories() ([]string, *custom.Err) {
-	categories, err := s.bookRepository.GetCategories()
-	if err != nil {
+	categories, err := s.bookRepositoryCache.GetCategories()
+	if err != nil && !errors.Is(err, redis.Nil) {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
+
+	if len(categories) == 0 {
+		var err error
+		categories, err = s.bookRepository.GetCategories()
+		if err != nil {
+			return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+		}
+		go s.bookRepositoryCache.SetCategories(categories)
+	}
+
 	return categories, nil
 }
 
@@ -147,9 +165,9 @@ func (s *catalogService) AddBook(book *dto.AddBook) (*model.Book, *custom.Err) {
 	var created model.Book
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		authorRepositoryTX := s.authorRepository.WithTX(tx)
-		pageRepositoryTX := s.pageRepository.WithTX(tx)
-		bookRepositoryTX := s.bookRepository.WithTX(tx)
+		authorRepositoryTX := s.authorRepository.WithinTX(tx)
+		pageRepositoryTX := s.pageRepository.WithinTX(tx)
+		bookRepositoryTX := s.bookRepository.WithinTX(tx)
 
 		author, err := authorRepositoryTX.FindByID(book.AuthorID)
 		if err != nil {

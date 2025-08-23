@@ -8,7 +8,7 @@ import (
 )
 
 type PageRepository interface {
-	WithTX(tx *gorm.DB) PageRepository
+	WithinTX(tx *gorm.DB) PageRepository
 	CreatePage(page *model.Page) error
 	GetPage(bookID uint, pageNumber uint) (*model.Page, error)
 }
@@ -21,7 +21,7 @@ func NewPageRepository(db *gorm.DB) PageRepository {
 	return &pageRepository{db: db}
 }
 
-func (r *pageRepository) WithTX(tx *gorm.DB) PageRepository {
+func (r *pageRepository) WithinTX(tx *gorm.DB) PageRepository {
 	return &pageRepository{db: tx}
 }
 
