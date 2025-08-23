@@ -8,6 +8,7 @@ import (
 )
 
 type AuthorRepository interface {
+	WithTX(tx *gorm.DB) AuthorRepository
 	CreateAuthor(author *model.Author) error
 	FindByID(ID uint) (*model.Author, error)
 	DeleteAuthor(ID uint) error
@@ -19,6 +20,10 @@ type authorRepository struct {
 
 func NewAuthorRepository(db *gorm.DB) AuthorRepository {
 	return &authorRepository{db: db}
+}
+
+func (r *authorRepository) WithTX(tx *gorm.DB) AuthorRepository {
+	return &authorRepository{db: tx}
 }
 
 func (r *authorRepository) CreateAuthor(author *model.Author) error {

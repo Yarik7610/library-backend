@@ -8,6 +8,7 @@ import (
 )
 
 type PageRepository interface {
+	WithTX(tx *gorm.DB) PageRepository
 	CreatePage(page *model.Page) error
 	GetPage(bookID uint, pageNumber uint) (*model.Page, error)
 }
@@ -18,6 +19,10 @@ type pageRepository struct {
 
 func NewPageRepository(db *gorm.DB) PageRepository {
 	return &pageRepository{db: db}
+}
+
+func (r *pageRepository) WithTX(tx *gorm.DB) PageRepository {
+	return &pageRepository{db: tx}
 }
 
 func (r *pageRepository) CreatePage(page *model.Page) error {

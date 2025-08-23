@@ -147,9 +147,9 @@ func (s *catalogService) AddBook(book *dto.AddBook) (*model.Book, *custom.Err) {
 	var created model.Book
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		authorRepositoryTX := repository.NewAuthorRepository(tx)
-		pageRepositoryTX := repository.NewPageRepository(tx)
-		bookRepositoryTX := repository.NewBookRepository(tx)
+		authorRepositoryTX := s.authorRepository.WithTX(tx)
+		pageRepositoryTX := s.pageRepository.WithTX(tx)
+		bookRepositoryTX := s.bookRepository.WithTX(tx)
 
 		author, err := authorRepositoryTX.FindByID(book.AuthorID)
 		if err != nil {

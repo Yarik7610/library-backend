@@ -3,16 +3,14 @@ package main
 import (
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/catalog-service/config"
+	"github.com/Yarik7610/library-backend/catalog-service/connect"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/controller"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/seed"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func init() {
@@ -25,19 +23,10 @@ func main() {
 		zap.S().Fatalf("Config load error: %v\n", err)
 	}
 
-	db, err := gorm.Open(postgres.Open(config.Data.PostgresURL), &gorm.Config{})
-	if err != nil {
-		zap.S().Fatalf("GORM open error: %v\n", err)
-	}
-	zap.S().Info("Successfully connected to Postgres")
+	db := connect.DB()
+	rdb := connect.Cache()
 
-	err = db.AutoMigrate(&model.Author{}, &model.Book{}, &model.Page{})
-	if err != nil {
-		zap.S().Fatalf("GORM auto migrate error: %v", err)
-	}
-	zap.S().Info("Successfully made auto migrate")
-
-	bookRepo := repository.NewBookRepository(db)
+	bookRepo := repository.NewBookRepository(db, rdb)
 	pageRepo := repository.NewPageRepository(db)
 	authorRepo := repository.NewAuthorRepository(db)
 
