@@ -13,6 +13,22 @@ services:
     networks:
       - e-commerce-backend
 
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis-data:/data
+    networks:
+      - e-commerce-backend
+
   postgres-user:
     container_name: "postgres-user"
     image: postgres:16-alpine
@@ -36,6 +52,7 @@ services:
   user-service:
     container_name: "user-service"
     build: ./user-service
+    restart: always
     depends_on:
       postgres-user:
         condition: service_healthy
@@ -72,14 +89,19 @@ services:
   catalog-service:
     container_name: "catalog-service"
     build: ./catalog-service
+    restart: always
     depends_on:
       postgres-catalog:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     env_file:
       - ./.env
     environment:
       SERVER_PORT: 8082
       POSTGRES_URL: postgres://root:password@postgres-catalog:5432/db?sslmode=disable
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     volumes:
       - ./catalog-service:/app
     networks:
@@ -90,5 +112,6 @@ networks:
     driver: bridge
 
 volumes:
+  redis-data:
   postgres-user-data:
   postgres-catalog-data:
