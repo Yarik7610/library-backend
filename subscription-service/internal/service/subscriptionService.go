@@ -4,11 +4,13 @@ import (
 	"net/http"
 
 	"github.com/Yarik7610/library-backend-common/custom"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
 )
 
 type SubscriptionService interface {
 	GetSubscribedCategories(userID uint) ([]string, *custom.Err)
+	SubscribeCategory(userID uint, category string) (*model.UserCategory, *custom.Err)
 }
 
 type catalogService struct {
@@ -25,4 +27,16 @@ func (s *catalogService) GetSubscribedCategories(userID uint) ([]string, *custom
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 	return subscribedCategories, nil
+}
+
+func (s *catalogService) SubscribeCategory(userID uint, category string) (*model.UserCategory, *custom.Err) {
+	subscribedCategory := model.UserCategory{
+		UserID:   userID,
+		Category: category,
+	}
+	err := s.userCategoryRepository.SubscribeCategory(&subscribedCategory)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+	return &subscribedCategory, nil
 }

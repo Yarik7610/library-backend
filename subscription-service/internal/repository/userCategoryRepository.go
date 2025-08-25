@@ -1,7 +1,10 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -28,7 +31,12 @@ func (r *userCategoryRepository) GetSubscribedCategories(userID uint) ([]string,
 }
 
 func (r *userCategoryRepository) SubscribeCategory(userCategory *model.UserCategory) error {
-	return r.db.Create(userCategory).Error
+	err := r.db.Create(userCategory).Error
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		return errors.New("can't subscribe on subscribed category twice")
+	}
+	return err
 }
 
 func (r *userCategoryRepository) UnsubscribeCategory(userID uint, category string) error {
