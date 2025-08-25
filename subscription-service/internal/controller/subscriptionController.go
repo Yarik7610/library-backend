@@ -68,5 +68,22 @@ func (c *subscriptionController) SubscribeCategory(ctx *gin.Context) {
 }
 
 func (c *subscriptionController) UnsubscribeCategory(ctx *gin.Context) {
+	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
+	userID, err := strconv.ParseUint(userIDString, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
+	category := ctx.Param("categoryName")
+
+	customErr := c.subscriptionService.UnsubscribeCategory(uint(userID), category)
+	if customErr != nil {
+		zap.S().Errorf("Subscribed category error: %v\n", customErr)
+		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+	ctx.Abort()
 }
