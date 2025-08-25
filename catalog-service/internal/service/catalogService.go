@@ -5,24 +5,28 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Yarik7610/library-backend-common/custom"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type CatalogService interface {
 	GetCategories() ([]string, *custom.Err)
 	GetNewBooks() ([]model.Book, *custom.Err)
+	GetBookViewsCount(bookID uint) (int64, *custom.Err)
+	GetPopularBooks() ([]model.Book, *custom.Err)
 	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
 	GetBooksByAuthorID(authorID uint) ([]model.Book, *custom.Err)
 	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
 	ListBooksByTitle(title string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
 	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]dto.ListedBooks, *custom.Err)
-	PreviewBook(bookID uint) (*model.Book, *custom.Err)
+	PreviewBook(bookID, userID uint) (*model.Book, *custom.Err)
 	GetBookPage(bookID, pageNumber uint) (*model.Page, *custom.Err)
 	DeleteBook(bookID uint) *custom.Err
 	AddBook(book *dto.AddBook) (*model.Book, *custom.Err)
@@ -88,7 +92,43 @@ func (s *catalogService) GetNewBooks() ([]model.Book, *custom.Err) {
 	return newBooks, nil
 }
 
-func (s *catalogService) PreviewBook(bookID uint) (*model.Book, *custom.Err) {
+func (s *catalogService) GetBookViewsCount(bookID uint) (int64, *custom.Err) {
+	viewsCount, err := s.bookRepositoryCache.GetBookViewsCount(bookID)
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return 0, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+	return viewsCount, nil
+}
+
+func (s *catalogService) GetPopularBooks() ([]model.Book, *custom.Err) {
+	booksIDs, err := s.bookRepositoryCache.GetPopularBooksIDs()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	books, err := s.bookRepository.GetBooksByIDs(booksIDs)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	booksMap := make(map[uint]model.Book)
+	for _, b := range books {
+		booksMap[b.ID] = b
+	}
+
+	sortedBooks := make([]model.Book, 0)
+	for _, bookIDString := range booksIDs {
+		bookID, err := strconv.Atoi(bookIDString)
+		if err != nil {
+			return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+		}
+		sortedBooks = append(sortedBooks, booksMap[uint(bookID)])
+	}
+
+	return sortedBooks, nil
+}
+
+func (s *catalogService) PreviewBook(bookID, userID uint) (*model.Book, *custom.Err) {
 	book, err := s.bookRepository.FindByID(bookID)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -96,6 +136,13 @@ func (s *catalogService) PreviewBook(bookID uint) (*model.Book, *custom.Err) {
 	if book == nil {
 		return nil, custom.NewErr(http.StatusNotFound, fmt.Sprintf("book with ID %d not found", bookID))
 	}
+
+	if userID > 0 {
+		if err := s.bookRepositoryCache.UpdateBookViewsCount(bookID, userID); err != nil {
+			zap.S().Warnf("skip update book views count with ID %s because of error: %v", bookID, err)
+		}
+	}
+
 	return book, nil
 }
 

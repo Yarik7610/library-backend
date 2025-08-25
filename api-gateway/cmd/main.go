@@ -22,20 +22,29 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.Use(middleware.AuthMiddleware())
 
 	userMicroserviceHandler := core.ForwardTo(constants.USER_MICROSERVICE_SOCKET)
 	catalogMicroserviceHandler := core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET)
 
-	r.POST(sharedconstants.SIGN_UP_ROUTE, userMicroserviceHandler)
-	r.POST(sharedconstants.SIGN_IN_ROUTE, userMicroserviceHandler)
-	privateGroup := r.Group("")
+	userGroup := r.Group("")
 	{
-		privateGroup.GET(sharedconstants.ME_ROUTE, userMicroserviceHandler)
+		userGroup.Use(middleware.AuthOptional())
+
+		userGroup.POST(sharedconstants.SIGN_UP_ROUTE, userMicroserviceHandler)
+		userGroup.POST(sharedconstants.SIGN_IN_ROUTE, userMicroserviceHandler)
+
+		privateGroup := r.Group("")
+		{
+			privateGroup.Use(middleware.AuthRequired())
+
+			privateGroup.GET(sharedconstants.ME_ROUTE, userMicroserviceHandler)
+		}
 	}
 
 	catalogGroup := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
+		catalogGroup.Use(middleware.AuthOptional())
+
 		catalogGroup.GET(sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
@@ -43,9 +52,13 @@ func main() {
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.NEW_ROUTE, catalogMicroserviceHandler)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.POPULAR_ROUTE, catalogMicroserviceHandler)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.VIEWS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 
 		adminGroup := catalogGroup.Group("")
 		{
+			adminGroup.Use(middleware.AuthRequired())
+
 			adminGroup.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 			adminGroup.POST(sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
 			adminGroup.DELETE(sharedconstants.AUTHORS_ROUTE+"/:authorID", catalogMicroserviceHandler)

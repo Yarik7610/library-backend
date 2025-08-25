@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/Yarik7610/library-backend-common/custom"
+	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/query"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/service"
@@ -24,6 +25,8 @@ type CatalogController interface {
 	DeleteAuthor(ctx *gin.Context)
 	CreateAuthor(ctx *gin.Context)
 	GetNewBooks(ctx *gin.Context)
+	GetPopularBooks(ctx *gin.Context)
+	GetBookViewsCount(ctx *gin.Context)
 }
 
 type catalogController struct {
@@ -43,7 +46,13 @@ func (c *catalogController) PreviewBook(ctx *gin.Context) {
 		return
 	}
 
-	book, customErr := c.catalogService.PreviewBook(uint(bookID))
+	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
+	userID, err := strconv.ParseUint(userIDString, 10, 64)
+	if err != nil {
+		userID = 0
+	}
+
+	book, customErr := c.catalogService.PreviewBook(uint(bookID), uint(userID))
 	if customErr != nil {
 		zap.S().Errorf("Preview book error: %v\n", err)
 		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
@@ -248,6 +257,35 @@ func (c *catalogController) GetNewBooks(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, newBooks)
+}
+
+func (c *catalogController) GetPopularBooks(ctx *gin.Context) {
+	popularBooks, err := c.catalogService.GetPopularBooks()
+	if err != nil {
+		zap.S().Errorf("Get popular books error: %v\n", err)
+		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, popularBooks)
+}
+
+func (c *catalogController) GetBookViewsCount(ctx *gin.Context) {
+	bookIDString := ctx.Param("bookID")
+	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	viewsCount, customErr := c.catalogService.GetBookViewsCount(uint(bookID))
+	if customErr != nil {
+		zap.S().Errorf("Get popular books error: %v\n", err)
+		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"views": viewsCount})
 }
 
 func initOrderParams(sort, order string) (string, string) {

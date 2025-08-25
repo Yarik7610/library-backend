@@ -3,7 +3,7 @@ module github.com/Yarik7610/library-backend/user-service
 go 1.24.5
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20250823081920-2239534981fd
+	github.com/Yarik7610/library-backend-common v0.0.0-20250825075553-5f54cdae9e5f
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/spf13/viper v1.20.1

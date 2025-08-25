@@ -1,5 +1,5 @@
-github.com/Yarik7610/library-backend-common v0.0.0-20250823081920-2239534981fd h1:vokzGFw/UXIrQD0Qwcf0cbZAb3eJ/16ghwNqWiN53tE=
-github.com/Yarik7610/library-backend-common v0.0.0-20250823081920-2239534981fd/go.mod h1:LLZ3LHjfMwkYb9D0I4a6aAg/MFgUsnIScr3zuBoB51o=
+github.com/Yarik7610/library-backend-common v0.0.0-20250825075553-5f54cdae9e5f h1:CXXr/K0AEATHYvicifcQgKtyLz2GLKHSrThdJgQtMug=
+github.com/Yarik7610/library-backend-common v0.0.0-20250825075553-5f54cdae9e5f/go.mod h1:LLZ3LHjfMwkYb9D0I4a6aAg/MFgUsnIScr3zuBoB51o=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
 github.com/bsm/ginkgo/v2 v2.12.0/go.mod h1:SwYbGRRDovPVboqFv0tPTcG1sN61LM1Z4ARdbAV9g4c=
 github.com/bsm/gomega v1.27.10 h1:yeMWxP2pV2fG3FgAODIY8EiRE3dy0aeFYt4l7wh6yKA=

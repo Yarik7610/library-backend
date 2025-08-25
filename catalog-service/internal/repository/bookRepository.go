@@ -10,13 +10,16 @@ import (
 	"gorm.io/gorm"
 )
 
+const NEW_BOOKS_COUNT = 10
+
 type BookRepository interface {
 	WithinTX(tx *gorm.DB) BookRepository
 	GetCategories() ([]string, error)
 	GetNewBooks() ([]model.Book, error)
-	CountBooks() (int64, error)
+	GetBooksByIDs(bookIDs []string) ([]model.Book, error)
 	FindByID(ID uint) (*model.Book, error)
 	FindByTitleAndAuthorID(title string, authorID uint) (*model.Book, error)
+	CountBooks() (int64, error)
 	GetBooksByAuthorID(authorID uint) ([]model.Book, error)
 	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
 	ListBooksByTitle(title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
@@ -48,10 +51,18 @@ func (r *bookRepository) GetCategories() ([]string, error) {
 
 func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
 	var newBooks []model.Book
-	if err := r.db.Order("created_at DESC").Limit(10).Find(&newBooks).Error; err != nil {
+	if err := r.db.Order("created_at DESC").Limit(NEW_BOOKS_COUNT).Find(&newBooks).Error; err != nil {
 		return nil, err
 	}
 	return newBooks, nil
+}
+
+func (r *bookRepository) GetBooksByIDs(booksIDs []string) ([]model.Book, error) {
+	var books []model.Book
+	if err := r.db.Where("id IN ?", booksIDs).Find(&books).Error; err != nil {
+		return nil, err
+	}
+	return books, nil
 }
 
 func (r *bookRepository) CreateBook(book *model.Book) error {

@@ -46,6 +46,8 @@ func main() {
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogController.GetBookPage)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogController.SearchBooks)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.NEW_ROUTE, catalogController.GetNewBooks)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.POPULAR_ROUTE, catalogController.GetPopularBooks)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.VIEWS_ROUTE+"/:bookID", catalogController.GetBookViewsCount)
 
 		adminGroup := catalogGroup.Group("")
 		{

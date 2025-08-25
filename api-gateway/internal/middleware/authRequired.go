@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthRequired() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		fullPath := ctx.FullPath()
 		method := ctx.Request.Method
