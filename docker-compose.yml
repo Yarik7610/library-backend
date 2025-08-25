@@ -107,6 +107,43 @@ services:
     networks:
       - e-commerce-backend
 
+  postgres-subscription:
+    container_name: "postgres-subscription"
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-subscription-data:/var/lib/postgresql/data
+    networks:
+      - e-commerce-backend
+
+  subscription-service:
+    container_name: "subscription-service"
+    build: ./subscription-service
+    restart: always
+    depends_on:
+      postgres-subscription:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    environment:
+      SERVER_PORT: 8083
+      POSTGRES_URL: postgres://root:password@postgres-subscription:5432/db?sslmode=disable
+    volumes:
+      - ./subscription-service:/app
+    networks:
+      - e-commerce-backend
+
 networks:
   e-commerce-backend:
     driver: bridge
@@ -115,3 +152,4 @@ volumes:
   redis-data:
   postgres-user-data:
   postgres-catalog-data:
+  postgres-subscription-data:

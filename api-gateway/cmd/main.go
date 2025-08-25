@@ -66,6 +66,15 @@ func main() {
 		}
 	}
 
+	subscriptionGroup := r.Group(sharedconstants.SUBSCRIPTIONS_ROUTE)
+	{
+		subscriptionGroup.Use(middleware.AuthRequired())
+
+		subscriptionGroup.GET(sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
+		subscriptionGroup.POST(sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
+		subscriptionGroup.DELETE(sharedconstants.CATEGORIES_ROUTE+"/:categoryName", catalogMicroserviceHandler)
+	}
+
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
 		zap.S().Fatalf("Start error on port %s: %v", config.Data.ServerPort, err)
 	}
