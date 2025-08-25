@@ -63,7 +63,6 @@ func (c *userController) Me(ctx *gin.Context) {
 	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
-		zap.S().Errorf("%s header error: %v\n", sharedconstants.HEADER_USER_ID, err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

@@ -42,7 +42,7 @@ func (r *bookRepository) WithinTX(tx *gorm.DB) BookRepository {
 }
 
 func (r *bookRepository) GetCategories() ([]string, error) {
-	categories := make([]string, 0)
+	var categories []string
 	if err := r.db.Model(&model.Book{}).Distinct().Order("category").Pluck("category", &categories).Error; err != nil {
 		return nil, err
 	}

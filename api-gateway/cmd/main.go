@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/api-gateway/config"
-	"github.com/Yarik7610/library-backend/api-gateway/internal/constants"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/core"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/middleware"
 
@@ -23,8 +22,9 @@ func main() {
 
 	r := gin.Default()
 
-	userMicroserviceHandler := core.ForwardTo(constants.USER_MICROSERVICE_SOCKET)
-	catalogMicroserviceHandler := core.ForwardTo(constants.CATALOG_MICROSERVICE_SOCKET)
+	userMicroserviceHandler := core.ForwardTo(sharedconstants.USER_MICROSERVICE_SOCKET)
+	catalogMicroserviceHandler := core.ForwardTo(sharedconstants.CATALOG_MICROSERVICE_SOCKET)
+	subscriptionMicroserviceHandler := core.ForwardTo(sharedconstants.SUBSCRIPTIONS_MICROSERVICE_SOCKET)
 
 	userGroup := r.Group("")
 	{
@@ -70,9 +70,9 @@ func main() {
 	{
 		subscriptionGroup.Use(middleware.AuthRequired())
 
-		subscriptionGroup.GET(sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
-		subscriptionGroup.POST(sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
-		subscriptionGroup.DELETE(sharedconstants.CATEGORIES_ROUTE+"/:categoryName", catalogMicroserviceHandler)
+		subscriptionGroup.GET(sharedconstants.CATEGORIES_ROUTE, subscriptionMicroserviceHandler)
+		subscriptionGroup.POST(sharedconstants.CATEGORIES_ROUTE, subscriptionMicroserviceHandler)
+		subscriptionGroup.DELETE(sharedconstants.CATEGORIES_ROUTE+"/:categoryName", subscriptionMicroserviceHandler)
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
