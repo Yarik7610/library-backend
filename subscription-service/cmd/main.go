@@ -34,6 +34,11 @@ func main() {
 		subscriptionGroup.GET(sharedconstants.CATEGORIES_ROUTE, subscriptionController.GetSubscribedCategories)
 		subscriptionGroup.POST(sharedconstants.CATEGORIES_ROUTE, subscriptionController.SubscribeCategory)
 		subscriptionGroup.DELETE(sharedconstants.CATEGORIES_ROUTE+"/:categoryName", subscriptionController.UnsubscribeCategory)
+
+		nonAPIGatewayGroup := subscriptionGroup.Group("")
+		{
+			nonAPIGatewayGroup.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName", subscriptionController.GetCategorySubscribersEmails)
+		}
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {

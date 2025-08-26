@@ -14,7 +14,8 @@ import (
 type UserController interface {
 	SignUp(ctx *gin.Context)
 	SignIn(ctx *gin.Context)
-	Me(ctx *gin.Context)
+	GetMe(ctx *gin.Context)
+	GetEmailsByUserIDs(ctx *gin.Context)
 }
 
 type userController struct {
@@ -59,7 +60,7 @@ func (c *userController) SignIn(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func (c *userController) Me(ctx *gin.Context) {
+func (c *userController) GetMe(ctx *gin.Context) {
 	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
@@ -67,7 +68,7 @@ func (c *userController) Me(ctx *gin.Context) {
 		return
 	}
 
-	user, customErr := c.userService.Me(uint(userID))
+	user, customErr := c.userService.GetMe(uint(userID))
 	if customErr != nil {
 		zap.S().Errorf("Me error: %v\n", customErr)
 		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
@@ -75,4 +76,27 @@ func (c *userController) Me(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, user)
+}
+
+func (c *userController) GetEmailsByUserIDs(ctx *gin.Context) {
+	userIDsStrings := ctx.QueryArray("ids")
+
+	userIDs := make([]uint, 0)
+	for _, s := range userIDsStrings {
+		userID, err := strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			zap.S().Errorf("Get emails by user IDs error: %v\n", err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		userIDs = append(userIDs, uint(userID))
+	}
+
+	emails, err := c.userService.GetEmailsByUserIDs(userIDs)
+	if err != nil {
+		zap.S().Errorf("Get emails error: %v\n", err)
+		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		return
+	}
+	ctx.JSON(http.StatusOK, emails)
 }

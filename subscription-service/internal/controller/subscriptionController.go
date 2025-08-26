@@ -12,6 +12,7 @@ import (
 )
 
 type SubscriptionController interface {
+	GetCategorySubscribersEmails(ctx *gin.Context)
 	GetSubscribedCategories(ctx *gin.Context)
 	SubscribeCategory(ctx *gin.Context)
 	UnsubscribeCategory(ctx *gin.Context)
@@ -23,6 +24,19 @@ type subscriptionController struct {
 
 func NewSubscriptionController(subscriptionService service.SubscriptionService) SubscriptionController {
 	return &subscriptionController{subscriptionService: subscriptionService}
+}
+
+func (c *subscriptionController) GetCategorySubscribersEmails(ctx *gin.Context) {
+	category := ctx.Param("categoryName")
+
+	emails, err := c.subscriptionService.GetCategorySubscribersEmails(category)
+	if err != nil {
+		zap.S().Errorf("Get category subscribers IDs error: %v\n", err)
+		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, emails)
 }
 
 func (c *subscriptionController) GetSubscribedCategories(ctx *gin.Context) {
@@ -59,7 +73,7 @@ func (c *subscriptionController) SubscribeCategory(ctx *gin.Context) {
 
 	subscribedCategory, customErr := c.subscriptionService.SubscribeCategory(uint(userID), subscribeCategoryDTO.Category)
 	if customErr != nil {
-		zap.S().Errorf("Subscribed category error: %v\n", customErr)
+		zap.S().Errorf("Subscribe category error: %v\n", customErr)
 		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
 		return
 	}
@@ -79,7 +93,7 @@ func (c *subscriptionController) UnsubscribeCategory(ctx *gin.Context) {
 
 	customErr := c.subscriptionService.UnsubscribeCategory(uint(userID), category)
 	if customErr != nil {
-		zap.S().Errorf("Subscribed category error: %v\n", customErr)
+		zap.S().Errorf("Unsubscribe category error: %v\n", customErr)
 		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
 		return
 	}

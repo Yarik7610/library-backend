@@ -11,6 +11,7 @@ import (
 
 type UserCategoryRepository interface {
 	FindSubscribedCategory(userID uint, category string) (*model.UserCategory, error)
+	GetCategorySubscribersIDs(category string) ([]uint, error)
 	GetSubscribedCategories(userID uint) ([]string, error)
 	SubscribeCategory(userCategory *model.UserCategory) error
 	UnsubscribeCategory(userID uint, category string) error
@@ -33,6 +34,14 @@ func (r *userCategoryRepository) FindSubscribedCategory(userID uint, category st
 		return nil, err
 	}
 	return &subscribedCategory, nil
+}
+
+func (r *userCategoryRepository) GetCategorySubscribersIDs(category string) ([]uint, error) {
+	var emails []uint
+	if err := r.db.Model(&model.UserCategory{}).Order("user_id ASC").Where("category ILIKE ?", category).Pluck("user_id", &emails).Error; err != nil {
+		return nil, err
+	}
+	return emails, nil
 }
 
 func (r *userCategoryRepository) GetSubscribedCategories(userID uint) ([]string, error) {

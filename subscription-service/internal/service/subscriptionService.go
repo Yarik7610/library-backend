@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/Yarik7610/library-backend-common/custom"
@@ -14,6 +15,7 @@ import (
 )
 
 type SubscriptionService interface {
+	GetCategorySubscribersEmails(category string) ([]string, *custom.Err)
 	GetSubscribedCategories(userID uint) ([]string, *custom.Err)
 	SubscribeCategory(userID uint, category string) (*model.UserCategory, *custom.Err)
 	UnsubscribeCategory(userID uint, category string) *custom.Err
@@ -27,6 +29,19 @@ func NewSubscriptionService(userCategoryRepository repository.UserCategoryReposi
 	return &catalogService{userCategoryRepository: userCategoryRepository}
 }
 
+func (s *catalogService) GetCategorySubscribersEmails(category string) ([]string, *custom.Err) {
+	subscribersIDs, err := s.userCategoryRepository.GetCategorySubscribersIDs(category)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	emails, customErr := s.getEmailsByUserIDs(subscribersIDs)
+	if err != nil {
+		return nil, customErr
+	}
+	return emails, nil
+}
+
 func (s *catalogService) GetSubscribedCategories(userID uint) ([]string, *custom.Err) {
 	subscribedCategories, err := s.userCategoryRepository.GetSubscribedCategories(userID)
 	if err != nil {
@@ -36,9 +51,9 @@ func (s *catalogService) GetSubscribedCategories(userID uint) ([]string, *custom
 }
 
 func (s *catalogService) SubscribeCategory(userID uint, category string) (*model.UserCategory, *custom.Err) {
-	exists, err := s.categoryExists(category)
-	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	exists, customErr := s.categoryExists(category)
+	if customErr != nil {
+		return nil, customErr
 	}
 	if !exists {
 		return nil, custom.NewErr(http.StatusBadRequest, "can't subscribe on unknown category")
@@ -48,7 +63,7 @@ func (s *catalogService) SubscribeCategory(userID uint, category string) (*model
 		UserID:   userID,
 		Category: category,
 	}
-	err = s.userCategoryRepository.SubscribeCategory(&subscribedCategory)
+	err := s.userCategoryRepository.SubscribeCategory(&subscribedCategory)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
@@ -56,9 +71,9 @@ func (s *catalogService) SubscribeCategory(userID uint, category string) (*model
 }
 
 func (s *catalogService) UnsubscribeCategory(userID uint, category string) *custom.Err {
-	exists, err := s.categoryExists(category)
-	if err != nil {
-		return custom.NewErr(http.StatusInternalServerError, err.Error())
+	exists, customErr := s.categoryExists(category)
+	if customErr != nil {
+		return customErr
 	}
 	if !exists {
 		return custom.NewErr(http.StatusBadRequest, "can't unsubscribe from unknown category")
@@ -79,7 +94,7 @@ func (s *catalogService) UnsubscribeCategory(userID uint, category string) *cust
 	return nil
 }
 
-func (s *catalogService) categoryExists(category string) (bool, error) {
+func (s *catalogService) categoryExists(category string) (bool, *custom.Err) {
 	resp, err := http.Get(sharedconstants.CATALOG_MICROSERVICE_SOCKET + sharedconstants.CATALOG_ROUTE + sharedconstants.CATEGORIES_ROUTE)
 	if err != nil {
 		return false, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -97,4 +112,33 @@ func (s *catalogService) categoryExists(category string) (bool, error) {
 
 	category = strings.ToLower(category)
 	return slices.Contains(categories, category), nil
+}
+
+func (s *catalogService) getEmailsByUserIDs(userIDs []uint) ([]string, *custom.Err) {
+	req, err := http.NewRequest("GET", sharedconstants.USER_MICROSERVICE_SOCKET+sharedconstants.EMAILS_ROUTE, nil)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	q := req.URL.Query()
+	for _, userID := range userIDs {
+		q.Add("ids", strconv.FormatUint(uint64(userID), 10))
+	}
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, custom.NewErr(http.StatusInternalServerError, fmt.Sprintf("user microservice return status code: %d", resp.StatusCode))
+	}
+
+	var emails []string
+	if err := json.NewDecoder(resp.Body).Decode(&emails); err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+	return emails, nil
 }

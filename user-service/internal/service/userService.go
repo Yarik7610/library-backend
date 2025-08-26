@@ -14,7 +14,8 @@ import (
 type UserService interface {
 	SignUp(user *dto.SignUpUser) (*dto.User, *custom.Err)
 	SignIn(user *dto.SignInUser) (string, *custom.Err)
-	Me(userID uint) (*dto.User, *custom.Err)
+	GetMe(userID uint) (*dto.User, *custom.Err)
+	GetEmailsByUserIDs(userIDs []uint) ([]string, *custom.Err)
 }
 
 type userService struct {
@@ -51,6 +52,7 @@ func (s *userService) SignUp(user *dto.SignUpUser) (*dto.User, *custom.Err) {
 	}
 
 	return &dto.User{
+		ID:        newUser.ID,
 		Name:      newUser.Name,
 		Email:     newUser.Email,
 		CreatedAt: newUser.CreatedAt,
@@ -80,7 +82,7 @@ func (s *userService) SignIn(user *dto.SignInUser) (string, *custom.Err) {
 	return token, nil
 }
 
-func (s *userService) Me(userID uint) (*dto.User, *custom.Err) {
+func (s *userService) GetMe(userID uint) (*dto.User, *custom.Err) {
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
@@ -89,9 +91,18 @@ func (s *userService) Me(userID uint) (*dto.User, *custom.Err) {
 		return nil, custom.NewErr(http.StatusNotFound, "user not found")
 	}
 	return &dto.User{
+		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 		IsAdmin:   user.IsAdmin,
 	}, nil
+}
+
+func (s *userService) GetEmailsByUserIDs(userIDs []uint) ([]string, *custom.Err) {
+	emails, err := s.userRepo.GetEmailsByUserIDs(userIDs)
+	if err != nil {
+		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+	return emails, nil
 }

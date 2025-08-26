@@ -31,7 +31,12 @@ func main() {
 
 	r.POST(sharedconstants.SIGN_UP_ROUTE, userController.SignUp)
 	r.POST(sharedconstants.SIGN_IN_ROUTE, userController.SignIn)
-	r.GET(sharedconstants.ME_ROUTE, userController.Me)
+	r.GET(sharedconstants.ME_ROUTE, userController.GetMe)
+
+	nonAPIGatewayGroup := r.Group("")
+	{
+		nonAPIGatewayGroup.GET(sharedconstants.EMAILS_ROUTE, userController.GetEmailsByUserIDs)
+	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {
 		zap.S().Fatalf("Start error on port %s: %v", config.Data.ServerPort, err)
