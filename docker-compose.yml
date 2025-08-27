@@ -144,6 +144,17 @@ services:
     networks:
       - e-commerce-backend
 
+  notification-service:
+    container_name: "notification-service"
+    build: ./notification-service
+    restart: always
+    env_file:
+      - ./.env
+    volumes:
+      - ./notification-service:/app
+    networks:
+      - e-commerce-backend
+
 networks:
   e-commerce-backend:
     driver: bridge
