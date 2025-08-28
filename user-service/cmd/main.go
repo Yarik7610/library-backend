@@ -6,6 +6,7 @@ import (
 	"github.com/Yarik7610/library-backend/user-service/internal/connect"
 	"github.com/Yarik7610/library-backend/user-service/internal/controller"
 	"github.com/Yarik7610/library-backend/user-service/internal/repository"
+	"github.com/Yarik7610/library-backend/user-service/internal/seed"
 	"github.com/Yarik7610/library-backend/user-service/internal/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -24,6 +25,9 @@ func main() {
 	db := connect.DB()
 
 	userRepo := repository.NewUserRepository(db)
+
+	seed.Admin(userRepo)
+
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 

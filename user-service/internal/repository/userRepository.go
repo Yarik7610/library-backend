@@ -12,6 +12,7 @@ type UserRepository interface {
 	FindByID(ID uint) (*model.User, error)
 	FindByEmail(email string) (*model.User, error)
 	GetEmailsByUserIDs(userIDs []uint) ([]string, error)
+	CountUsers() (int64, error)
 }
 
 type userRepository struct {
@@ -54,4 +55,10 @@ func (r *userRepository) GetEmailsByUserIDs(userIDs []uint) ([]string, error) {
 		return nil, err
 	}
 	return emails, nil
+}
+
+func (r *userRepository) CountUsers() (int64, error) {
+	var count int64
+	err := r.db.Model(&model.User{}).Count(&count).Error
+	return count, err
 }
