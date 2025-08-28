@@ -236,13 +236,15 @@ func (s *catalogService) DeleteBook(bookID uint) *custom.Err {
 
 func (s *catalogService) AddBook(bookDTO *dto.AddBook) (*model.Book, *custom.Err) {
 	var created model.Book
+	var author *model.Author
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		authorRepositoryTX := s.authorRepository.WithinTX(tx)
 		pageRepositoryTX := s.pageRepository.WithinTX(tx)
 		bookRepositoryTX := s.bookRepository.WithinTX(tx)
 
-		author, err := authorRepositoryTX.FindByID(bookDTO.AuthorID)
+		var err error
+		author, err = authorRepositoryTX.FindByID(bookDTO.AuthorID)
 		if err != nil {
 			return err
 		}
@@ -290,11 +292,12 @@ func (s *catalogService) AddBook(bookDTO *dto.AddBook) (*model.Book, *custom.Err
 
 	bookAddedEvent, err := json.Marshal(
 		event.BookAdded{
-			ID:       created.ID,
-			AuthorID: created.AuthorID,
-			Title:    created.Title,
-			Year:     created.Year,
-			Category: created.Category,
+			ID:         created.ID,
+			AuthorID:   created.AuthorID,
+			AuthorName: author.Fullname,
+			Title:      created.Title,
+			Year:       created.Year,
+			Category:   created.Category,
 		})
 	ctx := context.Background()
 	if err := s.bookAddedWriter.WriteMessages(ctx, kafka.Message{Value: bookAddedEvent}); err != nil {
