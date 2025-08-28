@@ -3,7 +3,7 @@ module github.com/Yarik7610/library-backend/catalog-service
 go 1.24.5
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20250826091851-c897427aeb08
+	github.com/Yarik7610/library-backend-common v0.0.0-20250828140855-c9a322633060
 	github.com/gin-gonic/gin v1.10.1
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/spf13/viper v1.20.1

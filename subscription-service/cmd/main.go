@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/catalog-service/config"
-	"github.com/Yarik7610/library-backend/catalog-service/connect"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/connect"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/controller"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/service"

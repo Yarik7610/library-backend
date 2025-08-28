@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,9 +10,11 @@ import (
 
 	"github.com/Yarik7610/library-backend-common/custom"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/event"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
 	"github.com/redis/go-redis/v9"
+	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -36,19 +39,23 @@ type CatalogService interface {
 
 type catalogService struct {
 	db                  *gorm.DB
+	bookAddedWriter     *kafka.Writer
 	authorRepository    repository.AuthorRepository
 	bookRepositoryCache repository.BookRepositoryCache
 	bookRepository      repository.BookRepository
 	pageRepository      repository.PageRepository
 }
 
-func NewCatalogService(db *gorm.DB,
+func NewCatalogService(
+	db *gorm.DB,
+	bookAddedWriter *kafka.Writer,
 	authorRepository repository.AuthorRepository,
 	bookRepositoryCache repository.BookRepositoryCache,
 	bookRepository repository.BookRepository,
 	pageRepository repository.PageRepository) CatalogService {
 	return &catalogService{
 		db:                  db,
+		bookAddedWriter:     bookAddedWriter,
 		authorRepository:    authorRepository,
 		bookRepositoryCache: bookRepositoryCache,
 		bookRepository:      bookRepository,
@@ -227,7 +234,7 @@ func (s *catalogService) DeleteBook(bookID uint) *custom.Err {
 	return nil
 }
 
-func (s *catalogService) AddBook(book *dto.AddBook) (*model.Book, *custom.Err) {
+func (s *catalogService) AddBook(bookDTO *dto.AddBook) (*model.Book, *custom.Err) {
 	var created model.Book
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -235,15 +242,15 @@ func (s *catalogService) AddBook(book *dto.AddBook) (*model.Book, *custom.Err) {
 		pageRepositoryTX := s.pageRepository.WithinTX(tx)
 		bookRepositoryTX := s.bookRepository.WithinTX(tx)
 
-		author, err := authorRepositoryTX.FindByID(book.AuthorID)
+		author, err := authorRepositoryTX.FindByID(bookDTO.AuthorID)
 		if err != nil {
 			return err
 		}
 		if author == nil {
-			return fmt.Errorf("author with ID %d doesn't exist, create author first", book.AuthorID)
+			return fmt.Errorf("author with ID %d doesn't exist, create author first", bookDTO.AuthorID)
 		}
 
-		foundBook, err := bookRepositoryTX.FindByTitleAndAuthorID(book.Title, book.AuthorID)
+		foundBook, err := bookRepositoryTX.FindByTitleAndAuthorID(bookDTO.Title, bookDTO.AuthorID)
 		if err != nil {
 			return nil
 		}
@@ -252,17 +259,17 @@ func (s *catalogService) AddBook(book *dto.AddBook) (*model.Book, *custom.Err) {
 		}
 
 		created = model.Book{
-			AuthorID: book.AuthorID,
-			Title:    book.Title,
-			Year:     book.Year,
-			Category: book.Category,
+			AuthorID: bookDTO.AuthorID,
+			Title:    bookDTO.Title,
+			Year:     bookDTO.Year,
+			Category: bookDTO.Category,
 		}
 		err = bookRepositoryTX.CreateBook(&created)
 		if err != nil {
 			return err
 		}
 
-		for _, page := range book.Pages {
+		for _, page := range bookDTO.Pages {
 			newPage := model.Page{
 				BookID:  created.ID,
 				Number:  page.Number,
@@ -279,6 +286,19 @@ func (s *catalogService) AddBook(book *dto.AddBook) (*model.Book, *custom.Err) {
 
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	}
+
+	bookAddedEvent, err := json.Marshal(
+		event.BookAdded{
+			ID:       created.ID,
+			AuthorID: created.AuthorID,
+			Title:    created.Title,
+			Year:     created.Year,
+			Category: created.Category,
+		})
+	ctx := context.Background()
+	if err := s.bookAddedWriter.WriteMessages(ctx, kafka.Message{Value: bookAddedEvent}); err != nil {
+		zap.S().Errorf("Book added event write error: %v\n", err)
 	}
 
 	return &created, nil

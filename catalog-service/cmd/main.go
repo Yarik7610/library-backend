@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/catalog-service/config"
-	"github.com/Yarik7610/library-backend/catalog-service/connect"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/connect"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/controller"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/seed"
@@ -25,6 +25,7 @@ func main() {
 
 	db := connect.DB()
 	rdb := connect.Cache()
+	bookAddedWriter := connect.NewKafkaWriter(sharedconstants.BOOK_ADDED_TOPIC)
 
 	bookRepoCache := repository.NewBookRepositoryCache(rdb)
 	bookRepo := repository.NewBookRepository(db)
@@ -33,7 +34,7 @@ func main() {
 
 	seed.Books(bookRepo, pageRepo, authorRepo)
 
-	catalogService := service.NewCatalogService(db, authorRepo, bookRepoCache, bookRepo, pageRepo)
+	catalogService := service.NewCatalogService(db, bookAddedWriter, authorRepo, bookRepoCache, bookRepo, pageRepo)
 	catalogController := controller.NewCatalogController(catalogService)
 
 	r := gin.Default()
