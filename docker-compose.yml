@@ -1,18 +1,4 @@
 services:
-  api-gateway:
-    container_name: "api-gateway"
-    build: ./api-gateway
-    env_file:
-      - ./.env
-    environment:
-      SERVER_PORT: 80
-    ports:
-      - "80:80"
-    volumes:
-      - ./api-gateway:/app
-    networks:
-      - e-commerce-backend
-
   redis:
     image: redis:alpine
     container_name: redis
@@ -26,6 +12,110 @@ services:
       retries: 5
     volumes:
       - redis-data:/data
+    networks:
+      - e-commerce-backend
+
+  kafka-1:
+    image: apache/kafka:latest
+    container_name: kafka-1
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092 # Consumers, producers listen to this addr
+      KAFKA_LISTENERS: PLAINTEXT://kafka-1:9092,CONTROLLER://kafka-1:9093
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER # Listen this addr for controller
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT # Listen this addr for non-controller brokers (their communication)
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT # No TLS and auth
+      CLUSTER_ID: "12242d2d-73eb-4acf-ae75-744c4e6968ba"
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2 # Min ISR
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3 # Secret offset partition replication factor
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3 # Secret tx info replictaion factor
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2 # Min ISR count for tx
+    volumes:
+      - kafka-1-data:/var/lib/kafka/data
+    networks:
+      - e-commerce-backend
+
+  kafka-2:
+    image: apache/kafka:latest
+    container_name: kafka-2
+    ports:
+      - "9094:9092"
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
+      KAFKA_LISTENERS: PLAINTEXT://kafka-2:9092,CONTROLLER://kafka-2:9093
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      CLUSTER_ID: "12242d2d-73eb-4acf-ae75-744c4e6968ba"
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+    volumes:
+      - kafka-2-data:/var/lib/kafka/data
+    networks:
+      - e-commerce-backend
+
+  kafka-3:
+    image: apache/kafka:latest
+    container_name: kafka-3
+    ports:
+      - "9096:9092"
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
+      KAFKA_LISTENERS: PLAINTEXT://kafka-3:9092,CONTROLLER://kafka-3:9093
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      CLUSTER_ID: "12242d2d-73eb-4acf-ae75-744c4e6968ba"
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+    volumes:
+      - kafka-3-data:/var/lib/kafka/data
+    networks:
+      - e-commerce-backend
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    networks:
+      - e-commerce-backend
+
+  api-gateway:
+    container_name: "api-gateway"
+    build: ./api-gateway
+    env_file:
+      - ./.env
+    environment:
+      SERVER_PORT: 80
+    ports:
+      - "80:80"
+    volumes:
+      - ./api-gateway:/app
     networks:
       - e-commerce-backend
 
@@ -161,6 +251,9 @@ networks:
 
 volumes:
   redis-data:
+  kafka-1-data:
+  kafka-2-data:
+  kafka-3-data:
   postgres-user-data:
   postgres-catalog-data:
   postgres-subscription-data:
