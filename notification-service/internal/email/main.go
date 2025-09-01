@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"net/smtp"
 	"strings"
-
-	"github.com/Yarik7610/library-backend/notification-service/config"
-	"go.uber.org/zap"
 )
 
 type Sender interface {
 	Addr() string
+	From() string
+	Subject() string
 	WithSubject(subject string)
-	Send(body string, to []string)
+	Send(body string, to []string) error
 }
 
 type sender struct {
@@ -23,13 +22,13 @@ type sender struct {
 	subject string
 }
 
-func NewSender() Sender {
-	s := sender{}
-	s.host = "smtp.gmail.com"
-	s.port = "587"
-	s.from = config.Data.Mail
-	auth := smtp.PlainAuth("", s.from, config.Data.MailPassword, s.host)
-	s.auth = auth
+func NewSender(from, fromPassword string) Sender {
+	s := sender{
+		host: "smtp.gmail.com",
+		port: "587",
+		from: from,
+	}
+	s.auth = smtp.PlainAuth("", s.from, fromPassword, s.host)
 	return &s
 }
 
@@ -37,23 +36,31 @@ func (s *sender) Addr() string {
 	return s.host + ":" + s.port
 }
 
+func (s *sender) From() string {
+	return s.from
+}
+
+func (s *sender) Subject() string {
+	return s.subject
+}
+
 func (s *sender) WithSubject(subject string) {
 	s.subject = subject
 }
 
-func (s *sender) Send(body string, to []string) {
+func (s *sender) Send(body string, to []string) error {
 	message := s.buildMessage(body, to)
 	err := smtp.SendMail(s.Addr(), s.auth, s.from, to, message)
-	if err != nil {
-		zap.S().Errorf("Mail send to %v error: %v", to, err)
-	}
+	return err
 }
 
 func (s *sender) buildMessage(body string, to []string) []byte {
 	headers := map[string]string{
-		"From":    s.from,
-		"To":      strings.Join(to, ", "),
-		"Subject": s.subject,
+		"From":         s.from,
+		"To":           strings.Join(to, ", "),
+		"Subject":      s.subject,
+		"MIME-Version": "1.0",
+		"Content-Type": "text/html; charset=\"UTF-8\"",
 	}
 
 	var msg strings.Builder

@@ -8,7 +8,7 @@ import (
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
 )
 
-func (c *controller) getCategorySubscribersEmails(category string) ([]string, error) {
+func (n *notificator) getCategorySubscribersEmails(category string) ([]string, error) {
 	resp, err := http.Get(sharedconstants.SUBSCRIPTIONS_MICROSERVICE_SOCKET + sharedconstants.SUBSCRIPTIONS_ROUTE + sharedconstants.CATEGORIES_ROUTE + "/" + category)
 	if err != nil {
 		return nil, err

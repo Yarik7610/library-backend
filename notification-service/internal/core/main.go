@@ -10,25 +10,28 @@ import (
 	"go.uber.org/zap"
 )
 
-type Controller interface {
-	Start()
+type Notificator interface {
+	Run()
 }
 
-type controller struct {
+type notificator struct {
 	bookAddedReader *kafka.Reader
 	emailSender     email.Sender
 }
 
-func NewController(bookAddedReader *kafka.Reader, emailSender email.Sender) Controller {
-	return &controller{
+func NewNotificator(bookAddedReader *kafka.Reader, emailSender email.Sender) Notificator {
+	return &notificator{
 		bookAddedReader: bookAddedReader,
 		emailSender:     emailSender,
 	}
 }
 
-func (c *controller) Start() {
+func (n *notificator) Run() {
+	workerPool := NewWorkerPool(WORKER_POOL_SIZE, n.emailSender)
+	defer workerPool.Stop()
+
 	for {
-		m, err := c.bookAddedReader.ReadMessage(context.Background())
+		m, err := n.bookAddedReader.ReadMessage(context.Background())
 		if err != nil {
 			zap.S().Errorf("Book added topic read message error: %v", err)
 			continue
@@ -40,15 +43,12 @@ func (c *controller) Start() {
 			continue
 		}
 
-		emails, err := c.getCategorySubscribersEmails(addedBook.Category)
+		emails, err := n.getCategorySubscribersEmails(addedBook.Category)
 		if err != nil {
-			zap.S().Errorf("Get book's category subscribers emails error: %v", err)
+			zap.S().Errorf("Get book's category subscriber's emails error: %v", err)
 			continue
 		}
 
-		// body := fmt.Sprintf("Hello! New books arrival in %q category", utils.Capitalize("horror"))
-		zap.S().Debug("EMAILS", emails)
-
-		// c.emailSender.Send(body, []string{config.Data.Mail})
+		workerPool.Feed(&addedBook, emails)
 	}
 }

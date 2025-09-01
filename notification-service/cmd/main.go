@@ -20,10 +20,10 @@ func main() {
 		zap.S().Fatalf("Config load error: %v\n", err)
 	}
 
-	bookAddedReader := broker.NewReader(sharedconstants.BOOK_ADDED_TOPIC)
-	sender := email.NewSender()
+	bookAddedReader := broker.NewReader(sharedconstants.BOOK_ADDED_TOPIC, sharedconstants.BOOK_ADDED_CONSUMER_GROUP_ID)
+	sender := email.NewSender(config.Data.Mail, config.Data.MailPassword)
 	sender.WithSubject("Subscription notification")
 
-	controller := core.NewController(bookAddedReader, sender)
-	controller.Start()
+	notificator := core.NewNotificator(bookAddedReader, sender)
+	notificator.Run()
 }
