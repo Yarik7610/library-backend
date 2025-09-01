@@ -3,7 +3,7 @@ module github.com/Yarik7610/library-backend/catalog-service
 go 1.24.5
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20250828140855-c9a322633060
+	github.com/Yarik7610/library-backend-common v0.0.0-20250901081215-bf781471ab66
 	github.com/gin-gonic/gin v1.10.1
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/segmentio/kafka-go v0.4.49

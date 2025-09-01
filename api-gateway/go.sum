@@ -1,5 +1,5 @@
-github.com/Yarik7610/library-backend-common v0.0.0-20250828140855-c9a322633060 h1:hoySmEV0aDcukeO3FkhyrKvDsnD7SVLKOhmkdZ05KLs=
-github.com/Yarik7610/library-backend-common v0.0.0-20250828140855-c9a322633060/go.mod h1:LLZ3LHjfMwkYb9D0I4a6aAg/MFgUsnIScr3zuBoB51o=
+github.com/Yarik7610/library-backend-common v0.0.0-20250901081215-bf781471ab66 h1:FLEDW2k1nFo89IJPBt3dKPYvBx61ELwRtSr7ZSbU/10=
+github.com/Yarik7610/library-backend-common v0.0.0-20250901081215-bf781471ab66/go.mod h1:WguPwt+ItUXOFrqW3eWMQGwM/WT9J30Qvdn8xB18bfs=
 github.com/bytedance/sonic v1.11.6 h1:oUp34TzMlL+OY1OUWxHqsdkgC/Zfc85zGqw9siXjrc0=
 github.com/bytedance/sonic v1.11.6/go.mod h1:LysEHSvpvDySVdC2f87zGWf6CIKJcAvqab1ZaiQtds4=
 github.com/bytedance/sonic/loader v0.1.1 h1:c+e5Pt1k/cy5wMveRDyk2X4B9hF4g7an8N3zCYjJFNM=

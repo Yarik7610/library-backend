@@ -1,10 +1,17 @@
-module github.com/Yarik7610/library-backend/api-gateway
+module github.com/Yarik7610/library-backend/notification-service
 
 go 1.24.5
 
 require (
+	github.com/Yarik7610/library-backend-common v0.0.0-20250901081215-bf781471ab66
+	github.com/segmentio/kafka-go v0.4.49
 	github.com/spf13/viper v1.20.1
 	go.uber.org/zap v1.27.0
+)
+
+require (
+	github.com/klauspost/compress v1.15.9 // indirect
+	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 )
 
 require (
@@ -19,6 +26,6 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

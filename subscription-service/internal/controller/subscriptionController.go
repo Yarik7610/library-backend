@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/service"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/dto"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )

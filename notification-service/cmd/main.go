@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/Yarik7610/library-backend/api-gateway/config"
-	"github.com/Yarik7610/library-backend/api-gateway/internal/email"
-	"github.com/Yarik7610/library-backend/api-gateway/internal/utils"
+	"github.com/Yarik7610/library-backend-common/broker"
+	"github.com/Yarik7610/library-backend-common/sharedconstants"
+	"github.com/Yarik7610/library-backend/notification-service/config"
+	"github.com/Yarik7610/library-backend/notification-service/internal/core"
+	"github.com/Yarik7610/library-backend/notification-service/internal/email"
 
 	"go.uber.org/zap"
 )
@@ -20,9 +20,10 @@ func main() {
 		zap.S().Fatalf("Config load error: %v\n", err)
 	}
 
-	body := fmt.Sprintf("Hello! New books arrival in %q category", utils.Capitalize("horror"))
-
+	bookAddedReader := broker.NewReader(sharedconstants.BOOK_ADDED_TOPIC)
 	sender := email.NewSender()
 	sender.WithSubject("Subscription notification")
-	sender.Send(body, []string{config.Data.Mail})
+
+	controller := core.NewController(bookAddedReader, sender)
+	controller.Start()
 }

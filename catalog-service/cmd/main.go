@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Yarik7610/library-backend-common/broker"
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/catalog-service/config"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/connect"
@@ -25,7 +26,7 @@ func main() {
 
 	db := connect.DB()
 	rdb := connect.Cache()
-	bookAddedWriter := connect.NewKafkaWriter(sharedconstants.BOOK_ADDED_TOPIC)
+	bookAddedWriter := broker.NewWriter(sharedconstants.BOOK_ADDED_TOPIC)
 
 	bookRepoCache := repository.NewBookRepositoryCache(rdb)
 	bookRepo := repository.NewBookRepository(db)

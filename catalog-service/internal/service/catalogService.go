@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Yarik7610/library-backend-common/broker/event"
 	"github.com/Yarik7610/library-backend-common/custom"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/event"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
 	"github.com/redis/go-redis/v9"

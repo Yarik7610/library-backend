@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/model"
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )

@@ -10,8 +10,8 @@ import (
 
 	"github.com/Yarik7610/library-backend-common/custom"
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/model"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/repository"
 )
 
 type SubscriptionService interface {
@@ -36,7 +36,7 @@ func (s *catalogService) GetCategorySubscribersEmails(category string) ([]string
 	}
 
 	emails, customErr := s.getEmailsByUserIDs(subscribersIDs)
-	if err != nil {
+	if customErr != nil {
 		return nil, customErr
 	}
 	return emails, nil

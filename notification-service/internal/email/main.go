@@ -5,7 +5,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/Yarik7610/library-backend/api-gateway/config"
+	"github.com/Yarik7610/library-backend/notification-service/config"
 	"go.uber.org/zap"
 )
 

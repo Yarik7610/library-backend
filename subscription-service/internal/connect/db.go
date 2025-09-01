@@ -1,8 +1,8 @@
 package connect
 
 import (
-	"github.com/Yarik7610/library-backend/catalog-service/config"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
+	"github.com/Yarik7610/library-backend/subscription-service/config"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/model"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
