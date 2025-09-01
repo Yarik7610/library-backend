@@ -27,7 +27,14 @@ func NewNotificator(bookAddedReader *kafka.Reader, emailSender email.Sender) Not
 }
 
 func (n *notificator) Run() {
-	workerPool := NewWorkerPool(WORKER_POOL_SIZE, n.emailSender)
+	workerPool := NewWorkerPool[emailJob](WORKER_POOL_SIZE)
+	workerPool.Run(func(job emailJob) {
+		body := email.FormatBookAddedEmailHTML(job.addedBook)
+		err := n.emailSender.Send(body, []string{job.email})
+		if err != nil {
+			zap.S().Errorf("Mail send to %v error: %v", job.email, err)
+		}
+	})
 	defer workerPool.Stop()
 
 	for {
@@ -49,6 +56,10 @@ func (n *notificator) Run() {
 			continue
 		}
 
-		workerPool.Feed(&addedBook, emails)
+		emailJobs := make([]emailJob, 0)
+		for _, email := range emails {
+			emailJobs = append(emailJobs, emailJob{email: email, addedBook: &addedBook})
+		}
+		workerPool.Feed(emailJobs)
 	}
 }
