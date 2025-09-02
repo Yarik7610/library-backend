@@ -3,6 +3,9 @@
 A modular microservices-based backend for a library-like system with catalog management, user authentication, subscriptions, and notifications.
 The project is designed with separation of concerns: each service handles a specific domain, while the API Gateway serves as the single entry point for clients.
 
+Overall project architecture:
+<img width="991" height="649" alt="изображение" src="https://github.com/user-attachments/assets/1cdaed8a-470a-4132-9814-f7754e00157d" />
+
 ## Core Features
 
 - **API Gateway**
