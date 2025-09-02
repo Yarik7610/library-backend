@@ -4,7 +4,8 @@ A modular microservices-based backend for a library-like system with catalog man
 The project is designed with separation of concerns: each service handles a specific domain, while the API Gateway serves as the single entry point for clients.
 
 Overall project architecture:
-<img width="991" height="649" alt="изображение" src="https://github.com/user-attachments/assets/1cdaed8a-470a-4132-9814-f7754e00157d" />
+
+<img width="1016" height="685" alt="изображение" src="https://github.com/user-attachments/assets/c613e7de-c743-40ba-b5e9-de845ab838fb" />
 
 ## Core Features
 
