@@ -79,7 +79,7 @@ func (c *catalogController) PreviewBook(ctx *gin.Context) {
 //	@Description	Returns a list of all available book categories
 //	@Tags			catalog
 //	@Produce		json
-//	@Success		200	{array}	string
+//	@Success		200	{array}		string
 //	@Failure		500	{object}	map[string]string
 //	@Router			/catalog/categories [get]
 func (c *catalogController) GetCategories(ctx *gin.Context) {
@@ -100,7 +100,7 @@ func (c *catalogController) GetCategories(ctx *gin.Context) {
 //	@Tags			catalog
 //	@Param			authorID	path	uint	true	"Author ID"
 //	@Produce		json
-//	@Success		200	{array}	dto.ListedBooks
+//	@Success		200	{array}		dto.ListedBooks
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
 //	@Router			/catalog/authors/{authorID}/books [get]
@@ -136,7 +136,7 @@ func (c *catalogController) GetBooksByAuthorID(ctx *gin.Context) {
 //	@Param			sort	query	string	false	"Sort field"
 //	@Param			order	query	string	false	"Sort order (asc/desc)"
 //	@Produce		json
-//	@Success		200	{array}	dto.ListedBooks
+//	@Success		200	{array}		dto.ListedBooks
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
 //	@Router			/catalog/books/search [get]
@@ -181,12 +181,12 @@ func (c *catalogController) SearchBooks(ctx *gin.Context) {
 //	@Description	Returns paginated list of books for the given category
 //	@Tags			catalog
 //	@Param			categoryName	path	string	true	"Category name"
-//	@Param			page			query	int	false	"Page number"
-//	@Param			count			query	int	false	"Number of items per page"
+//	@Param			page			query	int		false	"Page number"
+//	@Param			count			query	int		false	"Number of items per page"
 //	@Param			sort			query	string	false	"Sort field"
 //	@Param			order			query	string	false	"Sort order (asc/desc)"
 //	@Produce		json
-//	@Success		200	{array}	dto.ListedBooks
+//	@Success		200	{array}		dto.ListedBooks
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
 //	@Router			/catalog/categories/{categoryName}/books [get]
@@ -216,8 +216,8 @@ func (c *catalogController) ListBooksByCategory(ctx *gin.Context) {
 //	@Summary		Get a book page
 //	@Description	Returns content of a specific book page
 //	@Tags			catalog
-//	@Param			bookID	path	uint	true	"Book ID"
-//	@Param			pageNumber	query	int	true	"Page number"
+//	@Param			bookID		path	uint	true	"Book ID"
+//	@Param			pageNumber	query	int		true	"Page number"
 //	@Produce		json
 //	@Success		200	{object}	model.Page
 //	@Failure		400	{object}	map[string]string
@@ -256,6 +256,7 @@ func (c *catalogController) GetBookPage(ctx *gin.Context) {
 //	@Tags			catalog
 //	@Param			bookID	path	uint	true	"Book ID"
 //	@Produce		json
+//	@Security		BearerAuth
 //	@Success		204	""
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
@@ -287,6 +288,7 @@ func (c *catalogController) DeleteBook(ctx *gin.Context) {
 //	@Tags			catalog
 //	@Param			book	body	dto.AddBook	true	"Book info"
 //	@Produce		json
+//	@Security		BearerAuth
 //	@Success		201	{object}	model.Book
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
@@ -314,6 +316,7 @@ func (c *catalogController) AddBook(ctx *gin.Context) {
 //	@Description	Deletes an author by ID
 //	@Tags			catalog
 //	@Param			authorID	path	uint	true	"Author ID"
+//	@Security		BearerAuth
 //	@Produce		json
 //	@Success		204	""
 //	@Failure		400	{object}	map[string]string
@@ -345,6 +348,7 @@ func (c *catalogController) DeleteAuthor(ctx *gin.Context) {
 //	@Tags			catalog
 //	@Param			author	body	dto.CreateAuthor	true	"Author info"
 //	@Produce		json
+//	@Security		BearerAuth
 //	@Success		201	{object}	model.Author
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
@@ -372,7 +376,7 @@ func (c *catalogController) CreateAuthor(ctx *gin.Context) {
 //	@Description	Returns list of recently added books
 //	@Tags			catalog
 //	@Produce		json
-//	@Success		200	{array}	dto.ListedBooks
+//	@Success		200	{array}		dto.ListedBooks
 //	@Failure		500	{object}	map[string]string
 //	@Router			/catalog/books/new [get]
 func (c *catalogController) GetNewBooks(ctx *gin.Context) {
@@ -392,7 +396,7 @@ func (c *catalogController) GetNewBooks(ctx *gin.Context) {
 //	@Description	Returns list of most popular books
 //	@Tags			catalog
 //	@Produce		json
-//	@Success		200	{array}	dto.ListedBooks
+//	@Success		200	{array}		dto.ListedBooks
 //	@Failure		500	{object}	map[string]string
 //	@Router			/catalog/books/popular [get]
 func (c *catalogController) GetPopularBooks(ctx *gin.Context) {

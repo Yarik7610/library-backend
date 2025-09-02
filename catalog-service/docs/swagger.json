@@ -6,6 +6,11 @@
     "paths": {
         "/catalog/authors": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Adds a new author",
                 "produces": [
                     "application/json"
@@ -55,6 +60,11 @@
         },
         "/catalog/authors/{authorID}": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes an author by ID",
                 "produces": [
                     "application/json"
@@ -149,6 +159,11 @@
         },
         "/catalog/books": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new book entry",
                 "produces": [
                     "application/json"
@@ -490,6 +505,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes a book by ID",
                 "produces": [
                     "application/json"

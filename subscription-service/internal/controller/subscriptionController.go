@@ -56,6 +56,7 @@ func (c *subscriptionController) GetCategorySubscribersEmails(ctx *gin.Context) 
 //	@Description	Returns a list of categories for the user
 //	@Tags			subscription
 //	@Produce		json
+//	@Security		BearerAuth
 //	@Success		200	{array}		string
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
@@ -85,6 +86,7 @@ func (c *subscriptionController) GetSubscribedCategories(ctx *gin.Context) {
 //	@Tags			subscription
 //	@Param			category	body	dto.SubscribeCategory	true	"Category to subscribe"
 //	@Produce		json
+//	@Security		BearerAuth
 //	@Success		200	{object}	map[string]string
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
@@ -120,6 +122,7 @@ func (c *subscriptionController) SubscribeCategory(ctx *gin.Context) {
 //	@Tags			subscription
 //	@Param			categoryName	path	string	true	"Category name to unsubscribe"
 //	@Produce		json
+//	@Security		BearerAuth
 //	@Success		200	{object}	map[string]string
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string

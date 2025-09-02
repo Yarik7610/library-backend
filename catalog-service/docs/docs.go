@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/catalog/authors": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Adds a new author",
                 "produces": [
                     "application/json"
@@ -66,6 +71,11 @@ const docTemplate = `{
         },
         "/catalog/authors/{authorID}": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes an author by ID",
                 "produces": [
                     "application/json"
@@ -160,6 +170,11 @@ const docTemplate = `{
         },
         "/catalog/books": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new book entry",
                 "produces": [
                     "application/json"
@@ -501,6 +516,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deletes a book by ID",
                 "produces": [
                     "application/json"

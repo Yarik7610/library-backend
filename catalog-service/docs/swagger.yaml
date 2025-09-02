@@ -134,6 +134,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new author
       tags:
       - catalog
@@ -163,6 +165,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete an author
       tags:
       - catalog
@@ -228,6 +232,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Add a new book
       tags:
       - catalog
@@ -257,6 +263,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete a book
       tags:
       - catalog

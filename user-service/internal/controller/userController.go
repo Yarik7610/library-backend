@@ -88,6 +88,7 @@ func (c *userController) SignIn(ctx *gin.Context) {
 //	@Description	Returns info about the authenticated user
 //	@Tags			user
 //	@Produce		json
+//	@Security 	BearerAuth
 //	@Success		200	{object}	dto.User
 //	@Failure		401	{object}	map[string]string
 //	@Router			/me [get]

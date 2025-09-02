@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/subscriptions/categories": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns a list of categories for the user",
                 "produces": [
                     "application/json"
@@ -56,6 +61,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Adds the category to the user's subscriptions",
                 "produces": [
                     "application/json"
@@ -156,6 +166,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Removes the category from the user's subscriptions",
                 "produces": [
                     "application/json"

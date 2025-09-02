@@ -85,6 +85,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get current user info
       tags:
       - user
