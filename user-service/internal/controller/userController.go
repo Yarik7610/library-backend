@@ -26,6 +26,17 @@ func NewUserController(userService service.UserService) UserController {
 	return &userController{userService: userService}
 }
 
+// SignUp godoc
+//
+//	@Summary		Register new user
+//	@Description	Creates a new user account
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body		dto.SignUpUser	true	"Sign up data"
+//	@Success		201		{object}	dto.User
+//	@Failure		400		{object}	map[string]string
+//	@Router			/sign-up [post]
 func (c *userController) SignUp(ctx *gin.Context) {
 	var signUpUserDTO dto.SignUpUser
 	if err := ctx.ShouldBindJSON(&signUpUserDTO); err != nil {
@@ -43,6 +54,17 @@ func (c *userController) SignUp(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, user)
 }
 
+// SignIn godoc
+//
+//	@Summary		Authorize user
+//	@Description	Authorize existings user
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body		dto.SignInUser	true	"Sign in data"
+//	@Success		200		{object}	map[string]string
+//	@Failure		400		{object}	map[string]string
+//	@Router			/sign-in [post]
 func (c *userController) SignIn(ctx *gin.Context) {
 	var signInUserDTO dto.SignInUser
 	if err := ctx.ShouldBindJSON(&signInUserDTO); err != nil {
@@ -60,6 +82,16 @@ func (c *userController) SignIn(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"token": token})
 }
 
+// GetMe godoc
+//
+//	@Summary		Get current user info
+//	@Description	Returns info about the authenticated user
+//	@Tags			auth
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Success		200	{object}	dto.User
+//	@Failure		401	{object}	map[string]string
+//	@Router			/me [get]
 func (c *userController) GetMe(ctx *gin.Context) {
 	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
@@ -78,6 +110,16 @@ func (c *userController) GetMe(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, user)
 }
 
+// GetEmailsByUserIDs godoc
+//
+//	@Summary		Get emails by user IDs
+//	@Description	Returns a list of emails for given user IDs
+//	@Tags			internal
+//	@Produce		json
+//	@Param			ids	query		[]int	true	"User IDs"
+//	@Success		200	{array}		string
+//	@Failure		400	{object}	map[string]string
+//	@Router			/emails [get]
 func (c *userController) GetEmailsByUserIDs(ctx *gin.Context) {
 	userIDsStrings := ctx.QueryArray("ids")
 
