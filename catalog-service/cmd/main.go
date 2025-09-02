@@ -10,7 +10,10 @@ import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/seed"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/service"
 
+	docs "github.com/Yarik7610/library-backend/catalog-service/docs"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
 
@@ -39,6 +42,10 @@ func main() {
 	catalogController := controller.NewCatalogController(catalogService)
 
 	r := gin.Default()
+
+	docs.SwaggerInfo.BasePath = "/"
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	catalogGroup := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
 		catalogGroup.GET(sharedconstants.CATEGORIES_ROUTE, catalogController.GetCategories)

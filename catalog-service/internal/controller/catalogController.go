@@ -37,6 +37,17 @@ func NewCatalogController(catalogService service.CatalogService) CatalogControll
 	return &catalogController{catalogService: catalogService}
 }
 
+// PreviewBook godoc
+//
+//	@Summary		Preview a book
+//	@Description	Returns preview information for a book
+//	@Tags			catalog
+//	@Param			bookID	path	uint	true	"Book ID"
+//	@Produce		json
+//	@Success		200	{object}	model.Book
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/books/preview/{bookID} [get]
 func (c *catalogController) PreviewBook(ctx *gin.Context) {
 	bookIDString := ctx.Param("bookID")
 	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
@@ -62,6 +73,15 @@ func (c *catalogController) PreviewBook(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, book)
 }
 
+// GetCategories godoc
+//
+//	@Summary		Get all book categories
+//	@Description	Returns a list of all available book categories
+//	@Tags			catalog
+//	@Produce		json
+//	@Success		200	{array}	string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/categories [get]
 func (c *catalogController) GetCategories(ctx *gin.Context) {
 	categories, err := c.catalogService.GetCategories()
 	if err != nil {
@@ -73,6 +93,17 @@ func (c *catalogController) GetCategories(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, categories)
 }
 
+// GetBooksByAuthorID godoc
+//
+//	@Summary		Get books by author ID
+//	@Description	Returns all books for the given author
+//	@Tags			catalog
+//	@Param			authorID	path	uint	true	"Author ID"
+//	@Produce		json
+//	@Success		200	{array}	dto.ListedBooks
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/authors/{authorID}/books [get]
 func (c *catalogController) GetBooksByAuthorID(ctx *gin.Context) {
 	authorIDString := ctx.Param("authorID")
 	authorID, err := strconv.ParseUint(authorIDString, 10, 64)
@@ -93,6 +124,22 @@ func (c *catalogController) GetBooksByAuthorID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, books)
 }
 
+// SearchBooks godoc
+//
+//	@Summary		Search books
+//	@Description	Search books by author name and/or title with pagination
+//	@Tags			catalog
+//	@Param			author	query	string	false	"Author name"
+//	@Param			title	query	string	false	"Book title"
+//	@Param			page	query	int		false	"Page number"
+//	@Param			count	query	int		false	"Number of items per page"
+//	@Param			sort	query	string	false	"Sort field"
+//	@Param			order	query	string	false	"Sort order (asc/desc)"
+//	@Produce		json
+//	@Success		200	{array}	dto.ListedBooks
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/books/search [get]
 func (c *catalogController) SearchBooks(ctx *gin.Context) {
 	var q query.SearchBooks
 	if err := ctx.ShouldBindQuery(&q); err != nil {
@@ -128,6 +175,21 @@ func (c *catalogController) SearchBooks(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, books)
 }
 
+// ListBooksByCategory godoc
+//
+//	@Summary		List books by category
+//	@Description	Returns paginated list of books for the given category
+//	@Tags			catalog
+//	@Param			categoryName	path	string	true	"Category name"
+//	@Param			page			query	int	false	"Page number"
+//	@Param			count			query	int	false	"Number of items per page"
+//	@Param			sort			query	string	false	"Sort field"
+//	@Param			order			query	string	false	"Sort order (asc/desc)"
+//	@Produce		json
+//	@Success		200	{array}	dto.ListedBooks
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/categories/{categoryName}/books [get]
 func (c *catalogController) ListBooksByCategory(ctx *gin.Context) {
 	categoryName := ctx.Param("categoryName")
 
@@ -149,6 +211,18 @@ func (c *catalogController) ListBooksByCategory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, books)
 }
 
+// GetBookPage godoc
+//
+//	@Summary		Get a book page
+//	@Description	Returns content of a specific book page
+//	@Tags			catalog
+//	@Param			bookID	path	uint	true	"Book ID"
+//	@Param			pageNumber	query	int	true	"Page number"
+//	@Produce		json
+//	@Success		200	{object}	model.Page
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/books/{bookID} [get]
 func (c *catalogController) GetBookPage(ctx *gin.Context) {
 	bookIDString := ctx.Param("bookID")
 	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
@@ -175,6 +249,17 @@ func (c *catalogController) GetBookPage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, page)
 }
 
+// DeleteBook godoc
+//
+//	@Summary		Delete a book
+//	@Description	Deletes a book by ID
+//	@Tags			catalog
+//	@Param			bookID	path	uint	true	"Book ID"
+//	@Produce		json
+//	@Success		204	""
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/books/{bookID} [delete]
 func (c *catalogController) DeleteBook(ctx *gin.Context) {
 	bookIDString := ctx.Param("bookID")
 	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
@@ -195,6 +280,17 @@ func (c *catalogController) DeleteBook(ctx *gin.Context) {
 	ctx.Abort()
 }
 
+// AddBook godoc
+//
+//	@Summary		Add a new book
+//	@Description	Creates a new book entry
+//	@Tags			catalog
+//	@Param			book	body	dto.AddBook	true	"Book info"
+//	@Produce		json
+//	@Success		201	{object}	model.Book
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/books [post]
 func (c *catalogController) AddBook(ctx *gin.Context) {
 	var createBookDTO dto.AddBook
 	if err := ctx.ShouldBindJSON(&createBookDTO); err != nil {
@@ -212,6 +308,17 @@ func (c *catalogController) AddBook(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, book)
 }
 
+// DeleteAuthor godoc
+//
+//	@Summary		Delete an author
+//	@Description	Deletes an author by ID
+//	@Tags			catalog
+//	@Param			authorID	path	uint	true	"Author ID"
+//	@Produce		json
+//	@Success		204	""
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/authors/{authorID} [delete]
 func (c *catalogController) DeleteAuthor(ctx *gin.Context) {
 	authorIDString := ctx.Param("authorID")
 	authorID, err := strconv.ParseUint(authorIDString, 10, 64)
@@ -231,6 +338,17 @@ func (c *catalogController) DeleteAuthor(ctx *gin.Context) {
 	ctx.Abort()
 }
 
+// CreateAuthor godoc
+//
+//	@Summary		Create a new author
+//	@Description	Adds a new author
+//	@Tags			catalog
+//	@Param			author	body	dto.CreateAuthor	true	"Author info"
+//	@Produce		json
+//	@Success		201	{object}	model.Author
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/authors [post]
 func (c *catalogController) CreateAuthor(ctx *gin.Context) {
 	var createAuthorDTO dto.CreateAuthor
 	if err := ctx.ShouldBindJSON(&createAuthorDTO); err != nil {
@@ -248,6 +366,15 @@ func (c *catalogController) CreateAuthor(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, author)
 }
 
+// GetNewBooks godoc
+//
+//	@Summary		Get new books
+//	@Description	Returns list of recently added books
+//	@Tags			catalog
+//	@Produce		json
+//	@Success		200	{array}	dto.ListedBooks
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/books/new [get]
 func (c *catalogController) GetNewBooks(ctx *gin.Context) {
 	newBooks, err := c.catalogService.GetNewBooks()
 	if err != nil {
@@ -259,6 +386,15 @@ func (c *catalogController) GetNewBooks(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, newBooks)
 }
 
+// GetPopularBooks godoc
+//
+//	@Summary		Get popular books
+//	@Description	Returns list of most popular books
+//	@Tags			catalog
+//	@Produce		json
+//	@Success		200	{array}	dto.ListedBooks
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/books/popular [get]
 func (c *catalogController) GetPopularBooks(ctx *gin.Context) {
 	popularBooks, err := c.catalogService.GetPopularBooks()
 	if err != nil {
@@ -270,6 +406,17 @@ func (c *catalogController) GetPopularBooks(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, popularBooks)
 }
 
+// GetBookViewsCount godoc
+//
+//	@Summary		Get views count for a book
+//	@Description	Returns total number of views
+//	@Tags			catalog
+//	@Param			bookID	path	uint	true	"Book ID"
+//	@Produce		json
+//	@Success		200	{object}	map[string]int
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/catalog/books/views/{bookID} [get]
 func (c *catalogController) GetBookViewsCount(ctx *gin.Context) {
 	bookIDString := ctx.Param("bookID")
 	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
