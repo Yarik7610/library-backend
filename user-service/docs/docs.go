@@ -62,11 +62,6 @@ const docTemplate = `{
         },
         "/me": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Returns info about the authenticated user",
                 "produces": [
                     "application/json"
