@@ -11,5 +11,5 @@ type Book struct {
 	Year      int       `json:"year"`
 	Category  string    `json:"category"`
 	CreatedAt time.Time `json:"created_at"`
-	Pages     []Page    `json:"pages,omitempty" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Pages     []Page    `json:"-" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }

@@ -84,10 +84,6 @@ definitions:
         type: string
       id:
         type: integer
-      pages:
-        items:
-          $ref: '#/definitions/model.Page'
-        type: array
       title:
         type: string
       year:

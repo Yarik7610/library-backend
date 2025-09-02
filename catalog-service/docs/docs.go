@@ -779,12 +779,6 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "pages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Page"
-                    }
-                },
                 "title": {
                     "type": "string"
                 },
