@@ -30,7 +30,7 @@ func NewUserController(userService service.UserService) UserController {
 //
 //	@Summary		Register new user
 //	@Description	Creates a new user account
-//	@Tags			auth
+//	@Tags			user
 //	@Accept			json
 //	@Produce		json
 //	@Param			user	body		dto.SignUpUser	true	"Sign up data"
@@ -58,7 +58,7 @@ func (c *userController) SignUp(ctx *gin.Context) {
 //
 //	@Summary		Authorize user
 //	@Description	Authorize existings user
-//	@Tags			auth
+//	@Tags			user
 //	@Accept			json
 //	@Produce		json
 //	@Param			user	body		dto.SignInUser	true	"Sign in data"
@@ -86,7 +86,7 @@ func (c *userController) SignIn(ctx *gin.Context) {
 //
 //	@Summary		Get current user info
 //	@Description	Returns info about the authenticated user
-//	@Tags			auth
+//	@Tags			user
 //	@Produce		json
 //	@Success		200	{object}	dto.User
 //	@Failure		401	{object}	map[string]string

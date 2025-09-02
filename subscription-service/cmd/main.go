@@ -8,7 +8,10 @@ import (
 	"github.com/Yarik7610/library-backend/subscription-service/internal/repository"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/service"
 
+	docs "github.com/Yarik7610/library-backend/subscription-service/docs"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
 
@@ -29,6 +32,10 @@ func main() {
 	subscriptionController := controller.NewSubscriptionController(subscriptionService)
 
 	r := gin.Default()
+
+	docs.SwaggerInfo.BasePath = "/"
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	subscriptionGroup := r.Group(sharedconstants.SUBSCRIPTIONS_ROUTE)
 	{
 		subscriptionGroup.GET(sharedconstants.CATEGORIES_ROUTE, subscriptionController.GetSubscribedCategories)

@@ -26,6 +26,17 @@ func NewSubscriptionController(subscriptionService service.SubscriptionService) 
 	return &subscriptionController{subscriptionService: subscriptionService}
 }
 
+// GetCategorySubscribersEmails godoc
+//
+//	@Summary		Get emails of users subscribed to a category
+//	@Description	Returns emails of all users subscribed to the given category
+//	@Tags			internal
+//	@Param			categoryName	path	string	true	"Category name"
+//	@Produce		json
+//	@Success		200	{array}		string
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/subscriptions/categories/{categoryName} [get]
 func (c *subscriptionController) GetCategorySubscribersEmails(ctx *gin.Context) {
 	category := ctx.Param("categoryName")
 
@@ -39,6 +50,16 @@ func (c *subscriptionController) GetCategorySubscribersEmails(ctx *gin.Context) 
 	ctx.JSON(http.StatusOK, emails)
 }
 
+// GetSubscribedCategories godoc
+//
+//	@Summary		Get categories the current user is subscribed to
+//	@Description	Returns a list of categories for the user
+//	@Tags			subscription
+//	@Produce		json
+//	@Success		200	{array}		string
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/subscriptions/categories [get]
 func (c *subscriptionController) GetSubscribedCategories(ctx *gin.Context) {
 	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
@@ -57,6 +78,17 @@ func (c *subscriptionController) GetSubscribedCategories(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, subscribedCategories)
 }
 
+// SubscribeCategory godoc
+//
+//	@Summary		Subscribe current user to a category
+//	@Description	Adds the category to the user's subscriptions
+//	@Tags			subscription
+//	@Param			category	body	dto.SubscribeCategory	true	"Category to subscribe"
+//	@Produce		json
+//	@Success		200	{object}	map[string]string
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/subscriptions/categories [post]
 func (c *subscriptionController) SubscribeCategory(ctx *gin.Context) {
 	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
@@ -81,6 +113,17 @@ func (c *subscriptionController) SubscribeCategory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, subscribedCategory)
 }
 
+// UnsubscribeCategory godoc
+//
+//	@Summary		Unsubscribe current user from a category
+//	@Description	Removes the category from the user's subscriptions
+//	@Tags			subscription
+//	@Param			categoryName	path	string	true	"Category name to unsubscribe"
+//	@Produce		json
+//	@Success		200	{object}	map[string]string
+//	@Failure		400	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/subscriptions/categories/{categoryName} [delete]
 func (c *subscriptionController) UnsubscribeCategory(ctx *gin.Context) {
 	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)

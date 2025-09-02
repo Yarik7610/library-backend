@@ -15,26 +15,113 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/emails": {
+        "/subscriptions/categories": {
             "get": {
-                "description": "Returns a list of emails for given user IDs",
+                "description": "Returns a list of categories for the user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Get categories the current user is subscribed to",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Adds the category to the user's subscriptions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Subscribe current user to a category",
+                "parameters": [
+                    {
+                        "description": "Category to subscribe",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SubscribeCategory"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/subscriptions/categories/{categoryName}": {
+            "get": {
+                "description": "Returns emails of all users subscribed to the given category",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "internal"
                 ],
-                "summary": "Get emails by user IDs",
+                "summary": "Get emails of users subscribed to a category",
                 "parameters": [
                     {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "User IDs",
-                        "name": "ids",
-                        "in": "query",
+                        "type": "string",
+                        "description": "Category name",
+                        "name": "categoryName",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -56,29 +143,9 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
-                    }
-                }
-            }
-        },
-        "/me": {
-            "get": {
-                "description": "Returns info about the authenticated user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Get current user info",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.User"
-                        }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -87,30 +154,23 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/sign-in": {
-            "post": {
-                "description": "Authorize existings user",
-                "consumes": [
-                    "application/json"
-                ],
+            },
+            "delete": {
+                "description": "Removes the category from the user's subscriptions",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "subscription"
                 ],
-                "summary": "Authorize user",
+                "summary": "Unsubscribe current user from a category",
                 "parameters": [
                     {
-                        "description": "Sign in data",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.SignInUser"
-                        }
+                        "type": "string",
+                        "description": "Category name to unsubscribe",
+                        "name": "categoryName",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -131,43 +191,9 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
-                    }
-                }
-            }
-        },
-        "/sign-up": {
-            "post": {
-                "description": "Creates a new user account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Register new user",
-                "parameters": [
-                    {
-                        "description": "Sign up data",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.SignUpUser"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.User"
-                        }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -180,57 +206,13 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.SignInUser": {
+        "dto.SubscribeCategory": {
             "type": "object",
             "required": [
-                "email",
-                "password"
+                "category"
             ],
             "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.SignUpUser": {
-            "type": "object",
-            "required": [
-                "email",
-                "name",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 5
-                }
-            }
-        },
-        "dto.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_admin": {
-                    "type": "boolean"
-                },
-                "name": {
+                "category": {
                     "type": "string"
                 }
             }

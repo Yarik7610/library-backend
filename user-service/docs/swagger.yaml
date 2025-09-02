@@ -87,7 +87,7 @@ paths:
             type: object
       summary: Get current user info
       tags:
-      - auth
+      - user
   /sign-in:
     post:
       consumes:
@@ -117,7 +117,7 @@ paths:
             type: object
       summary: Authorize user
       tags:
-      - auth
+      - user
   /sign-up:
     post:
       consumes:
@@ -145,5 +145,5 @@ paths:
             type: object
       summary: Register new user
       tags:
-      - auth
+      - user
 swagger: "2.0"
