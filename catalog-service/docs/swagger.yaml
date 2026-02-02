@@ -1,5 +1,5 @@
 definitions:
-  dto.AddBook:
+  dto.AddBookRequest:
     properties:
       author_id:
         minimum: 1
@@ -8,34 +8,34 @@ definitions:
         type: string
       pages:
         items:
-          $ref: '#/definitions/dto.CreatePage'
+          $ref: "#/definitions/dto.CreatePageRequest"
         type: array
       title:
         type: string
       year:
         type: integer
     required:
-    - author_id
-    - category
-    - title
-    - year
+      - author_id
+      - category
+      - title
+      - year
     type: object
-  dto.CreateAuthor:
+  dto.CreateAuthorRequest:
     properties:
       fullname:
         type: string
     required:
-    - fullname
+      - fullname
     type: object
-  dto.CreatePage:
+  dto.CreatePageRequest:
     properties:
       content:
         type: string
       number:
         type: integer
     required:
-    - content
-    - number
+      - content
+      - number
     type: object
   dto.ListedBook:
     properties:
@@ -56,7 +56,7 @@ definitions:
         type: integer
       books:
         items:
-          $ref: '#/definitions/dto.ListedBook'
+          $ref: "#/definitions/dto.ListedBook"
         type: array
       fullname:
         type: string
@@ -65,7 +65,7 @@ definitions:
     properties:
       books:
         items:
-          $ref: '#/definitions/model.Book'
+          $ref: "#/definitions/model.Book"
         type: array
       created_at:
         type: string
@@ -109,19 +109,19 @@ paths:
     post:
       description: Adds a new author
       parameters:
-      - description: Author info
-        in: body
-        name: author
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateAuthor'
+        - description: Author info
+          in: body
+          name: author
+          required: true
+          schema:
+            $ref: "#/definitions/dto.CreateAuthorRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.Author'
+            $ref: "#/definitions/model.Author"
         "400":
           description: Bad Request
           schema:
@@ -135,21 +135,21 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Create a new author
       tags:
-      - catalog
+        - catalog
   /catalog/authors/{authorID}:
     delete:
       description: Deletes an author by ID
       parameters:
-      - description: Author ID
-        in: path
-        name: authorID
-        required: true
-        type: integer
+        - description: Author ID
+          in: path
+          name: authorID
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "204":
           description: ""
@@ -166,27 +166,27 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Delete an author
       tags:
-      - catalog
+        - catalog
   /catalog/authors/{authorID}/books:
     get:
       description: Returns all books for the given author
       parameters:
-      - description: Author ID
-        in: path
-        name: authorID
-        required: true
-        type: integer
+        - description: Author ID
+          in: path
+          name: authorID
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/dto.ListedBooks'
+              $ref: "#/definitions/dto.ListedBooks"
             type: array
         "400":
           description: Bad Request
@@ -202,24 +202,24 @@ paths:
             type: object
       summary: Get books by author ID
       tags:
-      - catalog
+        - catalog
   /catalog/books:
     post:
       description: Creates a new book entry
       parameters:
-      - description: Book info
-        in: body
-        name: book
-        required: true
-        schema:
-          $ref: '#/definitions/dto.AddBook'
+        - description: Book info
+          in: body
+          name: book
+          required: true
+          schema:
+            $ref: "#/definitions/dto.AddBookRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.Book'
+            $ref: "#/definitions/model.Book"
         "400":
           description: Bad Request
           schema:
@@ -233,21 +233,21 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Add a new book
       tags:
-      - catalog
+        - catalog
   /catalog/books/{bookID}:
     delete:
       description: Deletes a book by ID
       parameters:
-      - description: Book ID
-        in: path
-        name: bookID
-        required: true
-        type: integer
+        - description: Book ID
+          in: path
+          name: bookID
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "204":
           description: ""
@@ -264,30 +264,30 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Delete a book
       tags:
-      - catalog
+        - catalog
     get:
       description: Returns content of a specific book page
       parameters:
-      - description: Book ID
-        in: path
-        name: bookID
-        required: true
-        type: integer
-      - description: Page number
-        in: query
-        name: pageNumber
-        required: true
-        type: integer
+        - description: Book ID
+          in: path
+          name: bookID
+          required: true
+          type: integer
+        - description: Page number
+          in: query
+          name: pageNumber
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Page'
+            $ref: "#/definitions/model.Page"
         "400":
           description: Bad Request
           schema:
@@ -302,18 +302,18 @@ paths:
             type: object
       summary: Get a book page
       tags:
-      - catalog
+        - catalog
   /catalog/books/new:
     get:
       description: Returns list of recently added books
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/dto.ListedBooks'
+              $ref: "#/definitions/dto.ListedBooks"
             type: array
         "500":
           description: Internal Server Error
@@ -323,18 +323,18 @@ paths:
             type: object
       summary: Get new books
       tags:
-      - catalog
+        - catalog
   /catalog/books/popular:
     get:
       description: Returns list of most popular books
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/dto.ListedBooks'
+              $ref: "#/definitions/dto.ListedBooks"
             type: array
         "500":
           description: Internal Server Error
@@ -344,23 +344,23 @@ paths:
             type: object
       summary: Get popular books
       tags:
-      - catalog
+        - catalog
   /catalog/books/preview/{bookID}:
     get:
       description: Returns preview information for a book
       parameters:
-      - description: Book ID
-        in: path
-        name: bookID
-        required: true
-        type: integer
+        - description: Book ID
+          in: path
+          name: bookID
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Book'
+            $ref: "#/definitions/model.Book"
         "400":
           description: Bad Request
           schema:
@@ -375,43 +375,43 @@ paths:
             type: object
       summary: Preview a book
       tags:
-      - catalog
+        - catalog
   /catalog/books/search:
     get:
       description: Search books by author name and/or title with pagination
       parameters:
-      - description: Author name
-        in: query
-        name: author
-        type: string
-      - description: Book title
-        in: query
-        name: title
-        type: string
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Number of items per page
-        in: query
-        name: count
-        type: integer
-      - description: Sort field
-        in: query
-        name: sort
-        type: string
-      - description: Sort order (asc/desc)
-        in: query
-        name: order
-        type: string
+        - description: Author name
+          in: query
+          name: author
+          type: string
+        - description: Book title
+          in: query
+          name: title
+          type: string
+        - description: Page number
+          in: query
+          name: page
+          type: integer
+        - description: Number of items per page
+          in: query
+          name: count
+          type: integer
+        - description: Sort field
+          in: query
+          name: sort
+          type: string
+        - description: Sort order (asc/desc)
+          in: query
+          name: order
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/dto.ListedBooks'
+              $ref: "#/definitions/dto.ListedBooks"
             type: array
         "400":
           description: Bad Request
@@ -427,18 +427,18 @@ paths:
             type: object
       summary: Search books
       tags:
-      - catalog
+        - catalog
   /catalog/books/views/{bookID}:
     get:
       description: Returns total number of views
       parameters:
-      - description: Book ID
-        in: path
-        name: bookID
-        required: true
-        type: integer
+        - description: Book ID
+          in: path
+          name: bookID
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -460,12 +460,12 @@ paths:
             type: object
       summary: Get views count for a book
       tags:
-      - catalog
+        - catalog
   /catalog/categories:
     get:
       description: Returns a list of all available book categories
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -481,40 +481,40 @@ paths:
             type: object
       summary: Get all book categories
       tags:
-      - catalog
+        - catalog
   /catalog/categories/{categoryName}/books:
     get:
       description: Returns paginated list of books for the given category
       parameters:
-      - description: Category name
-        in: path
-        name: categoryName
-        required: true
-        type: string
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Number of items per page
-        in: query
-        name: count
-        type: integer
-      - description: Sort field
-        in: query
-        name: sort
-        type: string
-      - description: Sort order (asc/desc)
-        in: query
-        name: order
-        type: string
+        - description: Category name
+          in: path
+          name: categoryName
+          required: true
+          type: string
+        - description: Page number
+          in: query
+          name: page
+          type: integer
+        - description: Number of items per page
+          in: query
+          name: count
+          type: integer
+        - description: Sort field
+          in: query
+          name: sort
+          type: string
+        - description: Sort order (asc/desc)
+          in: query
+          name: order
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/dto.ListedBooks'
+              $ref: "#/definitions/dto.ListedBooks"
             type: array
         "400":
           description: Bad Request
@@ -530,5 +530,5 @@ paths:
             type: object
       summary: List books by category
       tags:
-      - catalog
+        - catalog
 swagger: "2.0"

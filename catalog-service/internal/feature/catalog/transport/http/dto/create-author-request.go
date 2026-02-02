@@ -1,5 +1,5 @@
 package dto
 
-type CreateAuthor struct {
+type CreateAuthorRequest struct {
 	Fullname string `json:"fullname" binding:"required"`
 }

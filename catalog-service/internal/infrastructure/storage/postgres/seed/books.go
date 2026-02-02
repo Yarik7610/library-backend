@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
 	"go.uber.org/zap"
 )
 
-func Books(bookRepository repository.BookRepository, pageRepository repository.PageRepository, authorRepository repository.AuthorRepository) {
+func Books(bookRepository postgres.BookRepository, pageRepository postgres.PageRepository, authorRepository postgres.AuthorRepository) {
 	bookCount, err := bookRepository.CountBooks()
 	if err != nil {
 		zap.S().Fatalf("Failed to count books for seed need: %v", err)
@@ -27,7 +27,7 @@ func Books(bookRepository repository.BookRepository, pageRepository repository.P
 	zap.S().Info("Successfully seeded books")
 }
 
-func seedBooks(bookRepository repository.BookRepository, pageRepository repository.PageRepository, authorRepository repository.AuthorRepository) error {
+func seedBooks(bookRepository postgres.BookRepository, pageRepository postgres.PageRepository, authorRepository postgres.AuthorRepository) error {
 	const booksCount = 100
 	const bookPagesCount = 5
 	const workersCount = 10

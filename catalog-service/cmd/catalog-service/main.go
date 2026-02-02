@@ -3,14 +3,16 @@ package main
 import (
 	"github.com/Yarik7610/library-backend-common/broker"
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
-	"github.com/Yarik7610/library-backend/catalog-service/config"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/connect"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/controller"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/repository"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/seed"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/service"
 
 	docs "github.com/Yarik7610/library-backend/catalog-service/docs"
+	postgresRepositories "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres"
+	redisRepositories "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/redis"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service"
+	controller "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres/seed"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/redis"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -27,18 +29,19 @@ func main() {
 		zap.S().Fatalf("Config load error: %v\n", err)
 	}
 
-	db := connect.DB()
-	rdb := connect.Cache()
+	postgresDB := postgres.Connect()
+	rdb := redis.Connect()
+
 	bookAddedWriter := broker.NewWriter(sharedconstants.BOOK_ADDED_TOPIC)
 
-	bookRepoCache := repository.NewBookRepositoryCache(rdb)
-	bookRepo := repository.NewBookRepository(db)
-	pageRepo := repository.NewPageRepository(db)
-	authorRepo := repository.NewAuthorRepository(db)
+	bookRepoCache := redisRepositories.NewBookRepository(rdb)
+	bookRepo := postgresRepositories.NewBookRepository(postgresDB)
+	pageRepo := postgresRepositories.NewPageRepository(postgresDB)
+	authorRepo := postgresRepositories.NewAuthorRepository(postgresDB)
 
 	seed.Books(bookRepo, pageRepo, authorRepo)
 
-	catalogService := service.NewCatalogService(db, bookAddedWriter, authorRepo, bookRepoCache, bookRepo, pageRepo)
+	catalogService := service.NewCatalogService(postgresDB, bookAddedWriter, authorRepo, bookRepoCache, bookRepo, pageRepo)
 	catalogController := controller.NewCatalogController(catalogService)
 
 	r := gin.Default()

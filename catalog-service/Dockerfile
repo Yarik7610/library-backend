@@ -1,4 +1,4 @@
-FROM golang:1.24 AS builder
+FROM golang:1.25 AS builder
 
 ARG CGO_ENABLED=0
 WORKDIR /app
@@ -12,7 +12,7 @@ COPY . .
 
 RUN go build -o main ./cmd
 
-FROM golang:1.24-alpine
+FROM golang:1.25-alpine
 
 WORKDIR /app
 COPY --from=builder /app/main .

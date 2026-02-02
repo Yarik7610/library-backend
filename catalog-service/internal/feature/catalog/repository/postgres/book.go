@@ -1,12 +1,11 @@
-package repository
+package postgres
 
 import (
 	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
+	"github.com/Yarik7610/libary-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
 	"gorm.io/gorm"
 )
 
@@ -21,10 +20,10 @@ type BookRepository interface {
 	FindByTitleAndAuthorID(title string, authorID uint) (*model.Book, error)
 	CountBooks() (int64, error)
 	GetBooksByAuthorID(authorID uint) ([]model.Book, error)
-	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
-	ListBooksByTitle(title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
-	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
-	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error)
+	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]model.ListedBooks, error)
+	ListBooksByTitle(title string, page, count uint, sort, order string) ([]model.ListedBooks, error)
+	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]model.ListedBooks, error)
+	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]model.ListedBooks, error)
 	CreateBook(book *model.Book) error
 	DeleteBook(ID uint) error
 }
@@ -110,24 +109,24 @@ func (r *bookRepository) GetBooksByAuthorID(authorID uint) ([]model.Book, error)
 	return books, nil
 }
 
-func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
+func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
 	return r.listBooksBy(map[string]string{"author": authorName}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByTitle(title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
+func (r *bookRepository) ListBooksByTitle(title string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
 	return r.listBooksBy(map[string]string{"title": title}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
+func (r *bookRepository) ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
 	return r.listBooksBy(map[string]string{"author": authorName, "title": title}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByCategory(category string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
+func (r *bookRepository) ListBooksByCategory(category string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
 	return r.listBooksBy(map[string]string{"category": category}, page, count, sort, order)
 }
 
-func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint, sort, order string) ([]dto.ListedBooksRaw, error) {
-	var rawBooks []dto.ListedBooksRaw
+func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
+	var rawBooks []model.ListedBooks
 	offset := (page - 1) * count
 
 	sort, order = validateOrderParams(sort, order)
@@ -183,7 +182,7 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint
 	return rawBooks, nil
 }
 
-func (r *bookRepository) AddBook(bookDTO *dto.AddBook) (*model.Book, error) {
+func (r *bookRepository) AddBook(bookDTO *model.AddBookRequest) (*model.Book, error) {
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		var author model.Author
 		if err := tx.Where("author_id = ?", bookDTO.AuthorID).First(&author).Error; err != nil {

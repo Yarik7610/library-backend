@@ -6,9 +6,9 @@ import (
 
 	"github.com/Yarik7610/library-backend-common/custom"
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/dto"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/query"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/service"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/dto"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/query"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -286,7 +286,7 @@ func (c *catalogController) DeleteBook(ctx *gin.Context) {
 //	@Summary		Add a new book
 //	@Description	Creates a new book entry
 //	@Tags			catalog
-//	@Param			book	body	dto.AddBook	true	"Book info"
+//	@Param			book	body	dto.AddBookRequest	true	"Book info"
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Success		201	{object}	model.Book
@@ -294,7 +294,7 @@ func (c *catalogController) DeleteBook(ctx *gin.Context) {
 //	@Failure		500	{object}	map[string]string
 //	@Router			/catalog/books [post]
 func (c *catalogController) AddBook(ctx *gin.Context) {
-	var createBookDTO dto.AddBook
+	var createBookDTO dto.AddBookRequest
 	if err := ctx.ShouldBindJSON(&createBookDTO); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -346,7 +346,7 @@ func (c *catalogController) DeleteAuthor(ctx *gin.Context) {
 //	@Summary		Create a new author
 //	@Description	Adds a new author
 //	@Tags			catalog
-//	@Param			author	body	dto.CreateAuthor	true	"Author info"
+//	@Param			author	body	dto.CreateAuthorRequest	true	"Author info"
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Success		201	{object}	model.Author
@@ -354,7 +354,7 @@ func (c *catalogController) DeleteAuthor(ctx *gin.Context) {
 //	@Failure		500	{object}	map[string]string
 //	@Router			/catalog/authors [post]
 func (c *catalogController) CreateAuthor(ctx *gin.Context) {
-	var createAuthorDTO dto.CreateAuthor
+	var createAuthorDTO dto.CreateAuthorRequest
 	if err := ctx.ShouldBindJSON(&createAuthorDTO); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

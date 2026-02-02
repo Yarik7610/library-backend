@@ -1,6 +1,6 @@
 package dto
 
-type CreatePage struct {
+type CreatePageRequest struct {
 	Number  uint   `json:"number" binding:"required"`
 	Content string `json:"content" binding:"required"`
 }

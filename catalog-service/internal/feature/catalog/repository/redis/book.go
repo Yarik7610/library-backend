@@ -1,4 +1,4 @@
-package repository
+package redis
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Yarik7610/library-backend/catalog-service/internal/model"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -22,7 +22,7 @@ const (
 	POPULAR_BOOKS_COUNT = 10
 )
 
-type BookRepositoryCache interface {
+type BookRepository interface {
 	SetCategories(categories []string) error
 	GetCategories() ([]string, error)
 	SetNewBooks(newBooks []model.Book) error
@@ -32,15 +32,15 @@ type BookRepositoryCache interface {
 	GetPopularBooksIDs() ([]string, error)
 }
 
-type bookRepositoryCache struct {
+type bookRepository struct {
 	rdb *redis.Client
 }
 
-func NewBookRepositoryCache(rdb *redis.Client) BookRepositoryCache {
-	return &bookRepositoryCache{rdb: rdb}
+func NewBookRepository(rdb *redis.Client) BookRepository {
+	return &bookRepository{rdb: rdb}
 }
 
-func (r *bookRepositoryCache) SetCategories(categories []string) error {
+func (r *bookRepository) SetCategories(categories []string) error {
 	ctx := context.Background()
 	if err := r.rdb.Del(ctx, CATEGORIES_KEY).Err(); err != nil {
 		return err
@@ -58,12 +58,12 @@ func (r *bookRepositoryCache) SetCategories(categories []string) error {
 	return nil
 }
 
-func (r *bookRepositoryCache) GetCategories() ([]string, error) {
+func (r *bookRepository) GetCategories() ([]string, error) {
 	ctx := context.Background()
 	return r.rdb.LRange(ctx, CATEGORIES_KEY, 0, -1).Result()
 }
 
-func (r *bookRepositoryCache) SetNewBooks(newBooks []model.Book) error {
+func (r *bookRepository) SetNewBooks(newBooks []model.Book) error {
 	ctx := context.Background()
 
 	newBooksByteSlice, err := json.Marshal(newBooks)
@@ -75,7 +75,7 @@ func (r *bookRepositoryCache) SetNewBooks(newBooks []model.Book) error {
 	return err
 }
 
-func (r *bookRepositoryCache) GetNewBooks() ([]model.Book, error) {
+func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
 	ctx := context.Background()
 	newBooksString, err := r.rdb.Get(ctx, NEW_BOOKS_KEY).Result()
 	if err != nil {
@@ -90,7 +90,7 @@ func (r *bookRepositoryCache) GetNewBooks() ([]model.Book, error) {
 	return newBooks, nil
 }
 
-func (r *bookRepositoryCache) UpdateBookViewsCount(bookID, userID uint) error {
+func (r *bookRepository) UpdateBookViewsCount(bookID, userID uint) error {
 	ctx := context.Background()
 	bookViewsCountKey := fmt.Sprintf("books:%d:views", bookID)
 
@@ -108,13 +108,13 @@ func (r *bookRepositoryCache) UpdateBookViewsCount(bookID, userID uint) error {
 	return nil
 }
 
-func (r *bookRepositoryCache) GetBookViewsCount(bookID uint) (int64, error) {
+func (r *bookRepository) GetBookViewsCount(bookID uint) (int64, error) {
 	ctx := context.Background()
 	bookViewsCountKey := fmt.Sprintf("books:%d:views", bookID)
 	return r.rdb.PFCount(ctx, bookViewsCountKey).Result()
 }
 
-func (r *bookRepositoryCache) GetPopularBooksIDs() ([]string, error) {
+func (r *bookRepository) GetPopularBooksIDs() ([]string, error) {
 	ctx := context.Background()
 	return r.rdb.ZRevRange(ctx, POPULAR_BOOKS_KEY, 0, POPULAR_BOOKS_COUNT-1).Result()
 }

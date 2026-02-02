@@ -37,7 +37,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateAuthor"
+                            "$ref": "#/definitions/dto.CreateAuthorRequest"
                         }
                     }
                 ],
@@ -190,7 +190,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AddBook"
+                            "$ref": "#/definitions/dto.AddBookRequest"
                         }
                     }
                 ],
@@ -671,7 +671,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AddBook": {
+        "dto.AddBookRequest": {
             "type": "object",
             "required": [
                 "author_id",
@@ -690,7 +690,7 @@ const docTemplate = `{
                 "pages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.CreatePage"
+                        "$ref": "#/definitions/dto.CreatePageRequest"
                     }
                 },
                 "title": {
@@ -701,7 +701,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateAuthor": {
+        "dto.CreateAuthorRequest": {
             "type": "object",
             "required": [
                 "fullname"
@@ -712,7 +712,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreatePage": {
+        "dto.CreatePageRequest": {
             "type": "object",
             "required": [
                 "content",

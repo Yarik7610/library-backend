@@ -1,15 +1,15 @@
-package connect
+package redis
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/Yarik7610/library-backend/catalog-service/config"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
-func Cache() *redis.Client {
+func Connect() *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", config.Data.RedisHost, config.Data.RedisPort),
 		Password: "",
