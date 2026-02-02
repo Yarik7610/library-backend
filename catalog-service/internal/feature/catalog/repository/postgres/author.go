@@ -1,9 +1,8 @@
 package postgres
 
 import (
-	"errors"
-
-	"github.com/Yarik7610/libary-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
+	postgresInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres"
 	"gorm.io/gorm"
 )
 
@@ -27,20 +26,23 @@ func (r *authorRepository) WithinTX(tx *gorm.DB) AuthorRepository {
 }
 
 func (r *authorRepository) CreateAuthor(author *model.Author) error {
-	return r.db.Create(author).Error
+	if err := r.db.Create(author).Error; err != nil {
+		return postgresInfrastructure.NewError(err)
+	}
+	return nil
 }
 
 func (r *authorRepository) FindByID(ID uint) (*model.Author, error) {
 	var author model.Author
 	if err := r.db.Where("id = ?", ID).First(&author).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
+		return nil, postgresInfrastructure.NewError(err)
 	}
 	return &author, nil
 }
 
 func (r *authorRepository) DeleteAuthor(ID uint) error {
-	return r.db.Delete(&model.Author{}, ID).Error
+	if err := r.db.Delete(&model.Author{}, ID).Error; err != nil {
+		return postgresInfrastructure.NewError(err)
+	}
+	return nil
 }

@@ -1,31 +1,30 @@
 package postgres
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/Yarik7610/libary-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
+
+	postgresInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres"
 	"gorm.io/gorm"
 )
-
-const NEW_BOOKS_COUNT = 10
 
 type BookRepository interface {
 	WithinTX(tx *gorm.DB) BookRepository
 	GetCategories() ([]string, error)
 	GetNewBooks() ([]model.Book, error)
 	GetBooksByIDs(bookIDs []string) ([]model.Book, error)
+	GetBooksByAuthorID(authorID uint) ([]model.Book, error)
 	FindByID(ID uint) (*model.Book, error)
 	FindByTitleAndAuthorID(title string, authorID uint) (*model.Book, error)
 	CountBooks() (int64, error)
-	GetBooksByAuthorID(authorID uint) ([]model.Book, error)
+	CreateBook(book *model.Book) error
+	DeleteBook(ID uint) error
 	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]model.ListedBooks, error)
 	ListBooksByTitle(title string, page, count uint, sort, order string) ([]model.ListedBooks, error)
 	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]model.ListedBooks, error)
 	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]model.ListedBooks, error)
-	CreateBook(book *model.Book) error
-	DeleteBook(ID uint) error
 }
 
 type bookRepository struct {
@@ -43,49 +42,41 @@ func (r *bookRepository) WithinTX(tx *gorm.DB) BookRepository {
 func (r *bookRepository) GetCategories() ([]string, error) {
 	var categories []string
 	if err := r.db.Model(&model.Book{}).Distinct().Order("category").Pluck("category", &categories).Error; err != nil {
-		return nil, err
+		return nil, postgresInfrastructure.NewError(err)
 	}
 	return categories, nil
 }
 
 func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
+	const NEW_BOOKS_COUNT = 10
+
 	var newBooks []model.Book
 	if err := r.db.Order("created_at DESC").Limit(NEW_BOOKS_COUNT).Find(&newBooks).Error; err != nil {
-		return nil, err
+		return nil, postgresInfrastructure.NewError(err)
 	}
 	return newBooks, nil
 }
 
-func (r *bookRepository) GetBooksByIDs(booksIDs []string) ([]model.Book, error) {
+func (r *bookRepository) GetBooksByIDs(bookIDs []string) ([]model.Book, error) {
 	var books []model.Book
-	if err := r.db.Where("id IN ?", booksIDs).Find(&books).Error; err != nil {
-		return nil, err
+	if err := r.db.Where("id IN ?", bookIDs).Find(&books).Error; err != nil {
+		return nil, postgresInfrastructure.NewError(err)
 	}
 	return books, nil
 }
 
-func (r *bookRepository) CreateBook(book *model.Book) error {
-	book.Category = strings.ToLower(book.Category)
-	return r.db.Create(book).Error
-}
-
-func (r *bookRepository) DeleteBook(ID uint) error {
-	return r.db.Delete(&model.Book{}, ID).Error
-}
-
-func (r *bookRepository) CountBooks() (int64, error) {
-	var bookCount int64
-	err := r.db.Model(&model.Book{}).Count(&bookCount).Error
-	return bookCount, err
+func (r *bookRepository) GetBooksByAuthorID(authorID uint) ([]model.Book, error) {
+	var books []model.Book
+	if err := r.db.Where("author_id = ?", authorID).Find(&books).Error; err != nil {
+		return nil, postgresInfrastructure.NewError(err)
+	}
+	return books, nil
 }
 
 func (r *bookRepository) FindByID(ID uint) (*model.Book, error) {
 	var book model.Book
 	if err := r.db.Where("id = ?", ID).First(&book).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
+		return nil, postgresInfrastructure.NewError(err)
 	}
 	return &book, nil
 }
@@ -93,20 +84,32 @@ func (r *bookRepository) FindByID(ID uint) (*model.Book, error) {
 func (r *bookRepository) FindByTitleAndAuthorID(title string, authorID uint) (*model.Book, error) {
 	var book model.Book
 	if err := r.db.Where("title = ?", title).Where("author_id = ?", authorID).First(&book).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
+		return nil, postgresInfrastructure.NewError(err)
 	}
 	return &book, nil
 }
 
-func (r *bookRepository) GetBooksByAuthorID(authorID uint) ([]model.Book, error) {
-	var books []model.Book
-	if err := r.db.Where("author_id = ?", authorID).Find(&books).Error; err != nil {
-		return nil, err
+func (r *bookRepository) CountBooks() (int64, error) {
+	var bookCount int64
+	if err := r.db.Model(&model.Book{}).Count(&bookCount).Error; err != nil {
+		return 0, postgresInfrastructure.NewError(err)
 	}
-	return books, nil
+	return bookCount, nil
+}
+
+func (r *bookRepository) CreateBook(book *model.Book) error {
+	book.Category = strings.ToLower(book.Category)
+	if err := r.db.Create(book).Error; err != nil {
+		return postgresInfrastructure.NewError(err)
+	}
+	return nil
+}
+
+func (r *bookRepository) DeleteBook(ID uint) error {
+	if err := r.db.Delete(&model.Book{}, ID).Error; err != nil {
+		return postgresInfrastructure.NewError(err)
+	}
+	return nil
 }
 
 func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
@@ -129,7 +132,7 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint
 	var rawBooks []model.ListedBooks
 	offset := (page - 1) * count
 
-	sort, order = validateOrderParams(sort, order)
+	sort, order = sanitizeListBooksParams(sort, order)
 
 	whereClauses := []string{}
 	args := []any{}
@@ -162,7 +165,6 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint
 					'title', b.title,
 					'year', b.year,
 					'category', b.category,
-					'created_at', b.created_at
 				) ORDER BY %s %s
 			) AS books
 		FROM books b
@@ -176,26 +178,12 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint
 	args = append(args, count, offset)
 
 	if err := r.db.Raw(query, args...).Scan(&rawBooks).Error; err != nil {
-		return nil, err
+		return nil, postgresInfrastructure.NewError(err)
 	}
-
 	return rawBooks, nil
 }
 
-func (r *bookRepository) AddBook(bookDTO *model.AddBookRequest) (*model.Book, error) {
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		var author model.Author
-		if err := tx.Where("author_id = ?", bookDTO.AuthorID).First(&author).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-			}
-		}
-
-		return nil
-	})
-	return nil, err
-}
-
-func validateOrderParams(sort, order string) (string, string) {
+func sanitizeListBooksParams(sort, order string) (string, string) {
 	sort = strings.ToLower(sort)
 	if sort != "title" && sort != "year" && sort != "category" {
 		sort = "title"

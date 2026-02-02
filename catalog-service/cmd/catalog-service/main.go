@@ -41,7 +41,7 @@ func main() {
 
 	seed.Books(bookRepo, pageRepo, authorRepo)
 
-	catalogService := service.NewCatalogService(postgresDB, bookAddedWriter, authorRepo, bookRepoCache, bookRepo, pageRepo)
+	catalogService := service.NewCatalogService(postgresDB, bookAddedWriter, bookRepoCache, authorRepo, bookRepo, pageRepo)
 	catalogController := controller.NewCatalogController(catalogService)
 
 	r := gin.Default()

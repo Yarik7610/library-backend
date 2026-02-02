@@ -1,9 +1,9 @@
 package postgres
 
 import (
-	"errors"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
 
-	"github.com/Yarik7610/libary-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
+	postgresInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres"
 	"gorm.io/gorm"
 )
 
@@ -26,16 +26,16 @@ func (r *pageRepository) WithinTX(tx *gorm.DB) PageRepository {
 }
 
 func (r *pageRepository) CreatePage(page *model.Page) error {
-	return r.db.Create(page).Error
+	if err := r.db.Create(page).Error; err != nil {
+		return postgresInfrastructure.NewError(err)
+	}
+	return nil
 }
 
 func (r *pageRepository) GetPage(bookID, pageNumber uint) (*model.Page, error) {
 	var page model.Page
 	if err := r.db.Where("book_id = ?", bookID).Where("number = ?", pageNumber).First(&page).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
+		return nil, postgresInfrastructure.NewError(err)
 	}
 	return &page, nil
 }
