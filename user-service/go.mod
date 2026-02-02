@@ -1,6 +1,6 @@
 module github.com/Yarik7610/library-backend/user-service
 
-go 1.24.5
+go 1.25.6
 
 require (
 	github.com/Yarik7610/library-backend-common v0.0.0-20250901145417-c9f0035e87e1

@@ -14,8 +14,8 @@ type Page struct {
 	CreatedAt time.Time
 }
 
-func (p *Page) ToDomain() domain.Page {
-	return domain.Page{
+func (p *Page) ToDomain() *domain.Page {
+	return &domain.Page{
 		ID:      p.ID,
 		Number:  p.Number,
 		Content: p.Content,

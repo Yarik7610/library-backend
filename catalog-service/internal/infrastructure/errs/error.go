@@ -2,6 +2,7 @@ package errs
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 type Code uint
@@ -47,12 +48,12 @@ func (e *Error) SetMessage(message string) {
 	e.Message = message
 }
 
-func NewEntityNotFoundError() *Error {
-	return NewError(CodeNotFound, "Entity not found")
+func NewEntityNotFoundError(entityName string) *Error {
+	return NewError(CodeNotFound, fmt.Sprintf("%s not found", entityName))
 }
 
-func NewEntityAlreadyExistsError() *Error {
-	return NewError(CodeAlreadyExists, "Entity already exists")
+func NewEntityAlreadyExistsError(entityName string) *Error {
+	return NewError(CodeAlreadyExists, fmt.Sprintf("%s already exists", entityName))
 }
 
 func NewInternalServerError() *Error {

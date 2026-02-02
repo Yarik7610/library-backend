@@ -14,11 +14,12 @@ type PageRepository interface {
 }
 
 type pageRepository struct {
-	db *gorm.DB
+	name string
+	db   *gorm.DB
 }
 
 func NewPageRepository(db *gorm.DB) PageRepository {
-	return &pageRepository{db: db}
+	return &pageRepository{name: "Page", db: db}
 }
 
 func (r *pageRepository) WithinTX(tx *gorm.DB) PageRepository {
@@ -27,7 +28,7 @@ func (r *pageRepository) WithinTX(tx *gorm.DB) PageRepository {
 
 func (r *pageRepository) CreatePage(page *model.Page) error {
 	if err := r.db.Create(page).Error; err != nil {
-		return postgresInfrastructure.NewError(err)
+		return postgresInfrastructure.NewError(err, r.name)
 	}
 	return nil
 }
@@ -35,7 +36,7 @@ func (r *pageRepository) CreatePage(page *model.Page) error {
 func (r *pageRepository) GetPage(bookID, pageNumber uint) (*model.Page, error) {
 	var page model.Page
 	if err := r.db.Where("book_id = ?", bookID).Where("number = ?", pageNumber).First(&page).Error; err != nil {
-		return nil, postgresInfrastructure.NewError(err)
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return &page, nil
 }

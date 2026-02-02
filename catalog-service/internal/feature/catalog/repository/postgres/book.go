@@ -17,7 +17,6 @@ type BookRepository interface {
 	GetBooksByIDs(bookIDs []string) ([]model.Book, error)
 	GetBooksByAuthorID(authorID uint) ([]model.Book, error)
 	FindByID(ID uint) (*model.Book, error)
-	FindByTitleAndAuthorID(title string, authorID uint) (*model.Book, error)
 	CountBooks() (int64, error)
 	CreateBook(book *model.Book) error
 	DeleteBook(ID uint) error
@@ -28,11 +27,12 @@ type BookRepository interface {
 }
 
 type bookRepository struct {
-	db *gorm.DB
+	name string
+	db   *gorm.DB
 }
 
 func NewBookRepository(db *gorm.DB) BookRepository {
-	return &bookRepository{db: db}
+	return &bookRepository{name: "Book", db: db}
 }
 
 func (r *bookRepository) WithinTX(tx *gorm.DB) BookRepository {
@@ -42,7 +42,7 @@ func (r *bookRepository) WithinTX(tx *gorm.DB) BookRepository {
 func (r *bookRepository) GetCategories() ([]string, error) {
 	var categories []string
 	if err := r.db.Model(&model.Book{}).Distinct().Order("category").Pluck("category", &categories).Error; err != nil {
-		return nil, postgresInfrastructure.NewError(err)
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return categories, nil
 }
@@ -52,7 +52,7 @@ func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
 
 	var newBooks []model.Book
 	if err := r.db.Order("created_at DESC").Limit(NEW_BOOKS_COUNT).Find(&newBooks).Error; err != nil {
-		return nil, postgresInfrastructure.NewError(err)
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return newBooks, nil
 }
@@ -60,7 +60,7 @@ func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
 func (r *bookRepository) GetBooksByIDs(bookIDs []string) ([]model.Book, error) {
 	var books []model.Book
 	if err := r.db.Where("id IN ?", bookIDs).Find(&books).Error; err != nil {
-		return nil, postgresInfrastructure.NewError(err)
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return books, nil
 }
@@ -68,7 +68,7 @@ func (r *bookRepository) GetBooksByIDs(bookIDs []string) ([]model.Book, error) {
 func (r *bookRepository) GetBooksByAuthorID(authorID uint) ([]model.Book, error) {
 	var books []model.Book
 	if err := r.db.Where("author_id = ?", authorID).Find(&books).Error; err != nil {
-		return nil, postgresInfrastructure.NewError(err)
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return books, nil
 }
@@ -76,15 +76,7 @@ func (r *bookRepository) GetBooksByAuthorID(authorID uint) ([]model.Book, error)
 func (r *bookRepository) FindByID(ID uint) (*model.Book, error) {
 	var book model.Book
 	if err := r.db.Where("id = ?", ID).First(&book).Error; err != nil {
-		return nil, postgresInfrastructure.NewError(err)
-	}
-	return &book, nil
-}
-
-func (r *bookRepository) FindByTitleAndAuthorID(title string, authorID uint) (*model.Book, error) {
-	var book model.Book
-	if err := r.db.Where("title = ?", title).Where("author_id = ?", authorID).First(&book).Error; err != nil {
-		return nil, postgresInfrastructure.NewError(err)
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return &book, nil
 }
@@ -92,7 +84,7 @@ func (r *bookRepository) FindByTitleAndAuthorID(title string, authorID uint) (*m
 func (r *bookRepository) CountBooks() (int64, error) {
 	var bookCount int64
 	if err := r.db.Model(&model.Book{}).Count(&bookCount).Error; err != nil {
-		return 0, postgresInfrastructure.NewError(err)
+		return 0, postgresInfrastructure.NewError(err, r.name)
 	}
 	return bookCount, nil
 }
@@ -100,14 +92,14 @@ func (r *bookRepository) CountBooks() (int64, error) {
 func (r *bookRepository) CreateBook(book *model.Book) error {
 	book.Category = strings.ToLower(book.Category)
 	if err := r.db.Create(book).Error; err != nil {
-		return postgresInfrastructure.NewError(err)
+		return postgresInfrastructure.NewError(err, r.name)
 	}
 	return nil
 }
 
 func (r *bookRepository) DeleteBook(ID uint) error {
 	if err := r.db.Delete(&model.Book{}, ID).Error; err != nil {
-		return postgresInfrastructure.NewError(err)
+		return postgresInfrastructure.NewError(err, r.name)
 	}
 	return nil
 }
@@ -175,10 +167,26 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint
 		LIMIT ? OFFSET ?
 	`, sort, order, whereSQL)
 
+	/**
+
+	SELECT
+		b.id, a.id, a.fullname, title, year, category
+	FROM books b
+	INNER JOIN authors a
+	ON a.id = b.author_id
+	WHERE a.fullname ILIKE ? | b.title ILIKE ? | b.category ILIKE ?
+
+	GROUP BY mb??
+
+	ORDER BY ? ?
+	LIMIT ? OFFSET ?
+
+	**/
+
 	args = append(args, count, offset)
 
 	if err := r.db.Raw(query, args...).Scan(&rawBooks).Error; err != nil {
-		return nil, postgresInfrastructure.NewError(err)
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return rawBooks, nil
 }

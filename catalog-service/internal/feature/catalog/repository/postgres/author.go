@@ -14,11 +14,12 @@ type AuthorRepository interface {
 }
 
 type authorRepository struct {
-	db *gorm.DB
+	name string
+	db   *gorm.DB
 }
 
 func NewAuthorRepository(db *gorm.DB) AuthorRepository {
-	return &authorRepository{db: db}
+	return &authorRepository{name: "Author", db: db}
 }
 
 func (r *authorRepository) WithinTX(tx *gorm.DB) AuthorRepository {
@@ -27,7 +28,7 @@ func (r *authorRepository) WithinTX(tx *gorm.DB) AuthorRepository {
 
 func (r *authorRepository) CreateAuthor(author *model.Author) error {
 	if err := r.db.Create(author).Error; err != nil {
-		return postgresInfrastructure.NewError(err)
+		return postgresInfrastructure.NewError(err, r.name)
 	}
 	return nil
 }
@@ -35,14 +36,14 @@ func (r *authorRepository) CreateAuthor(author *model.Author) error {
 func (r *authorRepository) FindByID(ID uint) (*model.Author, error) {
 	var author model.Author
 	if err := r.db.Where("id = ?", ID).First(&author).Error; err != nil {
-		return nil, postgresInfrastructure.NewError(err)
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return &author, nil
 }
 
 func (r *authorRepository) DeleteAuthor(ID uint) error {
 	if err := r.db.Delete(&model.Author{}, ID).Error; err != nil {
-		return postgresInfrastructure.NewError(err)
+		return postgresInfrastructure.NewError(err, r.name)
 	}
 	return nil
 }
