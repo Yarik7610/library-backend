@@ -3,16 +3,14 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"net/http"
 	"strconv"
 
 	"github.com/Yarik7610/library-backend-common/broker/event"
-	"github.com/Yarik7610/library-backend-common/custom"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/domain"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
 	redisRepositories "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/redis"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/dto"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service/mapper"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -26,14 +24,14 @@ type CatalogService interface {
 	GetBooksByAuthorID(authorID uint) ([]domain.Book, error)
 	GetBookPage(bookID, pageNumber uint) (*domain.Page, error)
 	PreviewBook(bookID, userID uint) (*domain.Book, error)
-	AddBook(book *domain.Book) error
+	AddBook(bookDomain *domain.Book) error
 	DeleteBook(bookID uint) error
 	CreateAuthor(authorDomain *domain.Author) error
 	DeleteAuthor(authorID uint) error
-	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]domain.ListedBooks, error)
-	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]domain.ListedBooks, error)
-	ListBooksByTitle(title string, page, count uint, sort, order string) ([]domain.ListedBooks, error)
-	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]domain.ListedBooks, error)
+	// ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]domain.ListedBooks, error)
+	// ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]domain.ListedBooks, error)
+	// ListBooksByTitle(title string, page, count uint, sort, order string) ([]domain.ListedBooks, error)
+	// ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]domain.ListedBooks, error)
 }
 
 type catalogService struct {
@@ -148,7 +146,8 @@ func (s *catalogService) GetBookPage(bookID, pageNumber uint) (*domain.Page, err
 	if err != nil {
 		return nil, err
 	}
-	return pageModel.ToDomain(), nil
+	pageDomain := mapper.PageModelToDomain(pageModel)
+	return &pageDomain, nil
 }
 
 func (s *catalogService) PreviewBook(bookID, userID uint) (*domain.Book, error) {
@@ -168,14 +167,15 @@ func (s *catalogService) PreviewBook(bookID, userID uint) (*domain.Book, error) 
 
 func (s *catalogService) AddBook(bookDomain *domain.Book) error {
 	var createdBookModel model.Book
-	var author *model.Author
+	var authorModel *model.Author
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		postgresAuthorRepositoryTX := s.postgresAuthorRepository.WithinTX(tx)
 		postgresPageRepositoryTX := s.postgresPageRepository.WithinTX(tx)
 		postgresBookRepositoryTX := s.postgresBookRepository.WithinTX(tx)
 
-		_, err := postgresAuthorRepositoryTX.FindByID(bookDomain.Author.ID)
+		var err error
+		authorModel, err = postgresAuthorRepositoryTX.FindByID(bookDomain.Author.ID)
 		if err != nil {
 			return err
 		}
@@ -191,16 +191,17 @@ func (s *catalogService) AddBook(bookDomain *domain.Book) error {
 		}
 		bookDomain.ID = createdBookModel.ID
 
-		for _, page := range bookDomain.Pages {
+		for i := range bookDomain.Pages {
 			newPageModel := model.Page{
 				BookID:  createdBookModel.ID,
-				Number:  page.Number,
-				Content: page.Content,
+				Number:  bookDomain.Pages[i].Number,
+				Content: bookDomain.Pages[i].Content,
 			}
+
 			if err := postgresPageRepositoryTX.CreatePage(&newPageModel); err != nil {
 				return err
 			}
-			page.ID = newPageModel.ID
+			bookDomain.Pages[i].ID = newPageModel.ID
 		}
 
 		return nil
@@ -213,7 +214,7 @@ func (s *catalogService) AddBook(bookDomain *domain.Book) error {
 		event.BookAdded{
 			ID:         createdBookModel.ID,
 			AuthorID:   createdBookModel.AuthorID,
-			AuthorName: author.Fullname,
+			AuthorName: authorModel.Fullname,
 			Title:      createdBookModel.Title,
 			Year:       createdBookModel.Year,
 			Category:   createdBookModel.Category,
@@ -247,58 +248,58 @@ func (s *catalogService) DeleteAuthor(authorID uint) error {
 	return s.postgresAuthorRepository.DeleteAuthor(authorID)
 }
 
-func (s *catalogService) ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]domain.ListedBooks, error) {
-	rawBooks, err := s.postgresBookRepository.ListBooksByCategory(categoryName, page, count, sort, order)
-	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
+// func (s *catalogService) ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]domain.ListedBooks, error) {
+// 	rawBooks, err := s.postgresBookRepository.ListBooksByCategory(categoryName, page, count, sort, order)
+// 	if err != nil {
+// 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+// 	}
 
-	return s.parseListedBooksRaw(rawBooks)
-}
+// 	return s.parseListedBooksRaw(rawBooks)
+// }
 
-func (s *catalogService) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]domain.ListedBooks, error) {
-	rawBooks, err := s.postgresBookRepository.ListBooksByAuthorName(authorName, page, count, sort, order)
-	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
+// func (s *catalogService) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]domain.ListedBooks, error) {
+// 	rawBooks, err := s.postgresBookRepository.ListBooksByAuthorName(authorName, page, count, sort, order)
+// 	if err != nil {
+// 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+// 	}
 
-	return s.parseListedBooksRaw(rawBooks)
-}
+// 	return s.parseListedBooksRaw(rawBooks)
+// }
 
-func (s *catalogService) ListBooksByTitle(title string, page, count uint, sort, order string) ([]domain.ListedBooks, error) {
-	rawBooks, err := s.postgresBookRepository.ListBooksByTitle(title, page, count, sort, order)
-	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
+// func (s *catalogService) ListBooksByTitle(title string, page, count uint, sort, order string) ([]domain.ListedBooks, error) {
+// 	rawBooks, err := s.postgresBookRepository.ListBooksByTitle(title, page, count, sort, order)
+// 	if err != nil {
+// 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+// 	}
 
-	return s.parseListedBooksRaw(rawBooks)
-}
+// 	return s.parseListedBooksRaw(rawBooks)
+// }
 
-func (s *catalogService) ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]domain.ListedBooks, error) {
-	rawBooks, err := s.postgresBookRepository.ListBooksByAuthorNameAndTitle(authorName, title, page, count, sort, order)
-	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
+// func (s *catalogService) ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]domain.ListedBooks, error) {
+// 	rawBooks, err := s.postgresBookRepository.ListBooksByAuthorNameAndTitle(authorName, title, page, count, sort, order)
+// 	if err != nil {
+// 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+// 	}
 
-	return s.parseListedBooksRaw(rawBooks)
-}
+// 	return s.parseListedBooksRaw(rawBooks)
+// }
 
-func (s *catalogService) parseListedBooksRaw(raw []dto.ListedBooksRaw) ([]domain.ListedBooks, error) {
-	converted := make([]dto.ListedBooks, 0, len(raw))
-	for _, row := range raw {
-		var books []dto.ListedBook
-		if err := json.Unmarshal(row.Books, &books); err != nil {
-			return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
-		}
+// func (s *catalogService) parseListedBooksRaw(raw []dto.ListedBooksRaw) ([]domain.ListedBooks, error) {
+// 	converted := make([]dto.ListedBooks, 0, len(raw))
+// 	for _, row := range raw {
+// 		var books []dto.ListedBook
+// 		if err := json.Unmarshal(row.Books, &books); err != nil {
+// 			return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+// 		}
 
-		converted = append(converted, dto.ListedBooks{
-			AuthorID: row.AuthorID,
-			Fullname: row.Fullname,
-			Books:    books,
-		})
-	}
-	return converted, nil
-}
+// 		converted = append(converted, dto.ListedBooks{
+// 			AuthorID: row.AuthorID,
+// 			Fullname: row.Fullname,
+// 			Books:    books,
+// 		})
+// 	}
+// 	return converted, nil
+// }
 
 func (s *catalogService) getBookDomains(bookModels []model.Book) ([]domain.Book, error) {
 	bookDomains := make([]domain.Book, len(bookModels))
@@ -319,11 +320,7 @@ func (s *catalogService) getBookDomain(bookModel *model.Book) (*domain.Book, err
 		return nil, err
 	}
 
-	return &domain.Book{
-		ID:       bookModel.ID,
-		Author:   domain.Author{ID: authorModel.ID, Fullname: authorModel.Fullname},
-		Title:    bookModel.Title,
-		Year:     bookModel.Year,
-		Category: bookModel.Category,
-	}, nil
+	bookDomain := mapper.BookModelToDomain(bookModel)
+	bookDomain.Author = mapper.AuthorModelToDomain(authorModel)
+	return &bookDomain, nil
 }

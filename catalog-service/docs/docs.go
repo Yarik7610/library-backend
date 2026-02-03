@@ -49,21 +49,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Entity already exists",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -98,21 +98,15 @@ const docTemplate = `{
                         "description": ""
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -143,26 +137,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.ListedBooks"
+                                "$ref": "#/definitions/dto.Book"
                             }
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -198,25 +186,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.Book"
+                            "$ref": "#/definitions/dto.Book"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Entity already exists",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -238,17 +226,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.ListedBooks"
+                                "$ref": "#/definitions/dto.Book"
                             }
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -270,17 +255,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.ListedBooks"
+                                "$ref": "#/definitions/dto.Book"
                             }
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -309,104 +291,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Book"
+                            "$ref": "#/definitions/dto.Book"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/catalog/books/search": {
-            "get": {
-                "description": "Search books by author name and/or title with pagination",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "catalog"
-                ],
-                "summary": "Search books",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Author name",
-                        "name": "author",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Book title",
-                        "name": "title",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of items per page",
-                        "name": "count",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort field",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort order (asc/desc)",
-                        "name": "order",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.ListedBooks"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -442,21 +339,15 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -492,25 +383,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Page"
+                            "$ref": "#/definitions/dto.Page"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -543,21 +428,15 @@ const docTemplate = `{
                         "description": ""
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         }
                     }
                 }
@@ -584,6 +463,272 @@ const docTemplate = `{
                         }
                     },
                     "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/emails": {
+            "get": {
+                "description": "Returns a list of emails for given user IDs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internal"
+                ],
+                "summary": "Get emails by user IDs",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "User IDs",
+                        "name": "ids",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns info about the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get current user info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sign-in": {
+            "post": {
+                "description": "Authorize existings user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Authorize user",
+                "parameters": [
+                    {
+                        "description": "Sign in data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SignInUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sign-up": {
+            "post": {
+                "description": "Creates a new user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Register new user",
+                "parameters": [
+                    {
+                        "description": "Sign up data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SignUpUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/subscriptions/categories": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a list of categories for the user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Get categories the current user is subscribed to",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds the category to the user's subscriptions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Subscribe current user to a category",
+                "parameters": [
+                    {
+                        "description": "Category to subscribe",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SubscribeCategory"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
@@ -595,16 +740,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/catalog/categories/{categoryName}/books": {
+        "/subscriptions/categories/{categoryName}": {
             "get": {
-                "description": "Returns paginated list of books for the given category",
+                "description": "Returns emails of all users subscribed to the given category",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "catalog"
+                    "internal"
                 ],
-                "summary": "List books by category",
+                "summary": "Get emails of users subscribed to a category",
                 "parameters": [
                     {
                         "type": "string",
@@ -612,30 +757,6 @@ const docTemplate = `{
                         "name": "categoryName",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of items per page",
-                        "name": "count",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort field",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort order (asc/desc)",
-                        "name": "order",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -644,7 +765,60 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.ListedBooks"
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes the category from the user's subscriptions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Unsubscribe current user from a category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category name to unsubscribe",
+                        "name": "categoryName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     },
@@ -701,6 +875,37 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Author": {
+            "type": "object",
+            "properties": {
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.Book": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/dto.Author"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.CreateAuthorRequest": {
             "type": "object",
             "required": [
@@ -727,39 +932,82 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ListedBook": {
+        "dto.Page": {
             "type": "object",
             "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "created_at": {
+                "content": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "title": {
-                    "type": "string"
-                },
-                "year": {
+                "number": {
                     "type": "integer"
                 }
             }
         },
-        "dto.ListedBooks": {
+        "dto.SignInUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SignUpUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 5
+                }
+            }
+        },
+        "dto.SubscribeCategory": {
+            "type": "object",
+            "required": [
+                "category"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.User": {
             "type": "object",
             "properties": {
-                "author_id": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "integer"
                 },
-                "books": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.ListedBook"
-                    }
+                "is_admin": {
+                    "type": "boolean"
                 },
-                "fullname": {
+                "name": {
                     "type": "string"
                 }
             }
@@ -773,7 +1021,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/model.Book"
                     }
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "string"
                 },
                 "fullname": {
@@ -787,17 +1035,23 @@ const docTemplate = `{
         "model.Book": {
             "type": "object",
             "properties": {
-                "author_id": {
+                "authorID": {
                     "type": "integer"
                 },
                 "category": {
                     "type": "string"
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
+                },
+                "pages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Page"
+                    }
                 },
                 "title": {
                     "type": "string"
@@ -810,13 +1064,13 @@ const docTemplate = `{
         "model.Page": {
             "type": "object",
             "properties": {
-                "book_id": {
+                "bookID": {
                     "type": "integer"
                 },
                 "content": {
                     "type": "string"
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "string"
                 },
                 "id": {

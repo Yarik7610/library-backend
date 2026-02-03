@@ -8,24 +8,44 @@ definitions:
         type: string
       pages:
         items:
-          $ref: "#/definitions/dto.CreatePageRequest"
+          $ref: '#/definitions/dto.CreatePageRequest'
         type: array
       title:
         type: string
       year:
         type: integer
     required:
-      - author_id
-      - category
-      - title
-      - year
+    - author_id
+    - category
+    - title
+    - year
+    type: object
+  dto.Author:
+    properties:
+      fullname:
+        type: string
+      id:
+        type: integer
+    type: object
+  dto.Book:
+    properties:
+      author:
+        $ref: '#/definitions/dto.Author'
+      category:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      year:
+        type: integer
     type: object
   dto.CreateAuthorRequest:
     properties:
       fullname:
         type: string
     required:
-      - fullname
+    - fullname
     type: object
   dto.CreatePageRequest:
     properties:
@@ -34,40 +54,69 @@ definitions:
       number:
         type: integer
     required:
-      - content
-      - number
+    - content
+    - number
     type: object
-  dto.ListedBook:
+  dto.Page:
     properties:
-      category:
-        type: string
-      created_at:
+      content:
         type: string
       id:
         type: integer
-      title:
-        type: string
-      year:
+      number:
         type: integer
     type: object
-  dto.ListedBooks:
+  dto.SignInUser:
     properties:
-      author_id:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.SignUpUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 5
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  dto.SubscribeCategory:
+    properties:
+      category:
+        type: string
+    required:
+    - category
+    type: object
+  dto.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
         type: integer
-      books:
-        items:
-          $ref: "#/definitions/dto.ListedBook"
-        type: array
-      fullname:
+      is_admin:
+        type: boolean
+      name:
         type: string
     type: object
   model.Author:
     properties:
       books:
         items:
-          $ref: "#/definitions/model.Book"
+          $ref: '#/definitions/model.Book'
         type: array
-      created_at:
+      createdAt:
         type: string
       fullname:
         type: string
@@ -76,14 +125,18 @@ definitions:
     type: object
   model.Book:
     properties:
-      author_id:
+      authorID:
         type: integer
       category:
         type: string
-      created_at:
+      createdAt:
         type: string
       id:
         type: integer
+      pages:
+        items:
+          $ref: '#/definitions/model.Page'
+        type: array
       title:
         type: string
       year:
@@ -91,11 +144,11 @@ definitions:
     type: object
   model.Page:
     properties:
-      book_id:
+      bookID:
         type: integer
       content:
         type: string
-      created_at:
+      createdAt:
         type: string
       id:
         type: integer
@@ -109,336 +162,260 @@ paths:
     post:
       description: Adds a new author
       parameters:
-        - description: Author info
-          in: body
-          name: author
-          required: true
-          schema:
-            $ref: "#/definitions/dto.CreateAuthorRequest"
+      - description: Author info
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAuthorRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: "#/definitions/model.Author"
+            $ref: '#/definitions/model.Author'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
+        "409":
+          description: Entity already exists
+          schema:
+            type: string
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Create a new author
       tags:
-        - catalog
+      - catalog
   /catalog/authors/{authorID}:
     delete:
       description: Deletes an author by ID
       parameters:
-        - description: Author ID
-          in: path
-          name: authorID
-          required: true
-          type: integer
+      - description: Author ID
+        in: path
+        name: authorID
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "204":
           description: ""
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Delete an author
       tags:
-        - catalog
+      - catalog
   /catalog/authors/{authorID}/books:
     get:
       description: Returns all books for the given author
       parameters:
-        - description: Author ID
-          in: path
-          name: authorID
-          required: true
-          type: integer
+      - description: Author ID
+        in: path
+        name: authorID
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: "#/definitions/dto.ListedBooks"
+              $ref: '#/definitions/dto.Book'
             type: array
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       summary: Get books by author ID
       tags:
-        - catalog
+      - catalog
   /catalog/books:
     post:
       description: Creates a new book entry
       parameters:
-        - description: Book info
-          in: body
-          name: book
-          required: true
-          schema:
-            $ref: "#/definitions/dto.AddBookRequest"
+      - description: Book info
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddBookRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: "#/definitions/model.Book"
+            $ref: '#/definitions/dto.Book'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
+        "409":
+          description: Entity already exists
+          schema:
+            type: string
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Add a new book
       tags:
-        - catalog
+      - catalog
   /catalog/books/{bookID}:
     delete:
       description: Deletes a book by ID
       parameters:
-        - description: Book ID
-          in: path
-          name: bookID
-          required: true
-          type: integer
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "204":
           description: ""
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Delete a book
       tags:
-        - catalog
+      - catalog
     get:
       description: Returns content of a specific book page
       parameters:
-        - description: Book ID
-          in: path
-          name: bookID
-          required: true
-          type: integer
-        - description: Page number
-          in: query
-          name: pageNumber
-          required: true
-          type: integer
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
+      - description: Page number
+        in: query
+        name: pageNumber
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/model.Page"
+            $ref: '#/definitions/dto.Page'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       summary: Get a book page
       tags:
-        - catalog
+      - catalog
   /catalog/books/new:
     get:
       description: Returns list of recently added books
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: "#/definitions/dto.ListedBooks"
+              $ref: '#/definitions/dto.Book'
             type: array
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       summary: Get new books
       tags:
-        - catalog
+      - catalog
   /catalog/books/popular:
     get:
       description: Returns list of most popular books
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: "#/definitions/dto.ListedBooks"
+              $ref: '#/definitions/dto.Book'
             type: array
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       summary: Get popular books
       tags:
-        - catalog
+      - catalog
   /catalog/books/preview/{bookID}:
     get:
       description: Returns preview information for a book
       parameters:
-        - description: Book ID
-          in: path
-          name: bookID
-          required: true
-          type: integer
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/model.Book"
+            $ref: '#/definitions/dto.Book'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       summary: Preview a book
       tags:
-        - catalog
-  /catalog/books/search:
-    get:
-      description: Search books by author name and/or title with pagination
-      parameters:
-        - description: Author name
-          in: query
-          name: author
-          type: string
-        - description: Book title
-          in: query
-          name: title
-          type: string
-        - description: Page number
-          in: query
-          name: page
-          type: integer
-        - description: Number of items per page
-          in: query
-          name: count
-          type: integer
-        - description: Sort field
-          in: query
-          name: sort
-          type: string
-        - description: Sort order (asc/desc)
-          in: query
-          name: order
-          type: string
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: "#/definitions/dto.ListedBooks"
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Search books
-      tags:
-        - catalog
+      - catalog
   /catalog/books/views/{bookID}:
     get:
       description: Returns total number of views
       parameters:
-        - description: Book ID
-          in: path
-          name: bookID
-          required: true
-          type: integer
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -447,25 +424,21 @@ paths:
               type: integer
             type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       summary: Get views count for a book
       tags:
-        - catalog
+      - catalog
   /catalog/categories:
     get:
       description: Returns a list of all available book categories
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -474,47 +447,132 @@ paths:
               type: string
             type: array
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       summary: Get all book categories
       tags:
-        - catalog
-  /catalog/categories/{categoryName}/books:
+      - catalog
+  /emails:
     get:
-      description: Returns paginated list of books for the given category
+      description: Returns a list of emails for given user IDs
       parameters:
-        - description: Category name
-          in: path
-          name: categoryName
-          required: true
-          type: string
-        - description: Page number
-          in: query
-          name: page
+      - collectionFormat: csv
+        description: User IDs
+        in: query
+        items:
           type: integer
-        - description: Number of items per page
-          in: query
-          name: count
-          type: integer
-        - description: Sort field
-          in: query
-          name: sort
-          type: string
-        - description: Sort order (asc/desc)
-          in: query
-          name: order
-          type: string
+        name: ids
+        required: true
+        type: array
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: "#/definitions/dto.ListedBooks"
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get emails by user IDs
+      tags:
+      - internal
+  /me:
+    get:
+      description: Returns info about the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user info
+      tags:
+      - user
+  /sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Authorize existings user
+      parameters:
+      - description: Sign in data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignInUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Authorize user
+      tags:
+      - user
+  /sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account
+      parameters:
+      - description: Sign up data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignUpUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register new user
+      tags:
+      - user
+  /subscriptions/categories:
+    get:
+      description: Returns a list of categories for the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
             type: array
         "400":
           description: Bad Request
@@ -528,7 +586,111 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: List books by category
+      security:
+      - BearerAuth: []
+      summary: Get categories the current user is subscribed to
       tags:
-        - catalog
+      - subscription
+    post:
+      description: Adds the category to the user's subscriptions
+      parameters:
+      - description: Category to subscribe
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SubscribeCategory'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Subscribe current user to a category
+      tags:
+      - subscription
+  /subscriptions/categories/{categoryName}:
+    delete:
+      description: Removes the category from the user's subscriptions
+      parameters:
+      - description: Category name to unsubscribe
+        in: path
+        name: categoryName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Unsubscribe current user from a category
+      tags:
+      - subscription
+    get:
+      description: Returns emails of all users subscribed to the given category
+      parameters:
+      - description: Category name
+        in: path
+        name: categoryName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get emails of users subscribed to a category
+      tags:
+      - internal
 swagger: "2.0"

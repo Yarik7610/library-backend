@@ -1,5 +1,13 @@
 package dto
 
+type Book struct {
+	ID       uint   `json:"id"`
+	Author   Author `json:"author"`
+	Title    string `json:"title"`
+	Year     int    `json:"year"`
+	Category string `json:"category"`
+}
+
 type AddBookRequest struct {
 	AuthorID uint                `json:"author_id" binding:"required,min=1"`
 	Title    string              `json:"title" binding:"required"`

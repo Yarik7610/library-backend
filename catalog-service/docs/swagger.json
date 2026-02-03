@@ -1,758 +1,1074 @@
 {
-  "swagger": "2.0",
-  "info": {
-    "contact": {}
-  },
-  "paths": {
-    "/catalog/authors": {
-      "post": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Adds a new author",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Create a new author",
-        "parameters": [
-          {
-            "description": "Author info",
-            "name": "author",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/dto.CreateAuthorRequest"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created",
-            "schema": {
-              "$ref": "#/definitions/model.Author"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
     },
-    "/catalog/authors/{authorID}": {
-      "delete": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Deletes an author by ID",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Delete an author",
-        "parameters": [
-          {
-            "type": "integer",
-            "description": "Author ID",
-            "name": "authorID",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
+    "paths": {
+        "/catalog/authors": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds a new author",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Create a new author",
+                "parameters": [
+                    {
+                        "description": "Author info",
+                        "name": "author",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAuthorRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/model.Author"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Entity already exists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
             }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
+        },
+        "/catalog/authors/{authorID}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes an author by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Delete an author",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Author ID",
+                        "name": "authorID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
             }
-          }
+        },
+        "/catalog/authors/{authorID}/books": {
+            "get": {
+                "description": "Returns all books for the given author",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Get books by author ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Author ID",
+                        "name": "authorID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Book"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/books": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new book entry",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Add a new book",
+                "parameters": [
+                    {
+                        "description": "Book info",
+                        "name": "book",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddBookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Book"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Entity already exists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/books/new": {
+            "get": {
+                "description": "Returns list of recently added books",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Get new books",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Book"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/books/popular": {
+            "get": {
+                "description": "Returns list of most popular books",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Get popular books",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Book"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/books/preview/{bookID}": {
+            "get": {
+                "description": "Returns preview information for a book",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Preview a book",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Book ID",
+                        "name": "bookID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Book"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/books/views/{bookID}": {
+            "get": {
+                "description": "Returns total number of views",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Get views count for a book",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Book ID",
+                        "name": "bookID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/books/{bookID}": {
+            "get": {
+                "description": "Returns content of a specific book page",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Get a book page",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Book ID",
+                        "name": "bookID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "pageNumber",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Page"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a book by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Delete a book",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Book ID",
+                        "name": "bookID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/categories": {
+            "get": {
+                "description": "Returns a list of all available book categories",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Get all book categories",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/emails": {
+            "get": {
+                "description": "Returns a list of emails for given user IDs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internal"
+                ],
+                "summary": "Get emails by user IDs",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "User IDs",
+                        "name": "ids",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns info about the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get current user info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sign-in": {
+            "post": {
+                "description": "Authorize existings user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Authorize user",
+                "parameters": [
+                    {
+                        "description": "Sign in data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SignInUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sign-up": {
+            "post": {
+                "description": "Creates a new user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Register new user",
+                "parameters": [
+                    {
+                        "description": "Sign up data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SignUpUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/subscriptions/categories": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a list of categories for the user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Get categories the current user is subscribed to",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds the category to the user's subscriptions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Subscribe current user to a category",
+                "parameters": [
+                    {
+                        "description": "Category to subscribe",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SubscribeCategory"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/subscriptions/categories/{categoryName}": {
+            "get": {
+                "description": "Returns emails of all users subscribed to the given category",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internal"
+                ],
+                "summary": "Get emails of users subscribed to a category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category name",
+                        "name": "categoryName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes the category from the user's subscriptions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Unsubscribe current user from a category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category name to unsubscribe",
+                        "name": "categoryName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }
     },
-    "/catalog/authors/{authorID}/books": {
-      "get": {
-        "description": "Returns all books for the given author",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Get books by author ID",
-        "parameters": [
-          {
-            "type": "integer",
-            "description": "Author ID",
-            "name": "authorID",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/dto.ListedBooks"
-              }
+    "definitions": {
+        "dto.AddBookRequest": {
+            "type": "object",
+            "required": [
+                "author_id",
+                "category",
+                "title",
+                "year"
+            ],
+            "properties": {
+                "author_id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "category": {
+                    "type": "string"
+                },
+                "pages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CreatePageRequest"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
             }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
+        },
+        "dto.Author": {
+            "type": "object",
+            "properties": {
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
             }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
+        },
+        "dto.Book": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/dto.Author"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
             }
-          }
+        },
+        "dto.CreateAuthorRequest": {
+            "type": "object",
+            "required": [
+                "fullname"
+            ],
+            "properties": {
+                "fullname": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreatePageRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "number"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.Page": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.SignInUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SignUpUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 5
+                }
+            }
+        },
+        "dto.SubscribeCategory": {
+            "type": "object",
+            "required": [
+                "category"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_admin": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Author": {
+            "type": "object",
+            "properties": {
+                "books": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Book"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Book": {
+            "type": "object",
+            "properties": {
+                "authorID": {
+                    "type": "integer"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "pages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Page"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Page": {
+            "type": "object",
+            "properties": {
+                "bookID": {
+                    "type": "integer"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "number": {
+                    "type": "integer"
+                }
+            }
         }
-      }
-    },
-    "/catalog/books": {
-      "post": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Creates a new book entry",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Add a new book",
-        "parameters": [
-          {
-            "description": "Book info",
-            "name": "book",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/dto.AddBookRequest"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created",
-            "schema": {
-              "$ref": "#/definitions/model.Book"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/catalog/books/new": {
-      "get": {
-        "description": "Returns list of recently added books",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Get new books",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/dto.ListedBooks"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/catalog/books/popular": {
-      "get": {
-        "description": "Returns list of most popular books",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Get popular books",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/dto.ListedBooks"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/catalog/books/preview/{bookID}": {
-      "get": {
-        "description": "Returns preview information for a book",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Preview a book",
-        "parameters": [
-          {
-            "type": "integer",
-            "description": "Book ID",
-            "name": "bookID",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/model.Book"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/catalog/books/search": {
-      "get": {
-        "description": "Search books by author name and/or title with pagination",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Search books",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Author name",
-            "name": "author",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Book title",
-            "name": "title",
-            "in": "query"
-          },
-          {
-            "type": "integer",
-            "description": "Page number",
-            "name": "page",
-            "in": "query"
-          },
-          {
-            "type": "integer",
-            "description": "Number of items per page",
-            "name": "count",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Sort field",
-            "name": "sort",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Sort order (asc/desc)",
-            "name": "order",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/dto.ListedBooks"
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/catalog/books/views/{bookID}": {
-      "get": {
-        "description": "Returns total number of views",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Get views count for a book",
-        "parameters": [
-          {
-            "type": "integer",
-            "description": "Book ID",
-            "name": "bookID",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "integer"
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/catalog/books/{bookID}": {
-      "get": {
-        "description": "Returns content of a specific book page",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Get a book page",
-        "parameters": [
-          {
-            "type": "integer",
-            "description": "Book ID",
-            "name": "bookID",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "description": "Page number",
-            "name": "pageNumber",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/model.Page"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Deletes a book by ID",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Delete a book",
-        "parameters": [
-          {
-            "type": "integer",
-            "description": "Book ID",
-            "name": "bookID",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/catalog/categories": {
-      "get": {
-        "description": "Returns a list of all available book categories",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "Get all book categories",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/catalog/categories/{categoryName}/books": {
-      "get": {
-        "description": "Returns paginated list of books for the given category",
-        "produces": ["application/json"],
-        "tags": ["catalog"],
-        "summary": "List books by category",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Category name",
-            "name": "categoryName",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "description": "Page number",
-            "name": "page",
-            "in": "query"
-          },
-          {
-            "type": "integer",
-            "description": "Number of items per page",
-            "name": "count",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Sort field",
-            "name": "sort",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Sort order (asc/desc)",
-            "name": "order",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/dto.ListedBooks"
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
     }
-  },
-  "definitions": {
-    "dto.AddBookRequest": {
-      "type": "object",
-      "required": ["author_id", "category", "title", "year"],
-      "properties": {
-        "author_id": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "category": {
-          "type": "string"
-        },
-        "pages": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/dto.CreatePageRequest"
-          }
-        },
-        "title": {
-          "type": "string"
-        },
-        "year": {
-          "type": "integer"
-        }
-      }
-    },
-    "dto.CreateAuthorRequest": {
-      "type": "object",
-      "required": ["fullname"],
-      "properties": {
-        "fullname": {
-          "type": "string"
-        }
-      }
-    },
-    "dto.CreatePageRequest": {
-      "type": "object",
-      "required": ["content", "number"],
-      "properties": {
-        "content": {
-          "type": "string"
-        },
-        "number": {
-          "type": "integer"
-        }
-      }
-    },
-    "dto.ListedBook": {
-      "type": "object",
-      "properties": {
-        "category": {
-          "type": "string"
-        },
-        "created_at": {
-          "type": "string"
-        },
-        "id": {
-          "type": "integer"
-        },
-        "title": {
-          "type": "string"
-        },
-        "year": {
-          "type": "integer"
-        }
-      }
-    },
-    "dto.ListedBooks": {
-      "type": "object",
-      "properties": {
-        "author_id": {
-          "type": "integer"
-        },
-        "books": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/dto.ListedBook"
-          }
-        },
-        "fullname": {
-          "type": "string"
-        }
-      }
-    },
-    "model.Author": {
-      "type": "object",
-      "properties": {
-        "books": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/model.Book"
-          }
-        },
-        "created_at": {
-          "type": "string"
-        },
-        "fullname": {
-          "type": "string"
-        },
-        "id": {
-          "type": "integer"
-        }
-      }
-    },
-    "model.Book": {
-      "type": "object",
-      "properties": {
-        "author_id": {
-          "type": "integer"
-        },
-        "category": {
-          "type": "string"
-        },
-        "created_at": {
-          "type": "string"
-        },
-        "id": {
-          "type": "integer"
-        },
-        "title": {
-          "type": "string"
-        },
-        "year": {
-          "type": "integer"
-        }
-      }
-    },
-    "model.Page": {
-      "type": "object",
-      "properties": {
-        "book_id": {
-          "type": "integer"
-        },
-        "content": {
-          "type": "string"
-        },
-        "created_at": {
-          "type": "string"
-        },
-        "id": {
-          "type": "integer"
-        },
-        "number": {
-          "type": "integer"
-        }
-      }
-    }
-  }
 }

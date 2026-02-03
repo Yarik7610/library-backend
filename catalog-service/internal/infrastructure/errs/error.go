@@ -10,6 +10,7 @@ type Code uint
 const (
 	CodeNotFound Code = iota
 	CodeAlreadyExists
+	CodeBadRequest
 	CodeInternal
 )
 
@@ -54,6 +55,10 @@ func NewEntityNotFoundError(entityName string) *Error {
 
 func NewEntityAlreadyExistsError(entityName string) *Error {
 	return NewError(CodeAlreadyExists, fmt.Sprintf("%s already exists", entityName))
+}
+
+func NewBadRequestError(message string) *Error {
+	return NewError(CodeAlreadyExists, message)
 }
 
 func NewInternalServerError() *Error {
