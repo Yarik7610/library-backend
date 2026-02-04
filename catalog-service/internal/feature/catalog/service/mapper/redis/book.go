@@ -5,15 +5,15 @@ import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/redis/model"
 )
 
-func BookModelsToDomains(bookModels []model.Book) []domain.Book {
+func BookWithAuthorModelsToDomains(bookModels []model.BookWithAuthor) []domain.Book {
 	bookDomains := make([]domain.Book, len(bookModels))
 	for i := range bookModels {
-		bookDomains[i] = BookModelToDomain(&bookModels[i])
+		bookDomains[i] = BookWithAuthorModelToDomain(&bookModels[i])
 	}
 	return bookDomains
 }
 
-func BookModelToDomain(bookModel *model.Book) domain.Book {
+func BookWithAuthorModelToDomain(bookModel *model.BookWithAuthor) domain.Book {
 	return domain.Book{
 		ID:       bookModel.ID,
 		Author:   domain.Author(bookModel.Author),
@@ -23,16 +23,16 @@ func BookModelToDomain(bookModel *model.Book) domain.Book {
 	}
 }
 
-func BookDomainsToModels(bookDomains []domain.Book) []model.Book {
-	bookModels := make([]model.Book, len(bookDomains))
+func BookDomainsToBookWithAuthorModels(bookDomains []domain.Book) []model.BookWithAuthor {
+	bookModels := make([]model.BookWithAuthor, len(bookDomains))
 	for i := range bookDomains {
-		bookModels[i] = BookDomainToModel(&bookDomains[i])
+		bookModels[i] = BookDomainToBookWithAuthorModel(&bookDomains[i])
 	}
 	return bookModels
 }
 
-func BookDomainToModel(bookDomain *domain.Book) model.Book {
-	return model.Book{
+func BookDomainToBookWithAuthorModel(bookDomain *domain.Book) model.BookWithAuthor {
+	return model.BookWithAuthor{
 		ID:       bookDomain.ID,
 		Author:   model.Author(bookDomain.Author),
 		Title:    bookDomain.Title,

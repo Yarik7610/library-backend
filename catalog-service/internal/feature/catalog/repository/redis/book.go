@@ -26,8 +26,8 @@ const (
 type BookRepository interface {
 	SetCategories(categories []string) error
 	GetCategories() ([]string, error)
-	SetNewBooks(newBooks []model.Book) error
-	GetNewBooks() ([]model.Book, error)
+	SetNewBooks(newBooks []model.BookWithAuthor) error
+	GetNewBooks() ([]model.BookWithAuthor, error)
 	UpdateBookViewsCount(bookID, userID uint) error
 	GetBookViewsCount(bookID uint) (int64, error)
 	GetPopularBooksIDs() ([]string, error)
@@ -72,7 +72,7 @@ func (r *bookRepository) GetCategories() ([]string, error) {
 	return categories, nil
 }
 
-func (r *bookRepository) SetNewBooks(newBooks []model.Book) error {
+func (r *bookRepository) SetNewBooks(newBooks []model.BookWithAuthor) error {
 	ctx := context.Background()
 
 	newBooksBytes, err := json.Marshal(newBooks)
@@ -86,7 +86,7 @@ func (r *bookRepository) SetNewBooks(newBooks []model.Book) error {
 	return nil
 }
 
-func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
+func (r *bookRepository) GetNewBooks() ([]model.BookWithAuthor, error) {
 	ctx := context.Background()
 
 	newBooksString, err := r.rdb.Get(ctx, NEW_BOOKS_KEY).Result()
@@ -97,7 +97,7 @@ func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
 		return nil, redisInfrastructure.NewError(err)
 	}
 
-	var newBooks []model.Book
+	var newBooks []model.BookWithAuthor
 	if err := json.Unmarshal([]byte(newBooksString), &newBooks); err != nil {
 		return nil, err
 	}

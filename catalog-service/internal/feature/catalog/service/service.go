@@ -80,26 +80,22 @@ func (s *catalogService) GetCategories() ([]string, error) {
 }
 
 func (s *catalogService) GetNewBooks() ([]domain.Book, error) {
-	redisNewBookModels, err := s.redisBookRepository.GetNewBooks()
+	redisNewBookWithAuthorModels, err := s.redisBookRepository.GetNewBooks()
 	if err != nil {
 		return nil, err
 	}
 
-	if len(redisNewBookModels) > 0 {
-		return redisMapper.BookModelsToDomains(redisNewBookModels), nil
+	if len(redisNewBookWithAuthorModels) > 0 {
+		return redisMapper.BookWithAuthorModelsToDomains(redisNewBookWithAuthorModels), nil
 	}
 
-	postgresNewBookModels, err := s.postgresBookRepository.GetNewBooks()
+	postgresNewBookWithAuthorModels, err := s.postgresBookRepository.GetNewBooks()
 	if err != nil {
 		return nil, err
 	}
 
-	postgresNewBookDomains, err := s.getFullPostgresBookDomains(postgresNewBookModels)
-	if err != nil {
-		return nil, err
-	}
-	go s.redisBookRepository.SetNewBooks(redisMapper.BookDomainsToModels(postgresNewBookDomains))
-
+	postgresNewBookDomains := postgresMapper.BookWithAuthorModelsToDomains(postgresNewBookWithAuthorModels)
+	go s.redisBookRepository.SetNewBooks(redisMapper.BookDomainsToBookWithAuthorModels(postgresNewBookDomains))
 	return postgresNewBookDomains, nil
 }
 
@@ -113,15 +109,11 @@ func (s *catalogService) GetPopularBooks() ([]domain.Book, error) {
 		return nil, err
 	}
 
-	bookModels, err := s.postgresBookRepository.GetBooksByIDs(bookIDs)
+	bookWithAuthorModels, err := s.postgresBookRepository.GetBooksByIDs(bookIDs)
 	if err != nil {
 		return nil, err
 	}
-
-	bookDomains, err := s.getFullPostgresBookDomains(bookModels)
-	if err != nil {
-		return nil, err
-	}
+	bookDomains := postgresMapper.BookWithAuthorModelsToDomains(bookWithAuthorModels)
 
 	bookDomainsMap := make(map[uint]domain.Book)
 	for _, bookDomain := range bookDomains {
@@ -140,12 +132,11 @@ func (s *catalogService) GetPopularBooks() ([]domain.Book, error) {
 }
 
 func (s *catalogService) GetBooksByAuthorID(authorID uint) ([]domain.Book, error) {
-	bookModels, err := s.postgresBookRepository.GetBooksByAuthorID(authorID)
+	bookWithAuthorModels, err := s.postgresBookRepository.GetBooksByAuthorID(authorID)
 	if err != nil {
 		return nil, err
 	}
-
-	return s.getFullPostgresBookDomains(bookModels)
+	return postgresMapper.BookWithAuthorModelsToDomains(bookWithAuthorModels), nil
 }
 
 func (s *catalogService) GetBookPage(bookID, pageNumber uint) (*domain.Page, error) {
@@ -158,7 +149,7 @@ func (s *catalogService) GetBookPage(bookID, pageNumber uint) (*domain.Page, err
 }
 
 func (s *catalogService) PreviewBook(bookID, userID uint) (*domain.Book, error) {
-	bookModel, err := s.postgresBookRepository.FindByID(bookID)
+	bookWithAuthorModel, err := s.postgresBookRepository.FindByID(bookID)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +160,8 @@ func (s *catalogService) PreviewBook(bookID, userID uint) (*domain.Book, error) 
 		}
 	}
 
-	return s.getFullPostgresBookDomain(bookModel)
+	bookDomain := postgresMapper.BookWithAuthorModelToDomain(bookWithAuthorModel)
+	return &bookDomain, nil
 }
 
 func (s *catalogService) AddBook(bookDomain *domain.Book) error {
@@ -285,28 +277,4 @@ func (s *catalogService) ListBooksByAuthorNameAndTitle(authorName, title string,
 		return nil, err
 	}
 	return postgresMapper.BookWithAuthorModelsToDomains(bookWithAuthorModels), nil
-}
-
-func (s *catalogService) getFullPostgresBookDomains(bookModels []model.Book) ([]domain.Book, error) {
-	bookDomains := make([]domain.Book, len(bookModels))
-
-	for i, bookModel := range bookModels {
-		bookModel, err := s.getFullPostgresBookDomain(&bookModel)
-		if err != nil {
-			return nil, err
-		}
-		bookDomains[i] = *bookModel
-	}
-	return bookDomains, nil
-}
-
-func (s *catalogService) getFullPostgresBookDomain(bookModel *model.Book) (*domain.Book, error) {
-	authorModel, err := s.postgresAuthorRepository.FindByID(bookModel.AuthorID)
-	if err != nil {
-		return nil, err
-	}
-
-	bookDomain := postgresMapper.BookModelToDomain(bookModel)
-	bookDomain.Author = postgresMapper.AuthorModelToDomain(authorModel)
-	return &bookDomain, nil
 }

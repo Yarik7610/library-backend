@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
@@ -13,10 +14,10 @@ import (
 type BookRepository interface {
 	WithinTX(tx *gorm.DB) BookRepository
 	GetCategories() ([]string, error)
-	GetNewBooks() ([]model.Book, error)
-	GetBooksByIDs(bookIDs []string) ([]model.Book, error)
-	GetBooksByAuthorID(authorID uint) ([]model.Book, error)
-	FindByID(ID uint) (*model.Book, error)
+	GetNewBooks() ([]model.BookWithAuthor, error)
+	GetBooksByIDs(bookIDs []string) ([]model.BookWithAuthor, error)
+	GetBooksByAuthorID(authorID uint) ([]model.BookWithAuthor, error)
+	FindByID(ID uint) (*model.BookWithAuthor, error)
 	CountBooks() (int64, error)
 	CreateBook(book *model.Book) error
 	DeleteBook(ID uint) error
@@ -47,38 +48,59 @@ func (r *bookRepository) GetCategories() ([]string, error) {
 	return categories, nil
 }
 
-func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
+func (r *bookRepository) GetNewBooks() ([]model.BookWithAuthor, error) {
 	const NEW_BOOKS_COUNT = 10
 
-	var newBooks []model.Book
-	if err := r.db.Order("created_at DESC").Limit(NEW_BOOKS_COUNT).Find(&newBooks).Error; err != nil {
+	var booksWithAuthor []model.BookWithAuthor
+
+	err := r.buildBaseBookWithAuthorQuery().
+		Order("books.created_at DESC").
+		Limit(NEW_BOOKS_COUNT).
+		Find(&booksWithAuthor).Error
+	if err != nil {
 		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
-	return newBooks, nil
+
+	return booksWithAuthor, nil
 }
 
-func (r *bookRepository) GetBooksByIDs(bookIDs []string) ([]model.Book, error) {
-	var books []model.Book
-	if err := r.db.Where("id IN ?", bookIDs).Find(&books).Error; err != nil {
+func (r *bookRepository) GetBooksByIDs(bookIDs []string) ([]model.BookWithAuthor, error) {
+	var booksWithAuthor []model.BookWithAuthor
+
+	err := r.buildBaseBookWithAuthorQuery().
+		Where("books.id IN ?", bookIDs).
+		Find(&booksWithAuthor).Error
+	if err != nil {
 		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
-	return books, nil
+
+	return booksWithAuthor, nil
 }
 
-func (r *bookRepository) GetBooksByAuthorID(authorID uint) ([]model.Book, error) {
-	var books []model.Book
-	if err := r.db.Where("author_id = ?", authorID).Find(&books).Error; err != nil {
+func (r *bookRepository) GetBooksByAuthorID(authorID uint) ([]model.BookWithAuthor, error) {
+	var booksWithAuthor []model.BookWithAuthor
+
+	err := r.buildBaseBookWithAuthorQuery().
+		Where("books.author_id = ?", authorID).
+		Find(&booksWithAuthor).Error
+	if err != nil {
 		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
-	return books, nil
+
+	return booksWithAuthor, nil
 }
 
-func (r *bookRepository) FindByID(ID uint) (*model.Book, error) {
-	var book model.Book
-	if err := r.db.Where("id = ?", ID).First(&book).Error; err != nil {
+func (r *bookRepository) FindByID(ID uint) (*model.BookWithAuthor, error) {
+	var bookWithAuthor model.BookWithAuthor
+
+	err := r.buildBaseBookWithAuthorQuery().
+		Where("books.id = ?", ID).
+		First(&bookWithAuthor).Error
+	if err != nil {
 		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
-	return &book, nil
+
+	return &bookWithAuthor, nil
 }
 
 func (r *bookRepository) CountBooks() (int64, error) {
@@ -151,7 +173,7 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint
 		SELECT 
 			b.id,
 			b.author_id,
-			a.fullname author_fullname,
+			a.fullname AS author_fullname,
 			b.title, 
 			b.year,
 			b.category
@@ -170,11 +192,21 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint
 	return bookModels, nil
 }
 
+func (r *bookRepository) buildBaseBookWithAuthorQuery() *gorm.DB {
+	return r.db.
+		Model(&model.Book{}).
+		Select("books.id, books.author_id, authors.fullname AS author_fullname, books.title, books.year, books.category").
+		Joins("LEFT JOIN authors ON books.author_id = authors.id")
+}
+
 func sanitizeListBooksParams(sort, order string) (string, string) {
+	allowedSortColumnValues := []string{"title", "year", "category"}
+
 	sort = strings.ToLower(sort)
-	if sort != "title" && sort != "year" && sort != "category" {
+	if !slices.Contains(allowedSortColumnValues, sort) {
 		sort = "title"
 	}
+
 	order = strings.ToUpper(order)
 	if order != "ASC" && order != "DESC" {
 		order = "ASC"
