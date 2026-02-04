@@ -1,4 +1,4 @@
-package mapper
+package postgres
 
 import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/domain"

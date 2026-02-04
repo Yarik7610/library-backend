@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/redis/model"
 	redisInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/redis"
 	"github.com/redis/go-redis/v9"
 )
@@ -34,27 +34,26 @@ type BookRepository interface {
 }
 
 type bookRepository struct {
-	name string
-	rdb  *redis.Client
+	rdb *redis.Client
 }
 
 func NewBookRepository(rdb *redis.Client) BookRepository {
-	return &bookRepository{name: "Redis book", rdb: rdb}
+	return &bookRepository{rdb: rdb}
 }
 
 func (r *bookRepository) SetCategories(categories []string) error {
 	ctx := context.Background()
 
 	if err := r.rdb.Del(ctx, CATEGORIES_KEY).Err(); err != nil {
-		return redisInfrastructure.NewError(err, r.name)
+		return redisInfrastructure.NewError(err)
 	}
 
 	if len(categories) > 0 {
 		if err := r.rdb.RPush(ctx, CATEGORIES_KEY, stringSliceToAnySlice(categories)...).Err(); err != nil {
-			return redisInfrastructure.NewError(err, r.name)
+			return redisInfrastructure.NewError(err)
 		}
 		if err := r.rdb.Expire(ctx, CATEGORIES_KEY, CATEGORIES_KEY_EXPIRATION).Err(); err != nil {
-			return redisInfrastructure.NewError(err, r.name)
+			return redisInfrastructure.NewError(err)
 		}
 	}
 	return nil
@@ -65,7 +64,10 @@ func (r *bookRepository) GetCategories() ([]string, error) {
 
 	categories, err := r.rdb.LRange(ctx, CATEGORIES_KEY, 0, -1).Result()
 	if err != nil {
-		return nil, redisInfrastructure.NewError(err, r.name)
+		if redisInfrastructure.IsNil(err) {
+			return nil, nil
+		}
+		return nil, redisInfrastructure.NewError(err)
 	}
 	return categories, nil
 }
@@ -79,7 +81,7 @@ func (r *bookRepository) SetNewBooks(newBooks []model.Book) error {
 	}
 
 	if err := r.rdb.Set(ctx, NEW_BOOKS_KEY, newBooksBytes, NEW_BOOKS_KEY_EXPIRATION).Err(); err != nil {
-		return redisInfrastructure.NewError(err, r.name)
+		return redisInfrastructure.NewError(err)
 	}
 	return nil
 }
@@ -89,7 +91,10 @@ func (r *bookRepository) GetNewBooks() ([]model.Book, error) {
 
 	newBooksString, err := r.rdb.Get(ctx, NEW_BOOKS_KEY).Result()
 	if err != nil {
-		return nil, redisInfrastructure.NewError(err, r.name)
+		if redisInfrastructure.IsNil(err) {
+			return nil, nil
+		}
+		return nil, redisInfrastructure.NewError(err)
 	}
 
 	var newBooks []model.Book
@@ -105,12 +110,12 @@ func (r *bookRepository) UpdateBookViewsCount(bookID, userID uint) error {
 	bookViewsCountKey := fmt.Sprintf("books:%d:views", bookID)
 	addedCount, err := r.rdb.PFAdd(ctx, bookViewsCountKey, userID).Result()
 	if err != nil {
-		return redisInfrastructure.NewError(err, r.name)
+		return redisInfrastructure.NewError(err)
 	}
 
 	if addedCount > 0 {
 		if err := r.rdb.ZIncrBy(ctx, POPULAR_BOOKS_KEY, 1, strconv.Itoa(int(bookID))).Err(); err != nil {
-			return redisInfrastructure.NewError(err, r.name)
+			return redisInfrastructure.NewError(err)
 		}
 	}
 	return nil
@@ -122,7 +127,10 @@ func (r *bookRepository) GetBookViewsCount(bookID uint) (int64, error) {
 	bookViewsCountKey := fmt.Sprintf("books:%d:views", bookID)
 	bookViewsCount, err := r.rdb.PFCount(ctx, bookViewsCountKey).Result()
 	if err != nil {
-		return 0, redisInfrastructure.NewError(err, r.name)
+		if redisInfrastructure.IsNil(err) {
+			return 0, nil
+		}
+		return 0, redisInfrastructure.NewError(err)
 	}
 	return bookViewsCount, nil
 }
@@ -132,7 +140,10 @@ func (r *bookRepository) GetPopularBooksIDs() ([]string, error) {
 
 	popularBookIDs, err := r.rdb.ZRevRange(ctx, POPULAR_BOOKS_KEY, 0, POPULAR_BOOKS_COUNT-1).Result()
 	if err != nil {
-		return nil, redisInfrastructure.NewError(err, r.name)
+		if redisInfrastructure.IsNil(err) {
+			return nil, nil
+		}
+		return nil, redisInfrastructure.NewError(err)
 	}
 	return popularBookIDs, nil
 }

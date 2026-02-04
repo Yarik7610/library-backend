@@ -16,12 +16,12 @@ func NewRouter(catalogHandler CatalogHandler) *gin.Engine {
 
 	catalogGroup := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
-		catalogGroup.GET(sharedconstants.CATEGORIES_ROUTE, catalogHandler.GetCategories)
-		// catalogGroup.GET(sharedconstants.CATEGORIES_ROUTE+"/:categoryName"+sharedconstants.BOOKS_ROUTE, catalogHandler.ListBooksByCategory)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE, catalogHandler.GetCategories)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE+"/:categoryName", catalogHandler.ListBooksByCategory)
 		catalogGroup.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogHandler.GetBooksByAuthorID)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogHandler.PreviewBook)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogHandler.GetBookPage)
-		// catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogHandler.SearchBooks)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogHandler.SearchBooks)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.NEW_ROUTE, catalogHandler.GetNewBooks)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.POPULAR_ROUTE, catalogHandler.GetPopularBooks)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.VIEWS_ROUTE+"/:bookID", catalogHandler.GetBookViewsCount)
@@ -34,6 +34,5 @@ func NewRouter(catalogHandler CatalogHandler) *gin.Engine {
 			adminGroup.POST(sharedconstants.AUTHORS_ROUTE, catalogHandler.CreateAuthor)
 		}
 	}
-
 	return r
 }

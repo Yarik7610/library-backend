@@ -19,11 +19,11 @@ type pageRepository struct {
 }
 
 func NewPageRepository(db *gorm.DB) PageRepository {
-	return &pageRepository{name: "Page", db: db}
+	return &pageRepository{name: "Page(s)", db: db}
 }
 
 func (r *pageRepository) WithinTX(tx *gorm.DB) PageRepository {
-	return &pageRepository{db: tx}
+	return &pageRepository{name: "Page(s)", db: tx}
 }
 
 func (r *pageRepository) CreatePage(page *model.Page) error {

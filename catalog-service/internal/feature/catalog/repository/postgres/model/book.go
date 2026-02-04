@@ -13,3 +13,12 @@ type Book struct {
 	CreatedAt time.Time
 	Pages     []Page `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
+
+type BookWithAuthor struct {
+	ID             uint
+	AuthorID       uint
+	AuthorFullname string
+	Title          string
+	Year           int
+	Category       string
+}

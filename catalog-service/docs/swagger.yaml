@@ -110,51 +110,6 @@ definitions:
       name:
         type: string
     type: object
-  model.Author:
-    properties:
-      books:
-        items:
-          $ref: '#/definitions/model.Book'
-        type: array
-      createdAt:
-        type: string
-      fullname:
-        type: string
-      id:
-        type: integer
-    type: object
-  model.Book:
-    properties:
-      authorID:
-        type: integer
-      category:
-        type: string
-      createdAt:
-        type: string
-      id:
-        type: integer
-      pages:
-        items:
-          $ref: '#/definitions/model.Page'
-        type: array
-      title:
-        type: string
-      year:
-        type: integer
-    type: object
-  model.Page:
-    properties:
-      bookID:
-        type: integer
-      content:
-        type: string
-      createdAt:
-        type: string
-      id:
-        type: integer
-      number:
-        type: integer
-    type: object
 info:
   contact: {}
 paths:
@@ -174,19 +129,25 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.Author'
+            $ref: '#/definitions/dto.Author'
         "400":
           description: Bad request
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
         "409":
           description: Entity already exists
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
       summary: Create a new author
@@ -205,15 +166,19 @@ paths:
       - application/json
       responses:
         "204":
-          description: ""
+          description: No content
         "400":
           description: Bad request
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
       summary: Delete an author
@@ -240,11 +205,15 @@ paths:
         "400":
           description: Bad request
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       summary: Get books by author ID
       tags:
       - catalog
@@ -268,15 +237,21 @@ paths:
         "400":
           description: Bad request
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
         "409":
           description: Entity already exists
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
       summary: Add a new book
@@ -295,15 +270,19 @@ paths:
       - application/json
       responses:
         "204":
-          description: ""
+          description: No content
         "400":
           description: Bad request
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
       summary: Delete a book
@@ -319,7 +298,7 @@ paths:
         type: integer
       - description: Page number
         in: query
-        name: pageNumber
+        name: page
         required: true
         type: integer
       produces:
@@ -332,12 +311,86 @@ paths:
         "400":
           description: Bad request
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       summary: Get a book page
+      tags:
+      - catalog
+  /catalog/books/categories:
+    get:
+      description: Returns a list of all available book categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all book categories
+      tags:
+      - catalog
+  /catalog/books/categories/{categoryName}:
+    get:
+      description: Returns paginated list of books for the given category
+      parameters:
+      - description: Category name
+        in: path
+        name: categoryName
+        required: true
+        type: string
+      - description: Page number (min=1, default=1)
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page (min=1, max=100, default=20)
+        in: query
+        name: count
+        type: integer
+      - description: Sort field (title / year / category, default=title)
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc / desc, default=asc)
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Book'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List books by category
       tags:
       - catalog
   /catalog/books/new:
@@ -355,13 +408,16 @@ paths:
         "500":
           description: Internal server error
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       summary: Get new books
       tags:
       - catalog
   /catalog/books/popular:
     get:
-      description: Returns list of most popular books
+      description: Returns list of most popular books based on views count by different
+        authorized users only
       produces:
       - application/json
       responses:
@@ -374,7 +430,9 @@ paths:
         "500":
           description: Internal server error
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       summary: Get popular books
       tags:
       - catalog
@@ -397,17 +455,73 @@ paths:
         "400":
           description: Bad request
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       summary: Preview a book
+      tags:
+      - catalog
+  /catalog/books/search:
+    get:
+      description: List books by author name and/or title with pagination
+      parameters:
+      - description: Author name
+        in: query
+        name: author
+        type: string
+      - description: Book title
+        in: query
+        name: title
+        type: string
+      - description: Page number (min=1, default=1)
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page (min=1, max=100, default=20)
+        in: query
+        name: count
+        type: integer
+      - description: Sort field (title / year / category, default=title)
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc / desc, default=asc)
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Book'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search books
       tags:
       - catalog
   /catalog/books/views/{bookID}:
     get:
-      description: Returns total number of views
+      description: Returns total number of views by different authorized users only
       parameters:
       - description: Book ID
         in: path
@@ -426,31 +540,16 @@ paths:
         "400":
           description: Bad request
           schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            type: string
-      summary: Get views count for a book
-      tags:
-      - catalog
-  /catalog/categories:
-    get:
-      description: Returns a list of all available book categories
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
+            additionalProperties:
               type: string
-            type: array
+            type: object
         "500":
           description: Internal server error
           schema:
-            type: string
-      summary: Get all book categories
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get views count for a book
       tags:
       - catalog
   /emails:

@@ -7,9 +7,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func NewError(err error, entityName string) *errs.Error {
-	if errors.Is(err, redis.Nil) {
-		return errs.NewEntityNotFoundError(entityName)
-	}
+func NewError(err error) *errs.Error {
 	return errs.NewInternalServerError().WithCause(err)
+}
+
+func IsNil(err error) bool {
+	return errors.Is(err, redis.Nil)
 }

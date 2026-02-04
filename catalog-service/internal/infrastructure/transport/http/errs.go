@@ -11,7 +11,7 @@ import (
 func RenderError(ctx *gin.Context, err error) {
 	var infrastructureError *errs.Error
 	if errors.As(err, &infrastructureError) {
-		ctx.JSON(getHTTPStatus(infrastructureError.Code), infrastructureError.Message)
+		ctx.JSON(getHTTPStatus(infrastructureError.Code), gin.H{"error": infrastructureError.Message})
 		return
 	}
 	ctx.Status(http.StatusInternalServerError)

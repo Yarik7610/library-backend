@@ -49,7 +49,7 @@ func AuthRequired() gin.HandlerFunc {
 		}
 
 		if utils.IsAdminRoute(method, fullPath) && !isAdmin {
-			ctx.JSON(http.StatusForbidden, gin.H{"error": "route allowed for admin only"})
+			ctx.JSON(http.StatusForbidden, gin.H{"error": "Route is allowed for admins only"})
 			ctx.Abort()
 			return
 		}

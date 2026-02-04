@@ -19,11 +19,11 @@ type authorRepository struct {
 }
 
 func NewAuthorRepository(db *gorm.DB) AuthorRepository {
-	return &authorRepository{name: "Author", db: db}
+	return &authorRepository{name: "Author(s)", db: db}
 }
 
 func (r *authorRepository) WithinTX(tx *gorm.DB) AuthorRepository {
-	return &authorRepository{db: tx}
+	return &authorRepository{name: "Author(s)", db: tx}
 }
 
 func (r *authorRepository) CreateAuthor(author *model.Author) error {

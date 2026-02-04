@@ -58,7 +58,7 @@ func NewEntityAlreadyExistsError(entityName string) *Error {
 }
 
 func NewBadRequestError(message string) *Error {
-	return NewError(CodeAlreadyExists, message)
+	return NewError(CodeBadRequest, message)
 }
 
 func NewInternalServerError() *Error {

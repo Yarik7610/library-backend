@@ -20,10 +20,10 @@ type BookRepository interface {
 	CountBooks() (int64, error)
 	CreateBook(book *model.Book) error
 	DeleteBook(ID uint) error
-	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]model.ListedBooks, error)
-	ListBooksByTitle(title string, page, count uint, sort, order string) ([]model.ListedBooks, error)
-	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]model.ListedBooks, error)
-	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]model.ListedBooks, error)
+	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]model.BookWithAuthor, error)
+	ListBooksByTitle(title string, page, count uint, sort, order string) ([]model.BookWithAuthor, error)
+	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]model.BookWithAuthor, error)
+	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]model.BookWithAuthor, error)
 }
 
 type bookRepository struct {
@@ -32,11 +32,11 @@ type bookRepository struct {
 }
 
 func NewBookRepository(db *gorm.DB) BookRepository {
-	return &bookRepository{name: "Book", db: db}
+	return &bookRepository{name: "Book(s)", db: db}
 }
 
 func (r *bookRepository) WithinTX(tx *gorm.DB) BookRepository {
-	return &bookRepository{db: tx}
+	return &bookRepository{name: "Books(s)", db: tx}
 }
 
 func (r *bookRepository) GetCategories() ([]string, error) {
@@ -104,24 +104,24 @@ func (r *bookRepository) DeleteBook(ID uint) error {
 	return nil
 }
 
-func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
+func (r *bookRepository) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]model.BookWithAuthor, error) {
 	return r.listBooksBy(map[string]string{"author": authorName}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByTitle(title string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
+func (r *bookRepository) ListBooksByTitle(title string, page, count uint, sort, order string) ([]model.BookWithAuthor, error) {
 	return r.listBooksBy(map[string]string{"title": title}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
+func (r *bookRepository) ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]model.BookWithAuthor, error) {
 	return r.listBooksBy(map[string]string{"author": authorName, "title": title}, page, count, sort, order)
 }
 
-func (r *bookRepository) ListBooksByCategory(category string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
+func (r *bookRepository) ListBooksByCategory(category string, page, count uint, sort, order string) ([]model.BookWithAuthor, error) {
 	return r.listBooksBy(map[string]string{"category": category}, page, count, sort, order)
 }
 
-func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint, sort, order string) ([]model.ListedBooks, error) {
-	var rawBooks []model.ListedBooks
+func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint, sort, order string) ([]model.BookWithAuthor, error) {
+	var bookModels []model.BookWithAuthor
 	offset := (page - 1) * count
 
 	sort, order = sanitizeListBooksParams(sort, order)
@@ -149,46 +149,25 @@ func (r *bookRepository) listBooksBy(filters map[string]string, page, count uint
 
 	query := fmt.Sprintf(`
 		SELECT 
-			b.author_id, 
-			a.fullname,
-			json_agg(
-				json_build_object(
-					'id', b.id,
-					'title', b.title,
-					'year', b.year,
-					'category', b.category,
-				) ORDER BY %s %s
-			) AS books
+			b.id,
+			b.author_id,
+			a.fullname author_fullname,
+			b.title, 
+			b.year,
+			b.category
 		FROM books b
-		INNER JOIN authors a ON b.author_id = a.id
+		INNER JOIN authors a 
+		ON b.author_id = a.id
 		%s
-		GROUP BY b.author_id, a.fullname
-		ORDER BY b.author_id
+		ORDER BY %s %s
 		LIMIT ? OFFSET ?
-	`, sort, order, whereSQL)
-
-	/**
-
-	SELECT
-		b.id, a.id, a.fullname, title, year, category
-	FROM books b
-	INNER JOIN authors a
-	ON a.id = b.author_id
-	WHERE a.fullname ILIKE ? | b.title ILIKE ? | b.category ILIKE ?
-
-	GROUP BY mb??
-
-	ORDER BY ? ?
-	LIMIT ? OFFSET ?
-
-	**/
+	`, whereSQL, sort, order)
 
 	args = append(args, count, offset)
-
-	if err := r.db.Raw(query, args...).Scan(&rawBooks).Error; err != nil {
+	if err := r.db.Raw(query, args...).Scan(&bookModels).Error; err != nil {
 		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
-	return rawBooks, nil
+	return bookModels, nil
 }
 
 func sanitizeListBooksParams(sort, order string) (string, string) {

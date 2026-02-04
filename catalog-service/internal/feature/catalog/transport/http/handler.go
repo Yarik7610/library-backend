@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/domain"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/dto"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/mapper"
@@ -25,10 +26,10 @@ type CatalogHandler interface {
 	CreateAuthor(ctx *gin.Context)
 	DeleteAuthor(ctx *gin.Context)
 	GetNewBooks(ctx *gin.Context)
-	GetPopularBooks(ctx *gin.Context)
 	GetBookViewsCount(ctx *gin.Context)
-	// ListBooksByCategory(ctx *gin.Context)
-	// SearchBooks(ctx *gin.Context)
+	GetPopularBooks(ctx *gin.Context)
+	ListBooksByCategory(ctx *gin.Context)
+	SearchBooks(ctx *gin.Context)
 }
 
 type catalogHandler struct {
@@ -46,8 +47,8 @@ func NewCatalogHandler(catalogService service.CatalogService) CatalogHandler {
 //	@Tags			catalog
 //	@Produce		json
 //	@Success		200	{array}		string
-//	@Failure		500	{string} string "Internal server error"
-//	@Router			/catalog/categories [get]
+//	@Failure		500	{object} map[string]string "Internal server error"
+//	@Router			/catalog/books/categories [get]
 func (c *catalogHandler) GetCategories(ctx *gin.Context) {
 	categories, err := c.catalogService.GetCategories()
 	if err != nil {
@@ -67,8 +68,8 @@ func (c *catalogHandler) GetCategories(ctx *gin.Context) {
 //	@Param			bookID	path	uint	true	"Book ID"
 //	@Produce		json
 //	@Success		200	{object}	dto.Book
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		500	{string} string "Internal server error"
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/books/preview/{bookID} [get]
 func (c *catalogHandler) PreviewBook(ctx *gin.Context) {
 	bookIDString := ctx.Param("bookID")
@@ -103,8 +104,8 @@ func (c *catalogHandler) PreviewBook(ctx *gin.Context) {
 //	@Param			authorID	path	uint	true	"Author ID"
 //	@Produce		json
 //	@Success		200	{array}		dto.Book
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		500	{string} string "Internal server error"
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/authors/{authorID}/books [get]
 func (c *catalogHandler) GetBooksByAuthorID(ctx *gin.Context) {
 	authorIDString := ctx.Param("authorID")
@@ -131,28 +132,28 @@ func (c *catalogHandler) GetBooksByAuthorID(ctx *gin.Context) {
 //	@Description	Returns content of a specific book page
 //	@Tags			catalog
 //	@Param			bookID		path	uint	true	"Book ID"
-//	@Param			pageNumber	query	int		true	"Page number"
+//	@Param			page	query	int		true	"Page number"
 //	@Produce		json
 //	@Success		200	{object}	dto.Page
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		500	{string} string "Internal server error"
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/books/{bookID} [get]
 func (c *catalogHandler) GetBookPage(ctx *gin.Context) {
 	bookIDString := ctx.Param("bookID")
 	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
 	if err != nil {
-		zap.S().Errorf("Delete book ID param error: %v\n", err)
+		zap.S().Errorf("Get book page book ID param error: %v\n", err)
 		httpInfrastructure.RenderError(ctx, errs.NewBadRequestError(err.Error()))
 		return
 	}
 
-	var q query.GetBookPage
-	if err := ctx.ShouldBindQuery(&q); err != nil {
+	var query query.GetBookPage
+	if err := ctx.ShouldBindQuery(&query); err != nil {
 		httpInfrastructure.RenderError(ctx, errs.NewBadRequestError(err.Error()))
 		return
 	}
 
-	pageDomain, err := c.catalogService.GetBookPage(uint(bookID), q.PageNumber)
+	pageDomain, err := c.catalogService.GetBookPage(uint(bookID), query.PageNumber)
 	if err != nil {
 		zap.S().Errorf("Get book page error: %v\n", err)
 		httpInfrastructure.RenderError(ctx, err)
@@ -171,9 +172,9 @@ func (c *catalogHandler) GetBookPage(ctx *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Success		201	{object}	dto.Book
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		409 {string} string "Entity already exists"
-//	@Failure		500	{string} string "Internal server error"
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		409 {object} map[string]string "Entity already exists"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/books [post]
 func (c *catalogHandler) AddBook(ctx *gin.Context) {
 	var createBookDTO dto.AddBookRequest
@@ -200,9 +201,9 @@ func (c *catalogHandler) AddBook(ctx *gin.Context) {
 //	@Param			bookID	path	uint	true	"Book ID"
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		204	""
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		500	{string} string "Internal server error"
+//	@Success		204	"No content"
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/books/{bookID} [delete]
 func (c *catalogHandler) DeleteBook(ctx *gin.Context) {
 	bookIDString := ctx.Param("bookID")
@@ -232,15 +233,15 @@ func (c *catalogHandler) DeleteBook(ctx *gin.Context) {
 //	@Param			author	body	dto.CreateAuthorRequest	true	"Author info"
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		201	{object}	model.Author
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		409 {string} string "Entity already exists"
-//	@Failure		500	{string} string "Internal server error"
+//	@Success		201	{object}	dto.Author
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		409 {object} map[string]string "Entity already exists"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/authors [post]
 func (c *catalogHandler) CreateAuthor(ctx *gin.Context) {
 	var createAuthorRequestDTO dto.CreateAuthorRequest
 	if err := ctx.ShouldBindJSON(&createAuthorRequestDTO); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		httpInfrastructure.RenderError(ctx, errs.NewBadRequestError(err.Error()))
 		return
 	}
 
@@ -262,9 +263,9 @@ func (c *catalogHandler) CreateAuthor(ctx *gin.Context) {
 //	@Param			authorID	path	uint	true	"Author ID"
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Success		204	""
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		500	{string} string "Internal server error"
+//	@Success		204	"No content"
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/authors/{authorID} [delete]
 func (c *catalogHandler) DeleteAuthor(ctx *gin.Context) {
 	authorIDString := ctx.Param("authorID")
@@ -291,49 +292,29 @@ func (c *catalogHandler) DeleteAuthor(ctx *gin.Context) {
 //	@Tags			catalog
 //	@Produce		json
 //	@Success		200	{array}		dto.Book
-//	@Failure		500	{string} string "Internal server error"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/books/new [get]
 func (c *catalogHandler) GetNewBooks(ctx *gin.Context) {
 	newBookDomains, err := c.catalogService.GetNewBooks()
 	if err != nil {
 		zap.S().Errorf("Get new books error: %v\n", err)
-		httpInfrastructure.RenderError(ctx, errs.NewBadRequestError(err.Error()))
+		httpInfrastructure.RenderError(ctx, err)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, mapper.BookDomainsToDTOs(newBookDomains))
 }
 
-// GetPopularBooks godoc
-//
-//	@Summary		Get popular books
-//	@Description	Returns list of most popular books
-//	@Tags			catalog
-//	@Produce		json
-//	@Success		200	{array}		dto.Book
-//	@Failure		500	{string} string "Internal server error"
-//	@Router			/catalog/books/popular [get]
-func (c *catalogHandler) GetPopularBooks(ctx *gin.Context) {
-	popularBookDomains, err := c.catalogService.GetPopularBooks()
-	if err != nil {
-		zap.S().Errorf("Get popular books error: %v\n", err)
-		httpInfrastructure.RenderError(ctx, errs.NewBadRequestError(err.Error()))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, mapper.BookDomainsToDTOs(popularBookDomains))
-}
-
 // GetBookViewsCount godoc
 //
 //	@Summary		Get views count for a book
-//	@Description	Returns total number of views
+//	@Description	Returns total number of views by different authorized users only
 //	@Tags			catalog
 //	@Param			bookID	path	uint	true	"Book ID"
 //	@Produce		json
 //	@Success		200	{object}	map[string]int
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		500	{string} string "Internal server error"
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/books/views/{bookID} [get]
 func (c *catalogHandler) GetBookViewsCount(ctx *gin.Context) {
 	bookIDString := ctx.Param("bookID")
@@ -353,99 +334,105 @@ func (c *catalogHandler) GetBookViewsCount(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"views": viewsCount})
 }
 
+// GetPopularBooks godoc
+//
+//	@Summary		Get popular books
+//	@Description	Returns list of most popular books based on views count by different authorized users only
+//	@Tags			catalog
+//	@Produce		json
+//	@Success		200	{array}		dto.Book
+//	@Failure		500	{object} map[string]string "Internal server error"
+//	@Router			/catalog/books/popular [get]
+func (c *catalogHandler) GetPopularBooks(ctx *gin.Context) {
+	popularBookDomains, err := c.catalogService.GetPopularBooks()
+	if err != nil {
+		zap.S().Errorf("Get popular books error: %v\n", err)
+		httpInfrastructure.RenderError(ctx, errs.NewBadRequestError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, mapper.BookDomainsToDTOs(popularBookDomains))
+}
+
 // ListBooksByCategory godoc
 //
 //	@Summary		List books by category
 //	@Description	Returns paginated list of books for the given category
 //	@Tags			catalog
 //	@Param			categoryName	path	string	true	"Category name"
-//	@Param			page			query	int		false	"Page number"
-//	@Param			count			query	int		false	"Number of items per page"
-//	@Param			sort			query	string	false	"Sort field"
-//	@Param			order			query	string	false	"Sort order (asc/desc)"
+//	@Param			page	query	int		false	"Page number (min=1, default=1)"
+//	@Param			count	query	int		false	"Number of items per page (min=1, max=100, default=20)"
+//	@Param			sort			query	string	false	"Sort field (title / year / category, default=title)"
+//	@Param			order			query	string	false	"Sort order (asc / desc, default=asc)"
 //	@Produce		json
-//	@Success		200	{array}		dto.ListedBooks
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		500	{string} string "Internal server error"
-//	@Router			/catalog/categories/{categoryName}/books [get]
-// func (c *catalogHandler) ListBooksByCategory(ctx *gin.Context) {
-// 	categoryName := ctx.Param("categoryName")
+//	@Success		200	{array}		dto.Book
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		500	{object} map[string]string "Internal server error"
+//	@Router			/catalog/books/categories/{categoryName} [get]
+func (c *catalogHandler) ListBooksByCategory(ctx *gin.Context) {
+	categoryName := ctx.Param("categoryName")
 
-// 	var q query.ListBooksByCategory
-// 	if err := ctx.ShouldBindQuery(&q); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
+	var query query.ListBooksByCategory
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		httpInfrastructure.RenderError(ctx, errs.NewBadRequestError(err.Error()))
+		return
+	}
 
-// 	sort, order := initOrderParams(q.Sort, q.Order)
+	bookDomains, err := c.catalogService.ListBooksByCategory(categoryName, query.Page, query.Count, query.Sort, query.Order)
+	if err != nil {
+		zap.S().Errorf("List books by category error: %v\n", err)
+		httpInfrastructure.RenderError(ctx, err)
+		return
+	}
 
-// 	books, err := c.catalogService.ListBooksByCategory(categoryName, q.Page, q.Count, sort, order)
-// 	if err != nil {
-// 		zap.S().Errorf("List books by category error: %v\n", err)
-// 		ctx.JSON(err.Code, gin.H{"error": err.Message})
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, books)
-// }
+	ctx.JSON(http.StatusOK, mapper.BookDomainsToDTOs(bookDomains))
+}
 
 // SearchBooks godoc
 //
 //	@Summary		Search books
-//	@Description	Search books by author name and/or title with pagination
+//	@Description	List books by author name and/or title with pagination
 //	@Tags			catalog
 //	@Param			author	query	string	false	"Author name"
 //	@Param			title	query	string	false	"Book title"
-//	@Param			page	query	int		false	"Page number"
-//	@Param			count	query	int		false	"Number of items per page"
-//	@Param			sort	query	string	false	"Sort field"
-//	@Param			order	query	string	false	"Sort order (asc/desc)"
+//	@Param			page	query	int		false	"Page number (min=1, default=1)"
+//	@Param			count	query	int		false	"Number of items per page (min=1, max=100, default=20)"
+//	@Param			sort			query	string	false	"Sort field (title / year / category, default=title)"
+//	@Param			order			query	string	false	"Sort order (asc / desc, default=asc)"
 //	@Produce		json
-//	@Success		200	{array}		dto.ListedBooks
-//	@Failure		400 {string} string "Bad request"
-//	@Failure		500	{string} string "Internal server error"
+//	@Success		200	{array}		dto.Book
+//	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/books/search [get]
-// func (c *catalogHandler) SearchBooks(ctx *gin.Context) {
-// 	var q query.SearchBooks
-// 	if err := ctx.ShouldBindQuery(&q); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	if q.Author == "" && q.Title == "" {
-// 		zap.S().Error("Search books error: both author and title are empty")
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Can't have both empty author and title query strings"})
-// 		return
-// 	}
-
-// 	sort, order := initOrderParams(q.Sort, q.Order)
-
-// 	var books []dto.ListedBooks
-// 	var err *custom.Err
-
-// 	if q.Author != "" && q.Title != "" {
-// 		books, err = c.catalogService.ListBooksByAuthorNameAndTitle(q.Author, q.Title, q.Page, q.Count, sort, order)
-// 	} else if q.Author != "" {
-// 		books, err = c.catalogService.ListBooksByAuthorName(q.Author, q.Page, q.Count, sort, order)
-// 	} else {
-// 		books, err = c.catalogService.ListBooksByTitle(q.Title, q.Page, q.Count, sort, order)
-// 	}
-
-// 	if err != nil {
-// 		zap.S().Errorf("Search books error: %v", err.Message)
-// 		ctx.JSON(err.Code, gin.H{"error": err.Message})
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, books)
-// }
-
-func initOrderParams(sort, order string) (string, string) {
-	if sort == "" {
-		sort = "title"
+func (c *catalogHandler) SearchBooks(ctx *gin.Context) {
+	var query query.SearchBooks
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		httpInfrastructure.RenderError(ctx, errs.NewBadRequestError(err.Error()))
+		return
 	}
-	if order == "" {
-		order = "asc"
+
+	if query.Author == "" && query.Title == "" {
+		zap.S().Error("Search books error: both author and title are empty")
+		httpInfrastructure.RenderError(ctx, errs.NewBadRequestError("Can't have both empty author and title query strings"))
+		return
 	}
-	return sort, order
+
+	var bookDomains []domain.Book
+	var err error
+
+	if query.Author != "" && query.Title != "" {
+		bookDomains, err = c.catalogService.ListBooksByAuthorNameAndTitle(query.Author, query.Title, query.Page, query.Count, query.Sort, query.Order)
+	} else if query.Author != "" {
+		bookDomains, err = c.catalogService.ListBooksByAuthorName(query.Author, query.Page, query.Count, query.Sort, query.Order)
+	} else {
+		bookDomains, err = c.catalogService.ListBooksByTitle(query.Title, query.Page, query.Count, query.Sort, query.Order)
+	}
+
+	if err != nil {
+		zap.S().Errorf("Search books error: %v", err)
+		httpInfrastructure.RenderError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, mapper.BookDomainsToDTOs(bookDomains))
 }
