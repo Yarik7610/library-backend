@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/Yarik7610/library-backend-common/broker"
-	"github.com/Yarik7610/library-backend-common/sharedconstants"
-
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/broker/kafka"
+
+	sharedKafka "github.com/Yarik7610/library-backend-common/broker/kafka"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/redis"
@@ -23,7 +23,7 @@ func main() {
 
 	postgresDB := postgres.Connect()
 	redisClient := redis.Connect()
-	bookAddedWriter := broker.NewWriter(sharedconstants.BOOK_ADDED_TOPIC)
+	bookAddedWriter := kafka.NewWriter(sharedKafka.BOOK_ADDED_TOPIC)
 
 	catalogFeature := feature.NewCatalog(postgresDB, redisClient, bookAddedWriter)
 

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/Yarik7610/library-backend-common/broker/event"
+	"github.com/Yarik7610/library-backend-common/broker/kafka/event"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/domain"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
@@ -211,12 +211,12 @@ func (s *catalogService) AddBook(bookDomain *domain.Book) error {
 
 	bookAddedEvent, err := json.Marshal(
 		event.BookAdded{
-			ID:         createdBookModel.ID,
-			AuthorID:   createdBookModel.AuthorID,
-			AuthorName: authorModel.Fullname,
-			Title:      createdBookModel.Title,
-			Year:       createdBookModel.Year,
-			Category:   createdBookModel.Category,
+			ID:             createdBookModel.ID,
+			AuthorID:       createdBookModel.AuthorID,
+			AuthorFullname: authorModel.Fullname,
+			Title:          createdBookModel.Title,
+			Year:           createdBookModel.Year,
+			Category:       createdBookModel.Category,
 		})
 	ctx := context.Background()
 	if err := s.bookAddedWriter.WriteMessages(ctx, kafka.Message{Value: bookAddedEvent}); err != nil {

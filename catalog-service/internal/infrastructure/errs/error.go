@@ -11,6 +11,8 @@ const (
 	CodeNotFound Code = iota
 	CodeAlreadyExists
 	CodeBadRequest
+	CodeUnauthorized
+	CodeForbidden
 	CodeInternal
 )
 
@@ -59,6 +61,14 @@ func NewEntityAlreadyExistsError(entityName string) *Error {
 
 func NewBadRequestError(message string) *Error {
 	return NewError(CodeBadRequest, message)
+}
+
+func NewUnauthorizedError() *Error {
+	return NewError(CodeUnauthorized, "The token is missing, invalid or expired")
+}
+
+func NewForbiddenError() *Error {
+	return NewError(CodeForbidden, "The token is valid, but lacks permission")
 }
 
 func NewInternalServerError() *Error {

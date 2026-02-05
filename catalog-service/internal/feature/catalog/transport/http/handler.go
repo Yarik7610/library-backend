@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/domain"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/dto"
@@ -12,6 +11,7 @@ import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/query"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/errs"
 	httpInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/transport/http"
+	httpContext "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/transport/http/context"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -80,9 +80,8 @@ func (c *catalogHandler) PreviewBook(ctx *gin.Context) {
 		return
 	}
 
-	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
-	userID, err := strconv.ParseUint(userIDString, 10, 64)
-	if err != nil {
+	userID, ok := httpContext.GetUserID(ctx)
+	if !ok {
 		userID = 0
 	}
 

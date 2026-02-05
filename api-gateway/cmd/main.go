@@ -58,8 +58,6 @@ func main() {
 
 	catalogGroup := r.Group(sharedconstants.CATALOG_ROUTE)
 	{
-		catalogGroup.Use(middleware.AuthOptional())
-
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE+"/:categoryName", catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
@@ -72,8 +70,6 @@ func main() {
 
 		adminGroup := catalogGroup.Group("")
 		{
-			adminGroup.Use(middleware.AuthRequired())
-
 			adminGroup.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 			adminGroup.POST(sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
 			adminGroup.DELETE(sharedconstants.AUTHORS_ROUTE+"/:authorID", catalogMicroserviceHandler)

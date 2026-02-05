@@ -22,6 +22,8 @@ func getHTTPStatus(errorCode errs.Code) int {
 		errs.CodeNotFound:      http.StatusNotFound,
 		errs.CodeAlreadyExists: http.StatusConflict,
 		errs.CodeBadRequest:    http.StatusBadRequest,
+		errs.CodeUnauthorized:  http.StatusUnauthorized,
+		errs.CodeForbidden:     http.StatusForbidden,
 		errs.CodeInternal:      http.StatusInternalServerError,
 	}
 
