@@ -136,6 +136,18 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: The token is missing, invalid or expired
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: The token is valid, but lacks permission
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "409":
           description: Entity already exists
           schema:
@@ -169,6 +181,18 @@ paths:
           description: No content
         "400":
           description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: The token is missing, invalid or expired
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: The token is valid, but lacks permission
           schema:
             additionalProperties:
               type: string
@@ -240,6 +264,18 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: The token is missing, invalid or expired
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: The token is valid, but lacks permission
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "409":
           description: Entity already exists
           schema:
@@ -273,6 +309,18 @@ paths:
           description: No content
         "400":
           description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: The token is missing, invalid or expired
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: The token is valid, but lacks permission
           schema:
             additionalProperties:
               type: string

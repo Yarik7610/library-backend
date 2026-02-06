@@ -172,6 +172,8 @@ func (c *catalogHandler) GetBookPage(ctx *gin.Context) {
 //	@Security		BearerAuth
 //	@Success		201	{object}	dto.Book
 //	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		401 {object} map[string]string "The token is missing, invalid or expired"
+//	@Failure		403 {object} map[string]string "The token is valid, but lacks permission"
 //	@Failure		409 {object} map[string]string "Entity already exists"
 //	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/books [post]
@@ -202,6 +204,8 @@ func (c *catalogHandler) AddBook(ctx *gin.Context) {
 //	@Security		BearerAuth
 //	@Success		204	"No content"
 //	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		401 {object} map[string]string "The token is missing, invalid or expired"
+//	@Failure		403 {object} map[string]string "The token is valid, but lacks permission"
 //	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/books/{bookID} [delete]
 func (c *catalogHandler) DeleteBook(ctx *gin.Context) {
@@ -234,6 +238,8 @@ func (c *catalogHandler) DeleteBook(ctx *gin.Context) {
 //	@Security		BearerAuth
 //	@Success		201	{object}	dto.Author
 //	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		401 {object} map[string]string "The token is missing, invalid or expired"
+//	@Failure		403 {object} map[string]string "The token is valid, but lacks permission"
 //	@Failure		409 {object} map[string]string "Entity already exists"
 //	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/authors [post]
@@ -264,6 +270,8 @@ func (c *catalogHandler) CreateAuthor(ctx *gin.Context) {
 //	@Produce		json
 //	@Success		204	"No content"
 //	@Failure		400 {object} map[string]string "Bad request"
+//	@Failure		401 {object} map[string]string "The token is missing, invalid or expired"
+//	@Failure		403 {object} map[string]string "The token is valid, but lacks permission"
 //	@Failure		500	{object} map[string]string "Internal server error"
 //	@Router			/catalog/authors/{authorID} [delete]
 func (c *catalogHandler) DeleteAuthor(ctx *gin.Context) {

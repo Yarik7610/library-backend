@@ -17,7 +17,7 @@ const (
 )
 
 type Error struct {
-	Code    Code   `json:"code"`
+	Code    Code   `json:"-"`
 	Message string `json:"message"`
 	Cause   error  `json:"-"`
 }
