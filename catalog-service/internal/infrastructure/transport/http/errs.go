@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/dto"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/errs"
 	"github.com/gin-gonic/gin"
 )
@@ -11,10 +12,10 @@ import (
 func RenderError(ctx *gin.Context, err error) {
 	var infrastructureError *errs.Error
 	if errors.As(err, &infrastructureError) {
-		ctx.JSON(getHTTPStatus(infrastructureError.Code), gin.H{"error": infrastructureError.Message})
+		ctx.JSON(getHTTPStatus(infrastructureError.Code), dto.Error{Error: infrastructureError.Message})
 		return
 	}
-	ctx.Status(http.StatusInternalServerError)
+	ctx.JSON(http.StatusInternalServerError, dto.Error{Error: "Internal server error"})
 }
 
 func getHTTPStatus(errorCode errs.Code) int {

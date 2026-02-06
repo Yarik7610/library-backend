@@ -15,3 +15,7 @@ type AddBookRequest struct {
 	Category string              `json:"category" binding:"required"`
 	Pages    []CreatePageRequest `json:"pages"`
 }
+
+type BookViews struct {
+	Views int64 `json:"views"`
+}

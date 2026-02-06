@@ -61,12 +61,12 @@ func main() {
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE+"/:categoryName", catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.PREVIEW_ROUTE+"/:bookID", catalogMicroserviceHandler)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID"+sharedconstants.PREVIEW_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.NEW_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.POPULAR_ROUTE, catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.VIEWS_ROUTE+"/:bookID", catalogMicroserviceHandler)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID"+sharedconstants.VIEWS_ROUTE, catalogMicroserviceHandler)
 
 		adminGroup := catalogGroup.Group("")
 		{

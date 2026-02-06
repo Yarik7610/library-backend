@@ -51,46 +51,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "401": {
                         "description": "The token is missing, invalid or expired",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "403": {
                         "description": "The token is valid, but lacks permission",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "409": {
                         "description": "Entity already exists",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -127,37 +112,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "401": {
                         "description": "The token is missing, invalid or expired",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "403": {
                         "description": "The token is valid, but lacks permission",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -195,19 +168,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -249,46 +216,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "401": {
                         "description": "The token is missing, invalid or expired",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "403": {
                         "description": "The token is valid, but lacks permission",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "409": {
                         "description": "Entity already exists",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -317,10 +269,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -382,19 +331,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -423,10 +366,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -455,57 +395,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/catalog/books/preview/{bookID}": {
-            "get": {
-                "description": "Returns preview information for a book",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "catalog"
-                ],
-                "summary": "Preview a book",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Book ID",
-                        "name": "bookID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Book"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -572,69 +462,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/catalog/books/views/{bookID}": {
-            "get": {
-                "description": "Returns total number of views by different authorized users only",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "catalog"
-                ],
-                "summary": "Get views count for a book",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Book ID",
-                        "name": "bookID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "integer"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -676,19 +510,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -723,37 +551,107 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "401": {
                         "description": "The token is missing, invalid or expired",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "403": {
                         "description": "The token is valid, but lacks permission",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/books/{bookID}/preview": {
+            "get": {
+                "description": "Returns preview information for a book",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Preview a book",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Book ID",
+                        "name": "bookID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Book"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/books/{bookID}/views": {
+            "get": {
+                "description": "Returns total number of views by different authorized users only",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Get views count for a book",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Book ID",
+                        "name": "bookID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BookViews"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -1194,6 +1092,14 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.BookViews": {
+            "type": "object",
+            "properties": {
+                "views": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.CreateAuthorRequest": {
             "type": "object",
             "required": [
@@ -1217,6 +1123,14 @@ const docTemplate = `{
                 },
                 "number": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
                 }
             }
         },

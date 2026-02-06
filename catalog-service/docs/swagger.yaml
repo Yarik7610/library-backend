@@ -40,6 +40,11 @@ definitions:
       year:
         type: integer
     type: object
+  dto.BookViews:
+    properties:
+      views:
+        type: integer
+    type: object
   dto.CreateAuthorRequest:
     properties:
       fullname:
@@ -56,6 +61,11 @@ definitions:
     required:
     - content
     - number
+    type: object
+  dto.Error:
+    properties:
+      error:
+        type: string
     type: object
   dto.Page:
     properties:
@@ -133,33 +143,23 @@ paths:
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "401":
           description: The token is missing, invalid or expired
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "403":
           description: The token is valid, but lacks permission
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "409":
           description: Entity already exists
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       security:
       - BearerAuth: []
       summary: Create a new author
@@ -182,27 +182,19 @@ paths:
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "401":
           description: The token is missing, invalid or expired
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "403":
           description: The token is valid, but lacks permission
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       security:
       - BearerAuth: []
       summary: Delete an author
@@ -229,15 +221,11 @@ paths:
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       summary: Get books by author ID
       tags:
       - catalog
@@ -261,33 +249,23 @@ paths:
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "401":
           description: The token is missing, invalid or expired
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "403":
           description: The token is valid, but lacks permission
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "409":
           description: Entity already exists
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       security:
       - BearerAuth: []
       summary: Add a new book
@@ -310,27 +288,19 @@ paths:
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "401":
           description: The token is missing, invalid or expired
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "403":
           description: The token is valid, but lacks permission
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       security:
       - BearerAuth: []
       summary: Delete a book
@@ -359,16 +329,66 @@ paths:
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       summary: Get a book page
+      tags:
+      - catalog
+  /catalog/books/{bookID}/preview:
+    get:
+      description: Returns preview information for a book
+      parameters:
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Book'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.Error'
+      summary: Preview a book
+      tags:
+      - catalog
+  /catalog/books/{bookID}/views:
+    get:
+      description: Returns total number of views by different authorized users only
+      parameters:
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BookViews'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.Error'
+      summary: Get views count for a book
       tags:
       - catalog
   /catalog/books/categories:
@@ -386,9 +406,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       summary: Get all book categories
       tags:
       - catalog
@@ -429,15 +447,11 @@ paths:
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       summary: List books by category
       tags:
       - catalog
@@ -456,9 +470,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       summary: Get new books
       tags:
       - catalog
@@ -478,41 +490,8 @@ paths:
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       summary: Get popular books
-      tags:
-      - catalog
-  /catalog/books/preview/{bookID}:
-    get:
-      description: Returns preview information for a book
-      parameters:
-      - description: Book ID
-        in: path
-        name: bookID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.Book'
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Preview a book
       tags:
       - catalog
   /catalog/books/search:
@@ -555,49 +534,12 @@ paths:
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       summary: Search books
-      tags:
-      - catalog
-  /catalog/books/views/{bookID}:
-    get:
-      description: Returns total number of views by different authorized users only
-      parameters:
-      - description: Book ID
-        in: path
-        name: bookID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: integer
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get views count for a book
       tags:
       - catalog
   /emails:
