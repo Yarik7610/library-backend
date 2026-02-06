@@ -5,8 +5,9 @@ import (
 	"github.com/Yarik7610/library-backend/api-gateway/config"
 	docs "github.com/Yarik7610/library-backend/api-gateway/docs"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/core"
-	"github.com/Yarik7610/library-backend/api-gateway/internal/middleware"
-	"github.com/Yarik7610/library-backend/api-gateway/internal/utils"
+	swaggerInfrastructure "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/swagger"
+	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/middleware"
+	httpMiddleware "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/middleware"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -28,14 +29,15 @@ func main() {
 	subscriptionMicroserviceHandler := core.ForwardTo(sharedconstants.SUBSCRIPTIONS_MICROSERVICE_SOCKET)
 
 	r := gin.Default()
+	r.Use(httpMiddleware.AuthContext())
 
 	docs.SwaggerInfo.BasePath = "/"
 	r.GET("/swagger-json/doc.json", func(ctx *gin.Context) {
-		userDoc := utils.FetchSwaggerJSON(sharedconstants.USER_MICROSERVICE_SOCKET)
-		catalogDoc := utils.FetchSwaggerJSON(sharedconstants.CATALOG_MICROSERVICE_SOCKET)
-		subDoc := utils.FetchSwaggerJSON(sharedconstants.SUBSCRIPTIONS_MICROSERVICE_SOCKET)
+		userDoc := swaggerInfrastructure.FetchSwaggerJSON(sharedconstants.USER_MICROSERVICE_SOCKET)
+		catalogDoc := swaggerInfrastructure.FetchSwaggerJSON(sharedconstants.CATALOG_MICROSERVICE_SOCKET)
+		subDoc := swaggerInfrastructure.FetchSwaggerJSON(sharedconstants.SUBSCRIPTIONS_MICROSERVICE_SOCKET)
 
-		mergedDoc := utils.MergeSwaggerDocs(userDoc, catalogDoc, subDoc)
+		mergedDoc := swaggerInfrastructure.MergeSwaggerDocs(userDoc, catalogDoc, subDoc)
 		ctx.JSON(200, mergedDoc)
 	})
 
@@ -43,15 +45,12 @@ func main() {
 
 	userGroup := r.Group("")
 	{
-		userGroup.Use(middleware.AuthOptional())
-
 		userGroup.POST(sharedconstants.SIGN_UP_ROUTE, userMicroserviceHandler)
 		userGroup.POST(sharedconstants.SIGN_IN_ROUTE, userMicroserviceHandler)
 
-		privateGroup := r.Group("")
+		privateGroup := userGroup.Group("")
+		privateGroup.Use(middleware.AuthRequired(), middleware.InjectHeaders())
 		{
-			privateGroup.Use(middleware.AuthRequired())
-
 			privateGroup.GET(sharedconstants.ME_ROUTE, userMicroserviceHandler)
 		}
 	}
@@ -61,7 +60,7 @@ func main() {
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE+"/:categoryName", catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID"+sharedconstants.PREVIEW_ROUTE, catalogMicroserviceHandler)
+		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID"+sharedconstants.PREVIEW_ROUTE, middleware.InjectHeaders(), catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogMicroserviceHandler)
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.NEW_ROUTE, catalogMicroserviceHandler)
@@ -69,6 +68,7 @@ func main() {
 		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID"+sharedconstants.VIEWS_ROUTE, catalogMicroserviceHandler)
 
 		adminGroup := catalogGroup.Group("")
+		adminGroup.Use(middleware.AuthRequired(), middleware.AdminRequired(), middleware.InjectHeaders())
 		{
 			adminGroup.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
 			adminGroup.POST(sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
@@ -78,9 +78,8 @@ func main() {
 	}
 
 	subscriptionGroup := r.Group(sharedconstants.SUBSCRIPTIONS_ROUTE)
+	subscriptionGroup.Use(middleware.AuthRequired(), middleware.InjectHeaders())
 	{
-		subscriptionGroup.Use(middleware.AuthRequired())
-
 		subscriptionGroup.GET(sharedconstants.CATEGORIES_ROUTE, subscriptionMicroserviceHandler)
 		subscriptionGroup.POST(sharedconstants.CATEGORIES_ROUTE, subscriptionMicroserviceHandler)
 		subscriptionGroup.DELETE(sharedconstants.CATEGORIES_ROUTE+"/:categoryName", subscriptionMicroserviceHandler)
