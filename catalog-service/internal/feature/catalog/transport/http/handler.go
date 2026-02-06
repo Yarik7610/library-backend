@@ -11,7 +11,7 @@ import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/query"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/errs"
 	httpInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/transport/http"
-	httpContext "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/transport/http/context"
+	httpHeaders "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/transport/http/headers"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -80,10 +80,7 @@ func (c *catalogHandler) PreviewBook(ctx *gin.Context) {
 		return
 	}
 
-	userID, ok := httpContext.GetUserID(ctx)
-	if !ok {
-		userID = 0
-	}
+	userID := httpHeaders.GetUserID(ctx)
 
 	bookDomain, err := c.catalogService.PreviewBook(uint(bookID), uint(userID))
 	if err != nil {

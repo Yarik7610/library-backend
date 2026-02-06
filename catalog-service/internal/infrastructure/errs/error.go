@@ -11,8 +11,6 @@ const (
 	CodeNotFound Code = iota
 	CodeAlreadyExists
 	CodeBadRequest
-	CodeUnauthorized
-	CodeForbidden
 	CodeInternal
 )
 
