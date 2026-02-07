@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
-	"github.com/Yarik7610/library-backend/api-gateway/config"
 	docs "github.com/Yarik7610/library-backend/api-gateway/docs"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/core"
+	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/config"
 	swaggerInfrastructure "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/swagger"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/middleware"
 	httpMiddleware "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/middleware"

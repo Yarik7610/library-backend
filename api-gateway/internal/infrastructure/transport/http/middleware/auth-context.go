@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Yarik7610/library-backend/api-gateway/config"
+	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/jwt"
 	httpInfrastructure "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http"
 

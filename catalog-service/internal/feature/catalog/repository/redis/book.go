@@ -24,25 +24,27 @@ const (
 )
 
 type BookRepository interface {
-	SetCategories(categories []string) error
-	GetCategories() ([]string, error)
-	SetNewBooks(newBooks []model.BookWithAuthor) error
-	GetNewBooks() ([]model.BookWithAuthor, error)
-	UpdateBookViewsCount(bookID, userID uint) error
-	GetBookViewsCount(bookID uint) (int64, error)
-	GetPopularBooksIDs() ([]string, error)
+	SetCategories(ctx context.Context, categories []string) error
+	GetCategories(ctx context.Context) ([]string, error)
+	SetNew(ctx context.Context, newBooks []model.BookWithAuthor) error
+	GetNew(ctx context.Context) ([]model.BookWithAuthor, error)
+	UpdateViewsCount(ctx context.Context, bookID, userID uint) error
+	GetViewsCount(ctx context.Context, bookID uint) (int64, error)
+	GetPopularBookIDs(ctx context.Context) ([]string, error)
 }
 
 type bookRepository struct {
-	rdb *redis.Client
+	timeout time.Duration
+	rdb     *redis.Client
 }
 
 func NewBookRepository(rdb *redis.Client) BookRepository {
-	return &bookRepository{rdb: rdb}
+	return &bookRepository{timeout: 500 * time.Millisecond, rdb: rdb}
 }
 
-func (r *bookRepository) SetCategories(categories []string) error {
-	ctx := context.Background()
+func (r *bookRepository) SetCategories(ctx context.Context, categories []string) error {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
 
 	if err := r.rdb.Del(ctx, CATEGORIES_KEY).Err(); err != nil {
 		return redisInfrastructure.NewError(err)
@@ -59,8 +61,9 @@ func (r *bookRepository) SetCategories(categories []string) error {
 	return nil
 }
 
-func (r *bookRepository) GetCategories() ([]string, error) {
-	ctx := context.Background()
+func (r *bookRepository) GetCategories(ctx context.Context) ([]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
 
 	categories, err := r.rdb.LRange(ctx, CATEGORIES_KEY, 0, -1).Result()
 	if err != nil {
@@ -72,8 +75,9 @@ func (r *bookRepository) GetCategories() ([]string, error) {
 	return categories, nil
 }
 
-func (r *bookRepository) SetNewBooks(newBooks []model.BookWithAuthor) error {
-	ctx := context.Background()
+func (r *bookRepository) SetNew(ctx context.Context, newBooks []model.BookWithAuthor) error {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
 
 	newBooksBytes, err := json.Marshal(newBooks)
 	if err != nil {
@@ -86,8 +90,9 @@ func (r *bookRepository) SetNewBooks(newBooks []model.BookWithAuthor) error {
 	return nil
 }
 
-func (r *bookRepository) GetNewBooks() ([]model.BookWithAuthor, error) {
-	ctx := context.Background()
+func (r *bookRepository) GetNew(ctx context.Context) ([]model.BookWithAuthor, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
 
 	newBooksString, err := r.rdb.Get(ctx, NEW_BOOKS_KEY).Result()
 	if err != nil {
@@ -104,8 +109,9 @@ func (r *bookRepository) GetNewBooks() ([]model.BookWithAuthor, error) {
 	return newBooks, nil
 }
 
-func (r *bookRepository) UpdateBookViewsCount(bookID, userID uint) error {
-	ctx := context.Background()
+func (r *bookRepository) UpdateViewsCount(ctx context.Context, bookID, userID uint) error {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
 
 	bookViewsCountKey := fmt.Sprintf("books:%d:views", bookID)
 	addedCount, err := r.rdb.PFAdd(ctx, bookViewsCountKey, userID).Result()
@@ -121,8 +127,9 @@ func (r *bookRepository) UpdateBookViewsCount(bookID, userID uint) error {
 	return nil
 }
 
-func (r *bookRepository) GetBookViewsCount(bookID uint) (int64, error) {
-	ctx := context.Background()
+func (r *bookRepository) GetViewsCount(ctx context.Context, bookID uint) (int64, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
 
 	bookViewsCountKey := fmt.Sprintf("books:%d:views", bookID)
 	bookViewsCount, err := r.rdb.PFCount(ctx, bookViewsCountKey).Result()
@@ -135,8 +142,9 @@ func (r *bookRepository) GetBookViewsCount(bookID uint) (int64, error) {
 	return bookViewsCount, nil
 }
 
-func (r *bookRepository) GetPopularBooksIDs() ([]string, error) {
-	ctx := context.Background()
+func (r *bookRepository) GetPopularBookIDs(ctx context.Context) ([]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
 
 	popularBookIDs, err := r.rdb.ZRevRange(ctx, POPULAR_BOOKS_KEY, 0, POPULAR_BOOKS_COUNT-1).Result()
 	if err != nil {

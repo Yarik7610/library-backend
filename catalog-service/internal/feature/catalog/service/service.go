@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
+	"time"
 
 	"github.com/Yarik7610/library-backend-common/broker/kafka/event"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/domain"
@@ -18,21 +19,21 @@ import (
 )
 
 type CatalogService interface {
-	GetCategories() ([]string, error)
-	GetNewBooks() ([]domain.Book, error)
-	GetBookViewsCount(bookID uint) (int64, error)
-	GetPopularBooks() ([]domain.Book, error)
-	GetBooksByAuthorID(authorID uint) ([]domain.Book, error)
-	GetBookPage(bookID, pageNumber uint) (*domain.Page, error)
-	PreviewBook(bookID, userID uint) (*domain.Book, error)
-	AddBook(bookDomain *domain.Book) error
-	DeleteBook(bookID uint) error
-	CreateAuthor(authorDomain *domain.Author) error
-	DeleteAuthor(authorID uint) error
-	ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]domain.Book, error)
-	ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]domain.Book, error)
-	ListBooksByTitle(title string, page, count uint, sort, order string) ([]domain.Book, error)
-	ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]domain.Book, error)
+	GetCategories(ctx context.Context) ([]string, error)
+	GetNewBooks(ctx context.Context) ([]domain.Book, error)
+	GetBookViewsCount(ctx context.Context, bookID uint) (int64, error)
+	GetPopularBooks(ctx context.Context) ([]domain.Book, error)
+	GetBooksByAuthorID(ctx context.Context, authorID uint) ([]domain.Book, error)
+	GetBookPage(ctx context.Context, bookID, pageNumber uint) (*domain.Page, error)
+	PreviewBook(ctx context.Context, bookID, userID uint) (*domain.Book, error)
+	AddBook(ctx context.Context, bookDomain *domain.Book) error
+	DeleteBook(ctx context.Context, bookID uint) error
+	CreateAuthor(ctx context.Context, authorDomain *domain.Author) error
+	DeleteAuthor(ctx context.Context, authorID uint) error
+	ListBooksByCategory(ctx context.Context, categoryName string, page, count uint, sort, order string) ([]domain.Book, error)
+	ListBooksByAuthorName(ctx context.Context, authorName string, page, count uint, sort, order string) ([]domain.Book, error)
+	ListBooksByTitle(ctx context.Context, title string, page, count uint, sort, order string) ([]domain.Book, error)
+	ListBooksByAuthorNameAndTitle(ctx context.Context, authorName, title string, page, count uint, sort, order string) ([]domain.Book, error)
 }
 
 type catalogService struct {
@@ -61,26 +62,26 @@ func NewCatalogService(
 	}
 }
 
-func (s *catalogService) GetCategories() ([]string, error) {
-	categories, err := s.redisBookRepository.GetCategories()
+func (s *catalogService) GetCategories(ctx context.Context) ([]string, error) {
+	categories, err := s.redisBookRepository.GetCategories(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(categories) == 0 {
 		var err error
-		categories, err = s.postgresBookRepository.GetCategories()
+		categories, err = s.postgresBookRepository.GetCategories(ctx)
 		if err != nil {
 			return nil, err
 		}
-		go s.redisBookRepository.SetCategories(categories)
+		go s.redisBookRepository.SetCategories(ctx, categories)
 	}
 
 	return categories, nil
 }
 
-func (s *catalogService) GetNewBooks() ([]domain.Book, error) {
-	redisNewBookWithAuthorModels, err := s.redisBookRepository.GetNewBooks()
+func (s *catalogService) GetNewBooks(ctx context.Context) ([]domain.Book, error) {
+	redisNewBookWithAuthorModels, err := s.redisBookRepository.GetNew(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -89,27 +90,27 @@ func (s *catalogService) GetNewBooks() ([]domain.Book, error) {
 		return redisMapper.BookWithAuthorModelsToDomains(redisNewBookWithAuthorModels), nil
 	}
 
-	postgresNewBookWithAuthorModels, err := s.postgresBookRepository.GetNewBooks()
+	postgresNewBookWithAuthorModels, err := s.postgresBookRepository.GetNew(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	postgresNewBookDomains := postgresMapper.BookWithAuthorModelsToDomains(postgresNewBookWithAuthorModels)
-	go s.redisBookRepository.SetNewBooks(redisMapper.BookDomainsToBookWithAuthorModels(postgresNewBookDomains))
+	go s.redisBookRepository.SetNew(ctx, redisMapper.BookDomainsToBookWithAuthorModels(postgresNewBookDomains))
 	return postgresNewBookDomains, nil
 }
 
-func (s *catalogService) GetBookViewsCount(bookID uint) (int64, error) {
-	return s.redisBookRepository.GetBookViewsCount(bookID)
+func (s *catalogService) GetBookViewsCount(ctx context.Context, bookID uint) (int64, error) {
+	return s.redisBookRepository.GetViewsCount(ctx, bookID)
 }
 
-func (s *catalogService) GetPopularBooks() ([]domain.Book, error) {
-	bookIDs, err := s.redisBookRepository.GetPopularBooksIDs()
+func (s *catalogService) GetPopularBooks(ctx context.Context) ([]domain.Book, error) {
+	bookIDs, err := s.redisBookRepository.GetPopularBookIDs(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	bookWithAuthorModels, err := s.postgresBookRepository.GetBooksByIDs(bookIDs)
+	bookWithAuthorModels, err := s.postgresBookRepository.GetBooksByIDs(ctx, bookIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -131,16 +132,16 @@ func (s *catalogService) GetPopularBooks() ([]domain.Book, error) {
 	return sortedBooks, nil
 }
 
-func (s *catalogService) GetBooksByAuthorID(authorID uint) ([]domain.Book, error) {
-	bookWithAuthorModels, err := s.postgresBookRepository.GetBooksByAuthorID(authorID)
+func (s *catalogService) GetBooksByAuthorID(ctx context.Context, authorID uint) ([]domain.Book, error) {
+	bookWithAuthorModels, err := s.postgresBookRepository.GetBooksByAuthorID(ctx, authorID)
 	if err != nil {
 		return nil, err
 	}
 	return postgresMapper.BookWithAuthorModelsToDomains(bookWithAuthorModels), nil
 }
 
-func (s *catalogService) GetBookPage(bookID, pageNumber uint) (*domain.Page, error) {
-	pageModel, err := s.postgresPageRepository.GetPage(bookID, pageNumber)
+func (s *catalogService) GetBookPage(ctx context.Context, bookID, pageNumber uint) (*domain.Page, error) {
+	pageModel, err := s.postgresPageRepository.FindByBookIDAndPageNumber(ctx, bookID, pageNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -148,15 +149,15 @@ func (s *catalogService) GetBookPage(bookID, pageNumber uint) (*domain.Page, err
 	return &pageDomain, nil
 }
 
-func (s *catalogService) PreviewBook(bookID, userID uint) (*domain.Book, error) {
-	bookWithAuthorModel, err := s.postgresBookRepository.FindByID(bookID)
+func (s *catalogService) PreviewBook(ctx context.Context, bookID, userID uint) (*domain.Book, error) {
+	bookWithAuthorModel, err := s.postgresBookRepository.FindByID(ctx, bookID)
 	if err != nil {
 		return nil, err
 	}
 
 	if userID > 0 {
-		if err := s.redisBookRepository.UpdateBookViewsCount(bookID, userID); err != nil {
-			zap.S().Warnf("skip update book views count with ID %s because of error: %v", bookID, err)
+		if err := s.redisBookRepository.UpdateViewsCount(ctx, bookID, userID); err != nil {
+			zap.S().Warnf("Skip update book views count with ID %s because of error: %v", bookID, err)
 		}
 	}
 
@@ -164,17 +165,20 @@ func (s *catalogService) PreviewBook(bookID, userID uint) (*domain.Book, error) 
 	return &bookDomain, nil
 }
 
-func (s *catalogService) AddBook(bookDomain *domain.Book) error {
+func (s *catalogService) AddBook(ctx context.Context, bookDomain *domain.Book) error {
+	txCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	var createdBookModel model.Book
 	var authorModel *model.Author
 
-	err := s.db.Transaction(func(tx *gorm.DB) error {
+	err := s.db.WithContext(txCtx).Transaction(func(tx *gorm.DB) error {
 		postgresAuthorRepositoryTX := s.postgresAuthorRepository.WithinTX(tx)
 		postgresPageRepositoryTX := s.postgresPageRepository.WithinTX(tx)
 		postgresBookRepositoryTX := s.postgresBookRepository.WithinTX(tx)
 
 		var err error
-		authorModel, err = postgresAuthorRepositoryTX.FindByID(bookDomain.Author.ID)
+		authorModel, err = postgresAuthorRepositoryTX.FindByID(txCtx, bookDomain.Author.ID)
 		if err != nil {
 			return err
 		}
@@ -186,7 +190,7 @@ func (s *catalogService) AddBook(bookDomain *domain.Book) error {
 			Year:     bookDomain.Year,
 			Category: bookDomain.Category,
 		}
-		if err := postgresBookRepositoryTX.CreateBook(&createdBookModel); err != nil {
+		if err := postgresBookRepositoryTX.Create(txCtx, &createdBookModel); err != nil {
 			return err
 		}
 		bookDomain.ID = createdBookModel.ID
@@ -198,7 +202,7 @@ func (s *catalogService) AddBook(bookDomain *domain.Book) error {
 				Content: bookDomain.Pages[i].Content,
 			}
 
-			if err := postgresPageRepositoryTX.CreatePage(&newPageModel); err != nil {
+			if err := postgresPageRepositoryTX.Create(txCtx, &newPageModel); err != nil {
 				return err
 			}
 		}
@@ -218,24 +222,25 @@ func (s *catalogService) AddBook(bookDomain *domain.Book) error {
 			Year:           createdBookModel.Year,
 			Category:       createdBookModel.Category,
 		})
-	ctx := context.Background()
-	if err := s.bookAddedWriter.WriteMessages(ctx, kafka.Message{Value: bookAddedEvent}); err != nil {
+	kafkaCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	if err := s.bookAddedWriter.WriteMessages(kafkaCtx, kafka.Message{Value: bookAddedEvent}); err != nil {
 		zap.S().Errorf("Book added event write error: %v\n", err)
 	}
 
 	return nil
 }
 
-func (s *catalogService) DeleteBook(bookID uint) error {
-	return s.postgresBookRepository.DeleteBook(bookID)
+func (s *catalogService) DeleteBook(ctx context.Context, bookID uint) error {
+	return s.postgresBookRepository.Delete(ctx, bookID)
 }
 
-func (s *catalogService) CreateAuthor(authorDomain *domain.Author) error {
+func (s *catalogService) CreateAuthor(ctx context.Context, authorDomain *domain.Author) error {
 	authorModel := model.Author{
 		Fullname: authorDomain.Fullname,
 	}
 
-	if err := s.postgresAuthorRepository.CreateAuthor(&authorModel); err != nil {
+	if err := s.postgresAuthorRepository.Create(ctx, &authorModel); err != nil {
 		return err
 	}
 
@@ -243,36 +248,36 @@ func (s *catalogService) CreateAuthor(authorDomain *domain.Author) error {
 	return nil
 }
 
-func (s *catalogService) DeleteAuthor(authorID uint) error {
-	return s.postgresAuthorRepository.DeleteAuthor(authorID)
+func (s *catalogService) DeleteAuthor(ctx context.Context, authorID uint) error {
+	return s.postgresAuthorRepository.Delete(ctx, authorID)
 }
 
-func (s *catalogService) ListBooksByCategory(categoryName string, page, count uint, sort, order string) ([]domain.Book, error) {
-	bookWithAuthorModels, err := s.postgresBookRepository.ListBooksByCategory(categoryName, page, count, sort, order)
+func (s *catalogService) ListBooksByCategory(ctx context.Context, categoryName string, page, count uint, sort, order string) ([]domain.Book, error) {
+	bookWithAuthorModels, err := s.postgresBookRepository.ListByCategory(ctx, categoryName, page, count, sort, order)
 	if err != nil {
 		return nil, err
 	}
 	return postgresMapper.BookWithAuthorModelsToDomains(bookWithAuthorModels), nil
 }
 
-func (s *catalogService) ListBooksByAuthorName(authorName string, page, count uint, sort, order string) ([]domain.Book, error) {
-	bookWithAuthorModels, err := s.postgresBookRepository.ListBooksByAuthorName(authorName, page, count, sort, order)
+func (s *catalogService) ListBooksByAuthorName(ctx context.Context, authorName string, page, count uint, sort, order string) ([]domain.Book, error) {
+	bookWithAuthorModels, err := s.postgresBookRepository.ListByAuthorName(ctx, authorName, page, count, sort, order)
 	if err != nil {
 		return nil, err
 	}
 	return postgresMapper.BookWithAuthorModelsToDomains(bookWithAuthorModels), nil
 }
 
-func (s *catalogService) ListBooksByTitle(title string, page, count uint, sort, order string) ([]domain.Book, error) {
-	bookWithAuthorModels, err := s.postgresBookRepository.ListBooksByTitle(title, page, count, sort, order)
+func (s *catalogService) ListBooksByTitle(ctx context.Context, title string, page, count uint, sort, order string) ([]domain.Book, error) {
+	bookWithAuthorModels, err := s.postgresBookRepository.ListByTitle(ctx, title, page, count, sort, order)
 	if err != nil {
 		return nil, err
 	}
 	return postgresMapper.BookWithAuthorModelsToDomains(bookWithAuthorModels), nil
 }
 
-func (s *catalogService) ListBooksByAuthorNameAndTitle(authorName, title string, page, count uint, sort, order string) ([]domain.Book, error) {
-	bookWithAuthorModels, err := s.postgresBookRepository.ListBooksByAuthorNameAndTitle(authorName, title, page, count, sort, order)
+func (s *catalogService) ListBooksByAuthorNameAndTitle(ctx context.Context, authorName, title string, page, count uint, sort, order string) ([]domain.Book, error) {
+	bookWithAuthorModels, err := s.postgresBookRepository.ListByAuthorNameAndTitle(ctx, authorName, title, page, count, sort, order)
 	if err != nil {
 		return nil, err
 	}

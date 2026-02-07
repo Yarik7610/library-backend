@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -10,7 +11,9 @@ import (
 )
 
 func Books(bookRepository postgres.BookRepository, pageRepository postgres.PageRepository, authorRepository postgres.AuthorRepository) {
-	bookCount, err := bookRepository.CountBooks()
+	ctx := context.Background()
+
+	bookCount, err := bookRepository.Count(ctx)
 	if err != nil {
 		zap.S().Fatalf("Failed to count books for seed need: %v", err)
 	}
@@ -21,13 +24,13 @@ func Books(bookRepository postgres.BookRepository, pageRepository postgres.PageR
 	}
 
 	zap.S().Info("No books found, start seeding...")
-	if err := seedBooks(bookRepository, pageRepository, authorRepository); err != nil {
+	if err := seedBooks(ctx, bookRepository, pageRepository, authorRepository); err != nil {
 		zap.S().Fatalf("Books seed error: %v", err)
 	}
 	zap.S().Info("Successfully seeded books")
 }
 
-func seedBooks(bookRepository postgres.BookRepository, pageRepository postgres.PageRepository, authorRepository postgres.AuthorRepository) error {
+func seedBooks(ctx context.Context, bookRepository postgres.BookRepository, pageRepository postgres.PageRepository, authorRepository postgres.AuthorRepository) error {
 	const booksCount = 100
 	const bookPagesCount = 5
 	const workersCount = 10
@@ -49,7 +52,7 @@ func seedBooks(bookRepository postgres.BookRepository, pageRepository postgres.P
 			author := model.Author{
 				Fullname: fmt.Sprintf("Author %d", i+1),
 			}
-			if err := authorRepository.CreateAuthor(&author); err != nil {
+			if err := authorRepository.Create(ctx, &author); err != nil {
 				errors <- err
 				return
 			}
@@ -60,7 +63,7 @@ func seedBooks(bookRepository postgres.BookRepository, pageRepository postgres.P
 				Year:     1900 + (i % 125),
 				Category: categories[i%len(categories)],
 			}
-			if err := bookRepository.CreateBook(&book); err != nil {
+			if err := bookRepository.Create(ctx, &book); err != nil {
 				errors <- err
 				return
 			}
@@ -71,7 +74,7 @@ func seedBooks(bookRepository postgres.BookRepository, pageRepository postgres.P
 					Number:  uint(p),
 					Content: fmt.Sprintf("page%d", p),
 				}
-				if err := pageRepository.CreatePage(&page); err != nil {
+				if err := pageRepository.Create(ctx, &page); err != nil {
 					errors <- err
 					return
 				}
