@@ -1,6 +1,8 @@
 package seed
 
 import (
+	"context"
+
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/password"
 
@@ -10,7 +12,9 @@ import (
 )
 
 func Admin(userRepository postgres.UserRepository) {
-	usersCount, err := userRepository.CountUsers()
+	ctx := context.Background()
+
+	usersCount, err := userRepository.Count(ctx)
 	if err != nil {
 		zap.S().Fatalf("Failed to count users for seed need: %v", err)
 	}
@@ -21,13 +25,13 @@ func Admin(userRepository postgres.UserRepository) {
 	}
 
 	zap.S().Info("No admin found, start seeding...")
-	if err := seedAdmin(userRepository); err != nil {
+	if err := seedAdmin(ctx, userRepository); err != nil {
 		zap.S().Fatalf("Admin seed error: %v", err)
 	}
 	zap.S().Info("Successfully seeded admin")
 }
 
-func seedAdmin(userRepository postgres.UserRepository) error {
+func seedAdmin(ctx context.Context, userRepository postgres.UserRepository) error {
 	hashedPassword, err := password.GenerateHash("admin")
 	if err != nil {
 		return err
@@ -39,5 +43,5 @@ func seedAdmin(userRepository postgres.UserRepository) error {
 		Password: hashedPassword,
 		IsAdmin:  true,
 	}
-	return userRepository.Create(&admin)
+	return userRepository.Create(ctx, &admin)
 }

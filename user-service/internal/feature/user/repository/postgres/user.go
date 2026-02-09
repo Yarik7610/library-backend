@@ -1,64 +1,83 @@
 package postgres
 
 import (
-	"errors"
+	"context"
+	"time"
 
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/repository/postgres/model"
+
+	postgresInfrastructure "github.com/Yarik7610/library-backend/user-service/internal/infrastructure/storage/postgres"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
-	Create(user *model.User) error
-	FindByID(ID uint) (*model.User, error)
-	FindByEmail(email string) (*model.User, error)
-	GetEmailsByUserIDs(userIDs []uint) ([]string, error)
-	CountUsers() (int64, error)
+	Create(ctx context.Context, user *model.User) error
+	FindByID(ctx context.Context, userID uint) (*model.User, error)
+	FindByEmail(cxt context.Context, email string) (*model.User, error)
+	GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]string, error)
+	Count(ctx context.Context) (int64, error)
 }
 
 type userRepository struct {
-	db *gorm.DB
+	name    string
+	timeout time.Duration
+	db      *gorm.DB
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
-	return &userRepository{db: db}
+	return &userRepository{name: "User(s)", timeout: 500 * time.Millisecond, db: db}
 }
 
-func (r *userRepository) Create(user *model.User) error {
-	return r.db.Create(user).Error
+func (r *userRepository) Create(ctx context.Context, user *model.User) error {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
+		return postgresInfrastructure.NewError(err, r.name)
+	}
+	return nil
 }
 
-func (r *userRepository) FindByID(ID uint) (*model.User, error) {
+func (r *userRepository) FindByID(ctx context.Context, userID uint) (*model.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
 	var user model.User
-	if err := r.db.Where("id = ?", ID).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
+	if err := r.db.WithContext(ctx).Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return &user, nil
 }
 
-func (r *userRepository) FindByEmail(email string) (*model.User, error) {
+func (r *userRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
 	var user model.User
-	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
+	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return &user, nil
 }
 
-func (r *userRepository) GetEmailsByUserIDs(userIDs []uint) ([]string, error) {
+func (r *userRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
 	var emails []string
-	if err := r.db.Model(&model.User{}).Order("email ASC").Where("id IN ?", userIDs).Pluck("email", &emails).Error; err != nil {
-		return nil, err
+	if err := r.db.WithContext(ctx).Model(&model.User{}).Order("email ASC").Where("id IN ?", userIDs).Pluck("email", &emails).Error; err != nil {
+		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return emails, nil
 }
 
-func (r *userRepository) CountUsers() (int64, error) {
+func (r *userRepository) Count(ctx context.Context) (int64, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
 	var count int64
-	err := r.db.Model(&model.User{}).Count(&count).Error
-	return count, err
+	if err := r.db.WithContext(ctx).Model(&model.User{}).Count(&count).Error; err != nil {
+		return 0, postgresInfrastructure.NewError(err, r.name)
+	}
+	return count, nil
 }
