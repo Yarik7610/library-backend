@@ -114,7 +114,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.SignInUser"
+                            "$ref": "#/definitions/dto.SignInUserRequest"
                         }
                     }
                 ],
@@ -160,7 +160,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.SignUpUser"
+                            "$ref": "#/definitions/dto.SignUpUserRequest"
                         }
                     }
                 ],
@@ -185,7 +185,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.SignInUser": {
+        "dto.SignInUserRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -200,7 +200,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.SignUpUser": {
+        "dto.SignUpUserRequest": {
             "type": "object",
             "required": [
                 "email",

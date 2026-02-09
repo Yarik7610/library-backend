@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Yarik7610/library-backend/catalog-service/internal/feature"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/broker/kafka"
 
 	sharedKafka "github.com/Yarik7610/library-backend-common/broker/kafka"
@@ -25,10 +25,9 @@ func main() {
 	redisClient := redis.Connect()
 	bookAddedWriter := kafka.NewWriter(sharedKafka.BOOK_ADDED_TOPIC)
 
-	catalogFeature := feature.NewCatalog(postgresDB, redisClient, bookAddedWriter)
+	catalogFeature := catalog.NewFeature(postgresDB, redisClient, bookAddedWriter)
 
 	zap.S().Infof("Starting catalog-service on port: '%s'", config.Data.ServerPort)
-
 	if err := catalogFeature.HTTPRouter.Run(":" + config.Data.ServerPort); err != nil {
 		zap.S().Fatalf("Start error on port %s: %v", config.Data.ServerPort, err)
 	}

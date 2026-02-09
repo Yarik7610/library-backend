@@ -1,4 +1,4 @@
-package feature
+package catalog
 
 import (
 	postgresRepositories "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres"
@@ -12,11 +12,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type Catalog struct {
+type Feature struct {
 	HTTPRouter *gin.Engine
 }
 
-func NewCatalog(postgresDB *gorm.DB, redisClient *redis.Client, bookAddedWriter *kafka.Writer) *Catalog {
+func NewFeature(postgresDB *gorm.DB, redisClient *redis.Client, bookAddedWriter *kafka.Writer) *Feature {
 	redisBookRepository := redisRepositories.NewBookRepository(redisClient)
 	postgresBookRepository := postgresRepositories.NewBookRepository(postgresDB)
 	postgresPageRepository := postgresRepositories.NewPageRepository(postgresDB)
@@ -28,5 +28,5 @@ func NewCatalog(postgresDB *gorm.DB, redisClient *redis.Client, bookAddedWriter 
 	httpCatalogHandler := http.NewCatalogHandler(catalogService)
 
 	httpRouter := http.NewRouter(httpCatalogHandler)
-	return &Catalog{HTTPRouter: httpRouter}
+	return &Feature{HTTPRouter: httpRouter}
 }

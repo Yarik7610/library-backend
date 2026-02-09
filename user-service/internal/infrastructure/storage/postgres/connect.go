@@ -1,8 +1,8 @@
-package connect
+package postgres
 
 import (
-	"github.com/Yarik7610/library-backend/user-service/config"
-	"github.com/Yarik7610/library-backend/user-service/internal/model"
+	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/repository/postgres/model"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

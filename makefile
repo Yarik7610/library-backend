@@ -21,9 +21,10 @@ else
 endif
 
 swagger:
+	cd $(SERVICE)-service && \
 	swag init \
-		-g $(SERVICE)-service/cmd/$(SERVICE)-service/main.go \
-		-o $(SERVICE)-service/docs
+		-g cmd/$(SERVICE)-service/main.go \
+		-o docs \
 
 watch:
 ifeq ($(SERVICE),)

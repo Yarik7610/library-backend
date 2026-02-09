@@ -34,12 +34,13 @@ type BookRepository interface {
 }
 
 type bookRepository struct {
+	name    string
 	timeout time.Duration
 	rdb     *redis.Client
 }
 
 func NewBookRepository(rdb *redis.Client) BookRepository {
-	return &bookRepository{timeout: 500 * time.Millisecond, rdb: rdb}
+	return &bookRepository{name: "Book(s)", timeout: 500 * time.Millisecond, rdb: rdb}
 }
 
 func (r *bookRepository) SetCategories(ctx context.Context, categories []string) error {
@@ -134,9 +135,6 @@ func (r *bookRepository) GetViewsCount(ctx context.Context, bookID uint) (int64,
 	bookViewsCountKey := fmt.Sprintf("books:%d:views", bookID)
 	bookViewsCount, err := r.rdb.PFCount(ctx, bookViewsCountKey).Result()
 	if err != nil {
-		if redisInfrastructure.IsNil(err) {
-			return 0, nil
-		}
 		return 0, redisInfrastructure.NewError(err)
 	}
 	return bookViewsCount, nil

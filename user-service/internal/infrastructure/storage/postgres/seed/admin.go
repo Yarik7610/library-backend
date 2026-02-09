@@ -1,14 +1,15 @@
 package seed
 
 import (
-	"github.com/Yarik7610/library-backend/user-service/config"
-	"github.com/Yarik7610/library-backend/user-service/internal/model"
-	"github.com/Yarik7610/library-backend/user-service/internal/repository"
-	"github.com/Yarik7610/library-backend/user-service/internal/utils"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/password"
+
+	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/repository/postgres"
+	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/repository/postgres/model"
 	"go.uber.org/zap"
 )
 
-func Admin(userRepository repository.UserRepository) {
+func Admin(userRepository postgres.UserRepository) {
 	usersCount, err := userRepository.CountUsers()
 	if err != nil {
 		zap.S().Fatalf("Failed to count users for seed need: %v", err)
@@ -26,8 +27,8 @@ func Admin(userRepository repository.UserRepository) {
 	zap.S().Info("Successfully seeded admin")
 }
 
-func seedAdmin(userRepository repository.UserRepository) error {
-	hashedPassword, err := utils.HashPassword("admin")
+func seedAdmin(userRepository postgres.UserRepository) error {
+	hashedPassword, err := password.GenerateHash("admin")
 	if err != nil {
 		return err
 	}

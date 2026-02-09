@@ -1,9 +1,9 @@
-package repository
+package postgres
 
 import (
 	"errors"
 
-	"github.com/Yarik7610/library-backend/user-service/internal/model"
+	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/repository/postgres/model"
 	"gorm.io/gorm"
 )
 

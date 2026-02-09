@@ -47,7 +47,7 @@ func NewCatalogHandler(catalogService service.CatalogService) CatalogHandler {
 //	@Tags			catalog
 //	@Produce		json
 //	@Success		200	{array}		string
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/catalog/books/categories [get]
 func (h *catalogHandler) GetCategories(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -70,8 +70,9 @@ func (h *catalogHandler) GetCategories(c *gin.Context) {
 //	@Param			bookID	path	uint	true	"Book ID"
 //	@Produce		json
 //	@Success		200	{object}	dto.Book
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		404 {object} 	dto.Error "Entity not found"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/catalog/books/{bookID}/preview [get]
 func (h *catalogHandler) PreviewBook(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -104,8 +105,8 @@ func (h *catalogHandler) PreviewBook(c *gin.Context) {
 //	@Param			authorID	path	uint	true	"Author ID"
 //	@Produce		json
 //	@Success		200	{array}		dto.Book
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/catalog/authors/{authorID}/books [get]
 func (h *catalogHandler) GetBooksByAuthorID(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -137,8 +138,9 @@ func (h *catalogHandler) GetBooksByAuthorID(c *gin.Context) {
 //	@Param			page	query	int		true	"Page number"
 //	@Produce		json
 //	@Success		200	{object}	dto.Page
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		404 {object} 	dto.Error "Entity not found"
+//	@Failure		500	{object}	dto.Error "Internal server error"
 //	@Router			/catalog/books/{bookID} [get]
 func (h *catalogHandler) GetBookPage(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -176,11 +178,12 @@ func (h *catalogHandler) GetBookPage(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Success		201	{object}	dto.Book
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		401 {object} dto.Error "The token is missing, invalid or expired"
-//	@Failure		403 {object} dto.Error "The token is valid, but lacks permission"
-//	@Failure		409 {object} dto.Error "Entity already exists"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		401 {object} 	dto.Error "The token is missing, invalid or expired"
+//	@Failure		403 {object} 	dto.Error "The token is valid, but lacks permission"
+//	@Failure		404 {object} 	dto.Error "Entity not found"
+//	@Failure		409 {object} 	dto.Error "Entity already exists"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/catalog/books [post]
 func (h *catalogHandler) AddBook(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -210,10 +213,10 @@ func (h *catalogHandler) AddBook(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Success		204	"No content"
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		401 {object} dto.Error "The token is missing, invalid or expired"
-//	@Failure		403 {object} dto.Error "The token is valid, but lacks permission"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object}	dto.Error "Bad request"
+//	@Failure		401 {object}	dto.Error "The token is missing, invalid or expired"
+//	@Failure		403 {object}	dto.Error "The token is valid, but lacks permission"
+//	@Failure		500	{object}	dto.Error "Internal server error"
 //	@Router			/catalog/books/{bookID} [delete]
 func (h *catalogHandler) DeleteBook(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -226,8 +229,8 @@ func (h *catalogHandler) DeleteBook(c *gin.Context) {
 		return
 	}
 
-	customErr := h.catalogService.DeleteBook(ctx, uint(bookID))
-	if customErr != nil {
+	err = h.catalogService.DeleteBook(ctx, uint(bookID))
+	if err != nil {
 		zap.S().Errorf("Delete book error: %v\n", err)
 		httpInfrastructure.RenderError(c, err)
 		return
@@ -246,11 +249,11 @@ func (h *catalogHandler) DeleteBook(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Success		201	{object}	dto.Author
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		401 {object} dto.Error "The token is missing, invalid or expired"
-//	@Failure		403 {object} dto.Error "The token is valid, but lacks permission"
-//	@Failure		409 {object} dto.Error "Entity already exists"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object}	dto.Error "Bad request"
+//	@Failure		401 {object}	dto.Error "The token is missing, invalid or expired"
+//	@Failure		403 {object}	dto.Error "The token is valid, but lacks permission"
+//	@Failure		409 {object}	dto.Error "Entity already exists"
+//	@Failure		500	{object}	dto.Error "Internal server error"
 //	@Router			/catalog/authors [post]
 func (h *catalogHandler) CreateAuthor(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -280,10 +283,10 @@ func (h *catalogHandler) CreateAuthor(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Success		204	"No content"
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		401 {object} dto.Error "The token is missing, invalid or expired"
-//	@Failure		403 {object} dto.Error "The token is valid, but lacks permission"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object}	dto.Error "Bad request"
+//	@Failure		401 {object}	dto.Error "The token is missing, invalid or expired"
+//	@Failure		403 {object}	dto.Error "The token is valid, but lacks permission"
+//	@Failure		500	{object}	dto.Error "Internal server error"
 //	@Router			/catalog/authors/{authorID} [delete]
 func (h *catalogHandler) DeleteAuthor(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -312,7 +315,7 @@ func (h *catalogHandler) DeleteAuthor(c *gin.Context) {
 //	@Tags			catalog
 //	@Produce		json
 //	@Success		200	{array}		dto.Book
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		500	{object}	dto.Error "Internal server error"
 //	@Router			/catalog/books/new [get]
 func (h *catalogHandler) GetNewBooks(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -330,13 +333,13 @@ func (h *catalogHandler) GetNewBooks(c *gin.Context) {
 // GetBookViewsCount godoc
 //
 //	@Summary		Get views count for a book
-//	@Description	Returns total number of views by different authorized users only
+//	@Description	Returns total number of views by different authorized users only. If book doesn't exist it still will return zero views count
 //	@Tags			catalog
 //	@Param			bookID	path	uint	true	"Book ID"
 //	@Produce		json
 //	@Success		200	{object}	dto.BookViews
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object}	dto.Error "Bad request"
+//	@Failure		500	{object}	dto.Error "Internal server error"
 //	@Router			/catalog/books/{bookID}/views [get]
 func (h *catalogHandler) GetBookViewsCount(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -365,7 +368,7 @@ func (h *catalogHandler) GetBookViewsCount(c *gin.Context) {
 //	@Tags			catalog
 //	@Produce		json
 //	@Success		200	{array}		dto.Book
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		500	{object}	dto.Error "Internal server error"
 //	@Router			/catalog/books/popular [get]
 func (h *catalogHandler) GetPopularBooks(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -392,8 +395,8 @@ func (h *catalogHandler) GetPopularBooks(c *gin.Context) {
 //	@Param			order			query	string	false	"Sort order (asc / desc, default=asc)"
 //	@Produce		json
 //	@Success		200	{array}		dto.Book
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object}	dto.Error "Bad request"
+//	@Failure		500	{object}	dto.Error "Internal server error"
 //	@Router			/catalog/books/categories/{categoryName} [get]
 func (h *catalogHandler) ListBooksByCategory(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -429,8 +432,8 @@ func (h *catalogHandler) ListBooksByCategory(c *gin.Context) {
 //	@Param			order			query	string	false	"Sort order (asc / desc, default=asc)"
 //	@Produce		json
 //	@Success		200	{array}		dto.Book
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Failure		400 {object}	dto.Error "Bad request"
+//	@Failure		500	{object}	dto.Error "Internal server error"
 //	@Router			/catalog/books/search [get]
 func (h *catalogHandler) SearchBooks(c *gin.Context) {
 	ctx := c.Request.Context()
