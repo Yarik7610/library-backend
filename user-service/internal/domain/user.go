@@ -1,8 +1,9 @@
 package domain
 
 type User struct {
-	ID      uint
-	Name    string
-	Email   string
-	IsAdmin bool
+	ID          uint
+	Name        string
+	Email       string
+	RawPassword string
+	IsAdmin     bool
 }

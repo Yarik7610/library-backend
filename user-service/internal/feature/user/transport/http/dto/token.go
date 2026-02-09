@@ -1,5 +1,5 @@
 package dto
 
-type UserToken struct {
+type Token struct {
 	AccessToken string `json:"accessToken"`
 }

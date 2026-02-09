@@ -67,7 +67,7 @@ func (h *userHandler) SignUp(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			user	body		dto.SignInUserRequest	true	"Sign in data"
-//	@Success		200		{object}	dto.UserToken
+//	@Success		200		{object}	dto.Token
 //	@Failure		400 {object} dto.Error "Bad request"
 //	@Failure		500	{object} dto.Error "Internal server error"
 //	@Router			/sign-in [post]

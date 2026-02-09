@@ -38,10 +38,10 @@ func seedAdmin(ctx context.Context, userRepository postgres.UserRepository) erro
 	}
 
 	admin := model.User{
-		Name:     "admin",
-		Email:    config.Data.Mail,
-		Password: hashedPassword,
-		IsAdmin:  true,
+		Name:           "admin",
+		Email:          config.Data.Mail,
+		HashedPassword: hashedPassword,
+		IsAdmin:        true,
 	}
 	return userRepository.Create(ctx, &admin)
 }
