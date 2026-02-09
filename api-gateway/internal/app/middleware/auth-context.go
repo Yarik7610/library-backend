@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Yarik7610/library-backend/api-gateway/internal/app"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/jwt"
-	httpInfrastructure "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http"
 
-	httpUserContext "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/context/user"
+	userContext "github.com/Yarik7610/library-backend/api-gateway/internal/app/context/user"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,14 +22,14 @@ func AuthContext() gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == authHeader {
-			httpInfrastructure.NewUnauthorizedError(c)
+			app.NewUnauthorizedError(c)
 			c.Abort()
 			return
 		}
 
 		claims, err := jwt.Verify(tokenString, config.Data.JWTSecret)
 		if err != nil {
-			httpInfrastructure.NewUnauthorizedError(c)
+			app.NewUnauthorizedError(c)
 			c.Abort()
 			return
 		}
@@ -40,7 +40,7 @@ func AuthContext() gin.HandlerFunc {
 			isAdmin, _ = strconv.ParseBool(claims.Audience[0])
 		}
 
-		httpUserContext.Set(c, httpUserContext.User{
+		userContext.Set(c, userContext.User{
 			ID:      userID,
 			IsAdmin: isAdmin,
 		})

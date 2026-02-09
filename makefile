@@ -30,7 +30,7 @@ watch:
 ifeq ($(SERVICE),)
 	docker compose logs -f
 else
-	docker compose logs -f $(SERVICE)-service
+	docker compose logs -f $(SERVICE)
 endif
 
 book-added-topic:

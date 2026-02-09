@@ -12,8 +12,7 @@ func init() {
 }
 
 func main() {
-	err := config.Init()
-	if err != nil {
+	if err := config.Init(); err != nil {
 		zap.S().Fatalf("Config load error: %v\n", err)
 	}
 
@@ -21,7 +20,6 @@ func main() {
 
 	userFeature := user.NewFeature(postgresDB)
 
-	zap.S().Infof("Starting user-service on port: '%s'", config.Data.ServerPort)
 	if err := userFeature.HTTPRouter.Run(":" + config.Data.ServerPort); err != nil {
 		zap.S().Fatalf("Start error on port %s: %v", config.Data.ServerPort, err)
 	}

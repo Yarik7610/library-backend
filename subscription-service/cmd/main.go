@@ -20,8 +20,7 @@ func init() {
 }
 
 func main() {
-	err := config.Init()
-	if err != nil {
+	if err := config.Init(); err != nil {
 		zap.S().Fatalf("Config load error: %v\n", err)
 	}
 

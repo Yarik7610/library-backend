@@ -10,7 +10,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func InitRoutes(r *gin.Engine) {
+func RegisterRoutes(r *gin.Engine) {
 	docs.SwaggerInfo.BasePath = "/"
 
 	r.GET("/swagger-json/doc.json", func(c *gin.Context) {
