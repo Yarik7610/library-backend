@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/Yarik7610/library-backend-common/sharedconstants"
+	"github.com/Yarik7610/library-backend-common/transport/http/route"
 	"github.com/Yarik7610/library-backend/catalog-service/docs"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -14,24 +14,24 @@ func NewRouter(catalogHandler CatalogHandler) *gin.Engine {
 	docs.SwaggerInfo.BasePath = "/"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	catalogGroup := r.Group(sharedconstants.CATALOG_ROUTE)
+	catalogGroup := r.Group(route.CATALOG)
 	{
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE, catalogHandler.GetCategories)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE+"/:categoryName", catalogHandler.ListBooksByCategory)
-		catalogGroup.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogHandler.GetBooksByAuthorID)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID"+sharedconstants.PREVIEW_ROUTE, catalogHandler.PreviewBook)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogHandler.GetBookPage)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogHandler.SearchBooks)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.NEW_ROUTE, catalogHandler.GetNewBooks)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.POPULAR_ROUTE, catalogHandler.GetPopularBooks)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID"+sharedconstants.VIEWS_ROUTE, catalogHandler.GetBookViewsCount)
+		catalogGroup.GET(route.BOOKS+route.CATEGORIES, catalogHandler.GetCategories)
+		catalogGroup.GET(route.BOOKS+route.CATEGORIES+"/:categoryName", catalogHandler.ListBooksByCategory)
+		catalogGroup.GET(route.AUTHORS+"/:authorID"+route.BOOKS, catalogHandler.GetBooksByAuthorID)
+		catalogGroup.GET(route.BOOKS+"/:bookID"+route.PREVIEW, catalogHandler.PreviewBook)
+		catalogGroup.GET(route.BOOKS+"/:bookID", catalogHandler.GetBookPage)
+		catalogGroup.GET(route.BOOKS+route.SEARCH, catalogHandler.SearchBooks)
+		catalogGroup.GET(route.BOOKS+route.NEW, catalogHandler.GetNewBooks)
+		catalogGroup.GET(route.BOOKS+route.POPULAR, catalogHandler.GetPopularBooks)
+		catalogGroup.GET(route.BOOKS+"/:bookID"+route.VIEWS, catalogHandler.GetBookViewsCount)
 
 		adminGroup := catalogGroup.Group("")
 		{
-			adminGroup.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogHandler.DeleteBook)
-			adminGroup.POST(sharedconstants.BOOKS_ROUTE, catalogHandler.AddBook)
-			adminGroup.DELETE(sharedconstants.AUTHORS_ROUTE+"/:authorID", catalogHandler.DeleteAuthor)
-			adminGroup.POST(sharedconstants.AUTHORS_ROUTE, catalogHandler.CreateAuthor)
+			adminGroup.DELETE(route.BOOKS+"/:bookID", catalogHandler.DeleteBook)
+			adminGroup.POST(route.BOOKS, catalogHandler.AddBook)
+			adminGroup.DELETE(route.AUTHORS+"/:authorID", catalogHandler.DeleteAuthor)
+			adminGroup.POST(route.AUTHORS, catalogHandler.CreateAuthor)
 		}
 	}
 

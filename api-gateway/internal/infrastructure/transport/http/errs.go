@@ -10,11 +10,11 @@ type Error struct {
 	Error string `json:"error"`
 }
 
-func NewUnauthorizedError(ctx *gin.Context) {
-	ctx.JSON(http.StatusUnauthorized, Error{Error: "The token is missing, invalid or expired"})
+func NewUnauthorizedError(c *gin.Context) {
+	c.JSON(http.StatusUnauthorized, Error{Error: "The token is missing, invalid or expired"})
 
 }
 
-func NewForbiddenError(ctx *gin.Context) {
-	ctx.JSON(http.StatusForbidden, Error{Error: "The token is valid, but lacks permission"})
+func NewForbiddenError(c *gin.Context) {
+	c.JSON(http.StatusForbidden, Error{Error: "The token is valid, but lacks permission"})
 }

@@ -3,7 +3,6 @@ module github.com/Yarik7610/library-backend/catalog-service
 go 1.25.6
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20260205125745-16d99933df2b
 	github.com/gin-gonic/gin v1.11.0
 	github.com/redis/go-redis/v9 v9.17.3
 	github.com/segmentio/kafka-go v0.4.50
@@ -15,6 +14,8 @@ require (
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
 )
+
+require github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect

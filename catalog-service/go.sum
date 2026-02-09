@@ -1,7 +1,7 @@
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
-github.com/Yarik7610/library-backend-common v0.0.0-20260205125745-16d99933df2b h1:PBKkD2XUnJG+rzBNtmqfUGrLu+tYjfZrRMKsTTE07Kc=
-github.com/Yarik7610/library-backend-common v0.0.0-20260205125745-16d99933df2b/go.mod h1:qUZXJzuy1IBhx6Unw5I+F73Zq+ey8trNzwJspozLUM0=
+github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b h1:o/I0z/T+wSJIKAcpqgXnDI+BW5nwCBXeS+ZWXq6e5m4=
+github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b/go.mod h1:P2rPl3zSN6murag7nSKLZy+vZP0wJTYwrspw7kpdHSo=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
 github.com/bsm/ginkgo/v2 v2.12.0/go.mod h1:SwYbGRRDovPVboqFv0tPTcG1sN61LM1Z4ARdbAV9g4c=
 github.com/bsm/gomega v1.27.10 h1:yeMWxP2pV2fG3FgAODIY8EiRE3dy0aeFYt4l7wh6yKA=

@@ -1,4 +1,4 @@
-package utils
+package swagger
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func FetchSwaggerJSON(serviceURL string) map[string]any {
+func fetchDocsJSON(serviceURL string) map[string]any {
 	resp, err := http.Get(fmt.Sprintf("%s/swagger/doc.json", serviceURL))
 	if err != nil {
 		zap.S().Errorf("Error fetching swagger from %s: %v\n", serviceURL, err)
@@ -37,7 +37,7 @@ func FetchSwaggerJSON(serviceURL string) map[string]any {
 	return m
 }
 
-func MergeSwaggerDocs(docs ...map[string]any) map[string]any {
+func mergeDocs(docs ...map[string]any) map[string]any {
 	merged := make(map[string]any)
 
 	merged["swagger"] = "2.0"

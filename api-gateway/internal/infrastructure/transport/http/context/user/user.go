@@ -1,4 +1,4 @@
-package context
+package user
 
 import "github.com/gin-gonic/gin"
 
@@ -9,12 +9,12 @@ type User struct {
 
 const userKey = "user"
 
-func Set(ctx *gin.Context, user User) {
-	ctx.Set(userKey, user)
+func Set(c *gin.Context, user User) {
+	c.Set(userKey, user)
 }
 
-func Get(ctx *gin.Context) (User, bool) {
-	val, ok := ctx.Get(userKey)
+func Get(c *gin.Context) (User, bool) {
+	val, ok := c.Get(userKey)
 	if !ok {
 		return User{}, false
 	}

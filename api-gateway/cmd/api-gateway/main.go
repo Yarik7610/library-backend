@@ -1,16 +1,13 @@
 package main
 
 import (
-	"github.com/Yarik7610/library-backend-common/sharedconstants"
-	docs "github.com/Yarik7610/library-backend/api-gateway/docs"
+	"github.com/Yarik7610/library-backend-common/microservice"
+	"github.com/Yarik7610/library-backend-common/transport/http/route"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/core"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/config"
-	swaggerInfrastructure "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/swagger"
+	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/swagger"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/middleware"
-	httpMiddleware "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/middleware"
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
 
@@ -24,65 +21,55 @@ func main() {
 		zap.S().Fatalf("Config load error: %v\n", err)
 	}
 
-	userMicroserviceHandler := core.ForwardTo(sharedconstants.USER_MICROSERVICE_SOCKET)
-	catalogMicroserviceHandler := core.ForwardTo(sharedconstants.CATALOG_MICROSERVICE_SOCKET)
-	subscriptionMicroserviceHandler := core.ForwardTo(sharedconstants.SUBSCRIPTIONS_MICROSERVICE_SOCKET)
+	userMicroserviceHandler := core.ForwardTo(microservice.USER_ADDRESS)
+	catalogMicroserviceHandler := core.ForwardTo(microservice.CATALOG_ADDRESS)
+	subscriptionMicroserviceHandler := core.ForwardTo(microservice.SUBSCRIPTIONS_ADDRESS)
 
 	r := gin.Default()
-	r.Use(httpMiddleware.AuthContext())
+	r.Use(middleware.AuthContext())
 
-	docs.SwaggerInfo.BasePath = "/"
-	r.GET("/swagger-json/doc.json", func(ctx *gin.Context) {
-		userDoc := swaggerInfrastructure.FetchSwaggerJSON(sharedconstants.USER_MICROSERVICE_SOCKET)
-		catalogDoc := swaggerInfrastructure.FetchSwaggerJSON(sharedconstants.CATALOG_MICROSERVICE_SOCKET)
-		subDoc := swaggerInfrastructure.FetchSwaggerJSON(sharedconstants.SUBSCRIPTIONS_MICROSERVICE_SOCKET)
-
-		mergedDoc := swaggerInfrastructure.MergeSwaggerDocs(userDoc, catalogDoc, subDoc)
-		ctx.JSON(200, mergedDoc)
-	})
-
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/swagger-json/doc.json")))
+	swagger.InitRoutes(r)
 
 	userGroup := r.Group("")
 	{
-		userGroup.POST(sharedconstants.SIGN_UP_ROUTE, userMicroserviceHandler)
-		userGroup.POST(sharedconstants.SIGN_IN_ROUTE, userMicroserviceHandler)
+		userGroup.POST(route.SIGN_UP, userMicroserviceHandler)
+		userGroup.POST(route.SIGN_IN, userMicroserviceHandler)
 
 		privateGroup := userGroup.Group("")
 		privateGroup.Use(middleware.AuthRequired(), middleware.InjectHeaders())
 		{
-			privateGroup.GET(sharedconstants.ME_ROUTE, userMicroserviceHandler)
+			privateGroup.GET(route.ME, userMicroserviceHandler)
 		}
 	}
 
-	catalogGroup := r.Group(sharedconstants.CATALOG_ROUTE)
+	catalogGroup := r.Group(route.CATALOG)
 	{
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE, catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.CATEGORIES_ROUTE+"/:categoryName", catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.AUTHORS_ROUTE+"/:authorID"+sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID"+sharedconstants.PREVIEW_ROUTE, middleware.InjectHeaders(), catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.SEARCH_ROUTE, catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.NEW_ROUTE, catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+sharedconstants.POPULAR_ROUTE, catalogMicroserviceHandler)
-		catalogGroup.GET(sharedconstants.BOOKS_ROUTE+"/:bookID"+sharedconstants.VIEWS_ROUTE, catalogMicroserviceHandler)
+		catalogGroup.GET(route.BOOKS+route.CATEGORIES, catalogMicroserviceHandler)
+		catalogGroup.GET(route.BOOKS+route.CATEGORIES+"/:categoryName", catalogMicroserviceHandler)
+		catalogGroup.GET(route.AUTHORS+"/:authorID"+route.BOOKS, catalogMicroserviceHandler)
+		catalogGroup.GET(route.BOOKS+"/:bookID"+route.PREVIEW, middleware.InjectHeaders(), catalogMicroserviceHandler)
+		catalogGroup.GET(route.BOOKS+"/:bookID", catalogMicroserviceHandler)
+		catalogGroup.GET(route.BOOKS+route.SEARCH, catalogMicroserviceHandler)
+		catalogGroup.GET(route.BOOKS+route.NEW, catalogMicroserviceHandler)
+		catalogGroup.GET(route.BOOKS+route.POPULAR, catalogMicroserviceHandler)
+		catalogGroup.GET(route.BOOKS+"/:bookID"+route.VIEWS, catalogMicroserviceHandler)
 
 		adminGroup := catalogGroup.Group("")
 		adminGroup.Use(middleware.AuthRequired(), middleware.AdminRequired(), middleware.InjectHeaders())
 		{
-			adminGroup.DELETE(sharedconstants.BOOKS_ROUTE+"/:bookID", catalogMicroserviceHandler)
-			adminGroup.POST(sharedconstants.BOOKS_ROUTE, catalogMicroserviceHandler)
-			adminGroup.DELETE(sharedconstants.AUTHORS_ROUTE+"/:authorID", catalogMicroserviceHandler)
-			adminGroup.POST(sharedconstants.AUTHORS_ROUTE, catalogMicroserviceHandler)
+			adminGroup.DELETE(route.BOOKS+"/:bookID", catalogMicroserviceHandler)
+			adminGroup.POST(route.BOOKS, catalogMicroserviceHandler)
+			adminGroup.DELETE(route.AUTHORS+"/:authorID", catalogMicroserviceHandler)
+			adminGroup.POST(route.AUTHORS, catalogMicroserviceHandler)
 		}
 	}
 
-	subscriptionGroup := r.Group(sharedconstants.SUBSCRIPTIONS_ROUTE)
+	subscriptionGroup := r.Group(route.SUBSCRIPTIONS)
 	subscriptionGroup.Use(middleware.AuthRequired(), middleware.InjectHeaders())
 	{
-		subscriptionGroup.GET(sharedconstants.CATEGORIES_ROUTE, subscriptionMicroserviceHandler)
-		subscriptionGroup.POST(sharedconstants.CATEGORIES_ROUTE, subscriptionMicroserviceHandler)
-		subscriptionGroup.DELETE(sharedconstants.CATEGORIES_ROUTE+"/:categoryName", subscriptionMicroserviceHandler)
+		subscriptionGroup.GET(route.CATEGORIES, subscriptionMicroserviceHandler)
+		subscriptionGroup.POST(route.CATEGORIES, subscriptionMicroserviceHandler)
+		subscriptionGroup.DELETE(route.CATEGORIES+"/:categoryName", subscriptionMicroserviceHandler)
 	}
 
 	if err := r.Run(":" + config.Data.ServerPort); err != nil {

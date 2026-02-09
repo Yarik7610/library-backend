@@ -1,7 +1,9 @@
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
-github.com/Yarik7610/library-backend-common v0.0.0-20250901145417-c9f0035e87e1 h1:n3AWbCe5UOP4s6T2Wq351mxHsN3Y9n3nG86rY4lBAkU=
-github.com/Yarik7610/library-backend-common v0.0.0-20250901145417-c9f0035e87e1/go.mod h1:WguPwt+ItUXOFrqW3eWMQGwM/WT9J30Qvdn8xB18bfs=
+github.com/Yarik7610/library-backend-common v0.0.0-20260209113835-79f997140f6c h1:SE/qQ0dn2Ia91wwTv01iUojTIQzxJilKU6orqlhbroM=
+github.com/Yarik7610/library-backend-common v0.0.0-20260209113835-79f997140f6c/go.mod h1:P2rPl3zSN6murag7nSKLZy+vZP0wJTYwrspw7kpdHSo=
+github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b h1:o/I0z/T+wSJIKAcpqgXnDI+BW5nwCBXeS+ZWXq6e5m4=
+github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b/go.mod h1:P2rPl3zSN6murag7nSKLZy+vZP0wJTYwrspw7kpdHSo=
 github.com/bytedance/gopkg v0.1.3 h1:TPBSwH8RsouGCBcMBktLt1AymVo2TVsBVCY4b6TnZ/M=
 github.com/bytedance/gopkg v0.1.3/go.mod h1:576VvJ+eJgyCzdjS+c4+77QF3p7ubbtiKARP3TxducM=
 github.com/bytedance/sonic v1.14.1 h1:FBMC0zVz5XUmE4z9wF4Jey0An5FueFvOsTKKKtwIl7w=

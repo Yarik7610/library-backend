@@ -2,17 +2,17 @@ package middleware
 
 import (
 	httpInfrastructure "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http"
-	httpContextUser "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/context/user"
+	httpUserContext "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/context/user"
 	"github.com/gin-gonic/gin"
 )
 
 func AuthRequired() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		if _, ok := httpContextUser.Get(ctx); !ok {
-			httpInfrastructure.NewUnauthorizedError(ctx)
-			ctx.Abort()
+	return func(c *gin.Context) {
+		if _, ok := httpUserContext.Get(c); !ok {
+			httpInfrastructure.NewUnauthorizedError(c)
+			c.Abort()
 			return
 		}
-		ctx.Next()
+		c.Next()
 	}
 }

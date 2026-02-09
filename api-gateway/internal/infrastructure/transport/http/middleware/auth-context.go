@@ -8,29 +8,29 @@ import (
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/jwt"
 	httpInfrastructure "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http"
 
-	httpContextUser "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/context/user"
+	httpUserContext "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http/context/user"
 	"github.com/gin-gonic/gin"
 )
 
 func AuthContext() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		authHeader := ctx.Request.Header.Get("Authorization")
+	return func(c *gin.Context) {
+		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
-			ctx.Next()
+			c.Next()
 			return
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == authHeader {
-			httpInfrastructure.NewUnauthorizedError(ctx)
-			ctx.Abort()
+			httpInfrastructure.NewUnauthorizedError(c)
+			c.Abort()
 			return
 		}
 
 		claims, err := jwt.Verify(tokenString, config.Data.JWTSecret)
 		if err != nil {
-			httpInfrastructure.NewUnauthorizedError(ctx)
-			ctx.Abort()
+			httpInfrastructure.NewUnauthorizedError(c)
+			c.Abort()
 			return
 		}
 
@@ -40,11 +40,11 @@ func AuthContext() gin.HandlerFunc {
 			isAdmin, _ = strconv.ParseBool(claims.Audience[0])
 		}
 
-		httpContextUser.Set(ctx, httpContextUser.User{
+		httpUserContext.Set(c, httpUserContext.User{
 			ID:      userID,
 			IsAdmin: isAdmin,
 		})
 
-		ctx.Next()
+		c.Next()
 	}
 }
