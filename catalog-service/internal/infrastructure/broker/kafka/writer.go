@@ -7,7 +7,7 @@ import (
 
 func NewWriter(topic string) *kafka.Writer {
 	return &kafka.Writer{
-		Addr:  kafka.TCP(sharedKafka.KAFKA_NODE_1_ADDR, sharedKafka.KAFKA_NODE_2_ADDR, sharedKafka.KAFKA_NODE_3_ADDR),
+		Addr:  kafka.TCP(sharedKafka.KAFKA_NODE_1_ADDRESS, sharedKafka.KAFKA_NODE_2_ADDRESS, sharedKafka.KAFKA_NODE_3_ADDRESS),
 		Topic: topic,
 	}
 }

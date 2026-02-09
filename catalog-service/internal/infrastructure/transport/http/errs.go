@@ -9,13 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RenderError(ctx *gin.Context, err error) {
+func RenderError(c *gin.Context, err error) {
 	var infrastructureError *errs.Error
 	if errors.As(err, &infrastructureError) {
-		ctx.JSON(getHTTPStatus(infrastructureError.Code), dto.Error{Error: infrastructureError.Message})
+		c.JSON(getHTTPStatus(infrastructureError.Code), dto.Error{Error: infrastructureError.Message})
 		return
 	}
-	ctx.JSON(http.StatusInternalServerError, dto.Error{Error: "Internal server error"})
+	c.JSON(http.StatusInternalServerError, dto.Error{Error: "Internal server error"})
 }
 
 func getHTTPStatus(errorCode errs.Code) int {

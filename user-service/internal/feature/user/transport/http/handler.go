@@ -7,6 +7,7 @@ import (
 	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/service"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/dto"
+	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/mapper"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/errs"
 
 	httpInfrastructure "github.com/Yarik7610/library-backend/user-service/internal/infrastructure/transport/http"
@@ -43,20 +44,22 @@ func NewUserHandler(userService service.UserService) UserHandler {
 //	@Failure		500	{object} dto.Error "Internal server error"
 //	@Router			/sign-up [post]
 func (h *userHandler) SignUp(c *gin.Context) {
-	var SignUpUserRequestDTO dto.SignUpUserRequest
-	if err := c.ShouldBindJSON(&SignUpUserRequestDTO); err != nil {
+	ctx := c.Request.Context()
+
+	var signUpUserRequestDTO dto.SignUpUserRequest
+	if err := c.ShouldBindJSON(&signUpUserRequestDTO); err != nil {
 		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
 
-	user, err := h.userService.SignUp(&SignUpUserRequestDTO)
-	if err != nil {
+	userDomain := mapper.SignUpUserRequestDTOToDomain(&signUpUserRequestDTO)
+	if err := h.userService.SignUp(ctx, &userDomain); err != nil {
 		zap.S().Errorf("Sign up error: %v\n", err)
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, user)
+	c.JSON(http.StatusCreated, mapper.UserDomainToDTO(&userDomain))
 }
 
 // SignIn godoc
@@ -66,43 +69,50 @@ func (h *userHandler) SignUp(c *gin.Context) {
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			user	body		dto.SignInUserRequest	true	"Sign in data"
-//	@Success		200		{object}	dto.Token
-//	@Failure		400 {object} dto.Error "Bad request"
-//	@Failure		500	{object} dto.Error "Internal server error"
+//	@Param			user	body		dto.SignInUserRequest	true	"Sign in payload"
+//	@Success		200	{object}	dto.Token
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		404 {object} 	dto.Error "Entity not found"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/sign-in [post]
 func (h *userHandler) SignIn(c *gin.Context) {
-	var SignInUserRequestDTO dto.SignInUserRequest
-	if err := c.ShouldBindJSON(&SignInUserRequestDTO); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	ctx := c.Request.Context()
+
+	var signInUserRequestDTO dto.SignInUserRequest
+	if err := c.ShouldBindJSON(&signInUserRequestDTO); err != nil {
+		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
 
-	token, err := h.userService.SignIn(&SignInUserRequestDTO)
+	userDomain := mapper.SignInUserRequestDTOToDomain(&signInUserRequestDTO)
+	tokenDomain, err := h.userService.SignIn(ctx, &userDomain)
 	if err != nil {
 		zap.S().Errorf("Sign in error: %v\n", err)
-		c.JSON(err.Code, gin.H{"error": err.Message})
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, mapper.TokenDomainToDTO(tokenDomain))
 }
 
 // GetMe godoc
 //
 //	@Summary		Get current user info
-//	@Description	Returns info about the authenticated user
+//	@Description	Returns info about the authorized user
 //	@Tags			user
 //	@Produce		json
 //	@Security 	BearerAuth
 //	@Success		200	{object}	dto.User
-//	@Failure		401	{object}	map[string]string
+//	@Failure		401 {object} 	dto.Error "The token is missing, invalid or expired"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/me [get]
 func (h *userHandler) GetMe(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	userIDString := c.GetHeader(sharedconstants.HEADER_USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 

@@ -85,7 +85,10 @@ func (h *catalogHandler) PreviewBook(c *gin.Context) {
 		return
 	}
 
-	userID := httpHeaders.GetUserID(c)
+	userID, err := httpHeaders.GetUserID(c)
+	if err != nil {
+		userID = 0
+	}
 
 	bookDomain, err := h.catalogService.PreviewBook(ctx, uint(bookID), uint(userID))
 	if err != nil {
