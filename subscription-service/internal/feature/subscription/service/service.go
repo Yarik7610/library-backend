@@ -11,27 +11,27 @@ import (
 	"github.com/Yarik7610/library-backend-common/custom"
 	"github.com/Yarik7610/library-backend-common/microservice"
 	"github.com/Yarik7610/library-backend-common/transport/http/route"
-	repository "github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/repository/postgres"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/repository/postgres/model"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/repository/postgres"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/repository/postgres/model"
 )
 
 type SubscriptionService interface {
 	GetCategorySubscribersEmails(category string) ([]string, *custom.Err)
-	GetSubscribedCategories(userID uint) ([]string, *custom.Err)
-	SubscribeCategory(userID uint, category string) (*model.UserCategory, *custom.Err)
-	UnsubscribeCategory(userID uint, category string) *custom.Err
+	GetUserBookCategories(userID uint) ([]string, *custom.Err)
+	Create(userID uint, category string) (*model.UserBookCategory, *custom.Err)
+	Delete(userID uint, category string) *custom.Err
 }
 
 type catalogService struct {
-	userCategoryRepository repository.UserCategoryRepository
+	userBookCategoryRepository postgres.UserBookCategoryRepository
 }
 
-func NewSubscriptionService(userCategoryRepository repository.UserCategoryRepository) SubscriptionService {
-	return &catalogService{userCategoryRepository: userCategoryRepository}
+func NewSubscriptionService(userBookCategoryRepository postgres.UserBookCategoryRepository) SubscriptionService {
+	return &catalogService{userBookCategoryRepository: userBookCategoryRepository}
 }
 
 func (s *catalogService) GetCategorySubscribersEmails(category string) ([]string, *custom.Err) {
-	subscribersIDs, err := s.userCategoryRepository.GetCategorySubscribersIDs(category)
+	subscribersIDs, err := s.userBookCategoryRepository.GetBookCategoryUserIDs(category)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
@@ -43,15 +43,15 @@ func (s *catalogService) GetCategorySubscribersEmails(category string) ([]string
 	return emails, nil
 }
 
-func (s *catalogService) GetSubscribedCategories(userID uint) ([]string, *custom.Err) {
-	subscribedCategories, err := s.userCategoryRepository.GetSubscribedCategories(userID)
+func (s *catalogService) GetUserBookCategories(userID uint) ([]string, *custom.Err) {
+	subscribedCategories, err := s.userBookCategoryRepository.GetUserBookCategories(userID)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 	return subscribedCategories, nil
 }
 
-func (s *catalogService) SubscribeCategory(userID uint, category string) (*model.UserCategory, *custom.Err) {
+func (s *catalogService) Create(userID uint, category string) (*model.UserBookCategory, *custom.Err) {
 	exists, customErr := s.categoryExists(category)
 	if customErr != nil {
 		return nil, customErr
@@ -60,18 +60,18 @@ func (s *catalogService) SubscribeCategory(userID uint, category string) (*model
 		return nil, custom.NewErr(http.StatusBadRequest, "can't subscribe on unknown category")
 	}
 
-	subscribedCategory := model.UserCategory{
+	subscribedCategory := model.UserBookCategory{
 		UserID:   userID,
 		Category: category,
 	}
-	err := s.userCategoryRepository.SubscribeCategory(&subscribedCategory)
+	err := s.userBookCategoryRepository.Create(&subscribedCategory)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
 	return &subscribedCategory, nil
 }
 
-func (s *catalogService) UnsubscribeCategory(userID uint, category string) *custom.Err {
+func (s *catalogService) Delete(userID uint, category string) *custom.Err {
 	exists, customErr := s.categoryExists(category)
 	if customErr != nil {
 		return customErr
@@ -80,7 +80,7 @@ func (s *catalogService) UnsubscribeCategory(userID uint, category string) *cust
 		return custom.NewErr(http.StatusBadRequest, "can't unsubscribe from unknown category")
 	}
 
-	subscribedCategory, err := s.userCategoryRepository.FindSubscribedCategory(userID, category)
+	subscribedCategory, err := s.userBookCategoryRepository.FindUserBookCategory(userID, category)
 	if err != nil {
 		return custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
@@ -88,7 +88,7 @@ func (s *catalogService) UnsubscribeCategory(userID uint, category string) *cust
 		return custom.NewErr(http.StatusBadRequest, "didn't find such category in your subscriptions")
 	}
 
-	err = s.userCategoryRepository.UnsubscribeCategory(userID, category)
+	err = s.userBookCategoryRepository.Delete(userID, category)
 	if err != nil {
 		return custom.NewErr(http.StatusInternalServerError, err.Error())
 	}

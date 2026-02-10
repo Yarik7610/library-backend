@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	"github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/repository/postgres/model"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/repository/postgres/model"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/config"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
@@ -15,7 +15,7 @@ func Connect() *gorm.DB {
 	}
 	zap.S().Info("Successfully connected to Postgres")
 
-	err = db.AutoMigrate(&model.UserCategory{})
+	err = db.AutoMigrate(&model.UserBookCategory{})
 	if err != nil {
 		zap.S().Fatalf("GORM auto migrate error: %v", err)
 	}

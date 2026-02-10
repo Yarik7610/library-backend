@@ -81,7 +81,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.SubscribeCategory"
+                            "$ref": "#/definitions/dto.Create"
                         }
                     }
                 ],
@@ -221,7 +221,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.SubscribeCategory": {
+        "dto.Create": {
             "type": "object",
             "required": [
                 "category"

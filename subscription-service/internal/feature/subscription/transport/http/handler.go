@@ -1,29 +1,29 @@
-package controller
+package http
 
 import (
 	"net/http"
 	"strconv"
 
 	"github.com/Yarik7610/library-backend-common/transport/http/header"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/service"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/transport/http/dto"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/service"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/transport/http/dto"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-type SubscriptionController interface {
-	GetCategorySubscribersEmails(ctx *gin.Context)
-	GetSubscribedCategories(ctx *gin.Context)
-	SubscribeCategory(ctx *gin.Context)
-	UnsubscribeCategory(ctx *gin.Context)
+type SubscriptionHandler interface {
+	GetCategorySubscribersEmails(c *gin.Context)
+	GetUserBookCategories(c *gin.Context)
+	Create(c *gin.Context)
+	Delete(c *gin.Context)
 }
 
-type subscriptionController struct {
+type subscriptionHandler struct {
 	subscriptionService service.SubscriptionService
 }
 
-func NewSubscriptionController(subscriptionService service.SubscriptionService) SubscriptionController {
-	return &subscriptionController{subscriptionService: subscriptionService}
+func NewSubscriptionHandler(subscriptionService service.SubscriptionService) SubscriptionHandler {
+	return &subscriptionHandler{subscriptionService: subscriptionService}
 }
 
 // GetCategorySubscribersEmails godoc
@@ -37,20 +37,20 @@ func NewSubscriptionController(subscriptionService service.SubscriptionService) 
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
 //	@Router			/subscriptions/books/categories/{categoryName} [get]
-func (c *subscriptionController) GetCategorySubscribersEmails(ctx *gin.Context) {
-	category := ctx.Param("categoryName")
+func (h *subscriptionHandler) GetCategorySubscribersEmails(c *gin.Context) {
+	category := c.Param("categoryName")
 
-	emails, err := c.subscriptionService.GetCategorySubscribersEmails(category)
+	emails, err := h.subscriptionService.GetCategorySubscribersEmails(category)
 	if err != nil {
 		zap.S().Errorf("Get category subscribers IDs error: %v\n", err)
-		ctx.JSON(err.Code, gin.H{"error": err.Message})
+		c.JSON(err.Code, gin.H{"error": err.Message})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, emails)
+	c.JSON(http.StatusOK, emails)
 }
 
-// GetSubscribedCategories godoc
+// GetUserBookCategories godoc
 //
 //	@Summary		Get categories the current user is subscribed to
 //	@Description	Returns a list of categories for the user
@@ -61,61 +61,61 @@ func (c *subscriptionController) GetCategorySubscribersEmails(ctx *gin.Context) 
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
 //	@Router			/subscriptions/books/categories [get]
-func (c *subscriptionController) GetSubscribedCategories(ctx *gin.Context) {
-	userIDString := ctx.GetHeader(header.USER_ID)
+func (h *subscriptionHandler) GetUserBookCategories(c *gin.Context) {
+	userIDString := c.GetHeader(header.USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	subscribedCategories, customErr := c.subscriptionService.GetSubscribedCategories(uint(userID))
+	subscribedCategories, customErr := h.subscriptionService.GetUserBookCategories(uint(userID))
 	if customErr != nil {
 		zap.S().Errorf("Get subscribed categories error: %v\n", customErr)
-		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
+		c.JSON(customErr.Code, gin.H{"error": customErr.Message})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, subscribedCategories)
+	c.JSON(http.StatusOK, subscribedCategories)
 }
 
-// SubscribeCategory godoc
+// Create godoc
 //
 //	@Summary		Subscribe current user to a category
 //	@Description	Adds the category to the user's subscriptions
 //	@Tags			subscription
-//	@Param			category	body	dto.SubscribeCategory	true	"Category to subscribe"
+//	@Param			category	body	dto.Create	true	"Category to subscribe"
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Success		200	{object}	map[string]string
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
 //	@Router			/subscriptions/books/categories [post]
-func (c *subscriptionController) SubscribeCategory(ctx *gin.Context) {
-	userIDString := ctx.GetHeader(header.USER_ID)
+func (h *subscriptionHandler) Create(c *gin.Context) {
+	userIDString := c.GetHeader(header.USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	var subscribeCategoryDTO dto.SubscribeCategory
-	if err := ctx.ShouldBindJSON(&subscribeCategoryDTO); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var subscribeCategoryDTO dto.Create
+	if err := c.ShouldBindJSON(&subscribeCategoryDTO); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	subscribedCategory, customErr := c.subscriptionService.SubscribeCategory(uint(userID), subscribeCategoryDTO.Category)
+	subscribedCategory, customErr := h.subscriptionService.Create(uint(userID), subscribeCategoryDTO.Category)
 	if customErr != nil {
 		zap.S().Errorf("Subscribe category error: %v\n", customErr)
-		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
+		c.JSON(customErr.Code, gin.H{"error": customErr.Message})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, subscribedCategory)
+	c.JSON(http.StatusOK, subscribedCategory)
 }
 
-// UnsubscribeCategory godoc
+// Delete godoc
 //
 //	@Summary		Unsubscribe current user from a category
 //	@Description	Removes the category from the user's subscriptions
@@ -127,23 +127,23 @@ func (c *subscriptionController) SubscribeCategory(ctx *gin.Context) {
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
 //	@Router			/subscriptions/books/categories/{categoryName} [delete]
-func (c *subscriptionController) UnsubscribeCategory(ctx *gin.Context) {
-	userIDString := ctx.GetHeader(header.USER_ID)
+func (h *subscriptionHandler) Delete(c *gin.Context) {
+	userIDString := c.GetHeader(header.USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	category := ctx.Param("categoryName")
+	category := c.Param("categoryName")
 
-	customErr := c.subscriptionService.UnsubscribeCategory(uint(userID), category)
+	customErr := h.subscriptionService.Delete(uint(userID), category)
 	if customErr != nil {
 		zap.S().Errorf("Unsubscribe category error: %v\n", customErr)
-		ctx.JSON(customErr.Code, gin.H{"error": customErr.Message})
+		c.JSON(customErr.Code, gin.H{"error": customErr.Message})
 		return
 	}
 
-	ctx.Status(http.StatusNoContent)
-	ctx.Abort()
+	c.Status(http.StatusNoContent)
+	c.Abort()
 }

@@ -1,10 +1,10 @@
 definitions:
-  dto.SubscribeCategory:
+  dto.Create:
     properties:
       category:
         type: string
     required:
-    - category
+      - category
     type: object
 info:
   contact: {}
@@ -13,7 +13,7 @@ paths:
     get:
       description: Returns a list of categories for the user
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -34,21 +34,21 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get categories the current user is subscribed to
       tags:
-      - subscription
+        - subscription
     post:
       description: Adds the category to the user's subscriptions
       parameters:
-      - description: Category to subscribe
-        in: body
-        name: category
-        required: true
-        schema:
-          $ref: '#/definitions/dto.SubscribeCategory'
+        - description: Category to subscribe
+          in: body
+          name: category
+          required: true
+          schema:
+            $ref: "#/definitions/dto.Create"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -69,21 +69,21 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Subscribe current user to a category
       tags:
-      - subscription
+        - subscription
   /subscriptions/books/categories/{categoryName}:
     delete:
       description: Removes the category from the user's subscriptions
       parameters:
-      - description: Category name to unsubscribe
-        in: path
-        name: categoryName
-        required: true
-        type: string
+        - description: Category name to unsubscribe
+          in: path
+          name: categoryName
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -104,20 +104,20 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Unsubscribe current user from a category
       tags:
-      - subscription
+        - subscription
     get:
       description: Returns emails of all users subscribed to the given category
       parameters:
-      - description: Category name
-        in: path
-        name: categoryName
-        required: true
-        type: string
+        - description: Category name
+          in: path
+          name: categoryName
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -139,5 +139,5 @@ paths:
             type: object
       summary: Get emails of users subscribed to a category
       tags:
-      - internal
+        - internal
 swagger: "2.0"

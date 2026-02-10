@@ -1,5 +1,5 @@
 package dto
 
-type SubscribeCategory struct {
+type Create struct {
 	Category string `json:"category" binding:"required"`
 }
