@@ -9,10 +9,13 @@ import (
 
 func registerSubscriptionRoutes(r *gin.Engine, subscriptionServiceHandler gin.HandlerFunc) {
 	subscriptionGroup := r.Group(route.SUBSCRIPTIONS)
-	subscriptionGroup.Use(middleware.AuthRequired(), core.InjectHeaders())
 	{
-		subscriptionGroup.GET(route.CATEGORIES, subscriptionServiceHandler)
-		subscriptionGroup.POST(route.CATEGORIES, subscriptionServiceHandler)
-		subscriptionGroup.DELETE(route.CATEGORIES+"/:categoryName", subscriptionServiceHandler)
+		bookCategoryGroup := subscriptionGroup.Group(route.BOOKS + route.CATEGORIES)
+		bookCategoryGroup.Use(middleware.AuthRequired(), core.InjectHeaders())
+		{
+			bookCategoryGroup.GET("", subscriptionServiceHandler)
+			bookCategoryGroup.POST("", subscriptionServiceHandler)
+			bookCategoryGroup.DELETE("/:categoryName", subscriptionServiceHandler)
+		}
 	}
 }

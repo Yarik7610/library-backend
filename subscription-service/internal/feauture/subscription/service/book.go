@@ -9,9 +9,10 @@ import (
 	"strings"
 
 	"github.com/Yarik7610/library-backend-common/custom"
-	"github.com/Yarik7610/library-backend-common/sharedconstants"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/model"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/repository"
+	"github.com/Yarik7610/library-backend-common/microservice"
+	"github.com/Yarik7610/library-backend-common/transport/http/route"
+	repository "github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/repository/postgres"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/repository/postgres/model"
 )
 
 type SubscriptionService interface {
@@ -95,7 +96,7 @@ func (s *catalogService) UnsubscribeCategory(userID uint, category string) *cust
 }
 
 func (s *catalogService) categoryExists(category string) (bool, *custom.Err) {
-	resp, err := http.Get(sharedconstants.CATALOG_MICROSERVICE_SOCKET + sharedconstants.CATALOG_ROUTE + sharedconstants.CATEGORIES_ROUTE)
+	resp, err := http.Get(microservice.CATALOG_ADDRESS + route.CATALOG + route.CATEGORIES)
 	if err != nil {
 		return false, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}
@@ -115,7 +116,7 @@ func (s *catalogService) categoryExists(category string) (bool, *custom.Err) {
 }
 
 func (s *catalogService) getEmailsByUserIDs(userIDs []uint) ([]string, *custom.Err) {
-	req, err := http.NewRequest("GET", sharedconstants.USER_MICROSERVICE_SOCKET+sharedconstants.EMAILS_ROUTE, nil)
+	req, err := http.NewRequest("GET", microservice.USER_ADDRESS+route.EMAILS, nil)
 	if err != nil {
 		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
 	}

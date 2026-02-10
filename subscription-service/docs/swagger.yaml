@@ -9,7 +9,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /subscriptions/categories:
+  /subscriptions/books/categories:
     get:
       description: Returns a list of categories for the user
       produces:
@@ -73,7 +73,7 @@ paths:
       summary: Subscribe current user to a category
       tags:
       - subscription
-  /subscriptions/categories/{categoryName}:
+  /subscriptions/books/categories/{categoryName}:
     delete:
       description: Removes the category from the user's subscriptions
       parameters:

@@ -1,14 +1,14 @@
-package connect
+package postgres
 
 import (
-	"github.com/Yarik7610/library-backend/subscription-service/config"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/model"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/repository/postgres/model"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/config"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func DB() *gorm.DB {
+func Connect() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(config.Data.PostgresURL), &gorm.Config{})
 	if err != nil {
 		zap.S().Fatalf("GORM open error: %v\n", err)

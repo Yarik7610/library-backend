@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Yarik7610/library-backend-common/sharedconstants"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/dto"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/service"
+	"github.com/Yarik7610/library-backend-common/transport/http/header"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/service"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feauture/subscription/transport/http/dto"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -36,7 +36,7 @@ func NewSubscriptionController(subscriptionService service.SubscriptionService) 
 //	@Success		200	{array}		string
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
-//	@Router			/subscriptions/categories/{categoryName} [get]
+//	@Router			/subscriptions/books/categories/{categoryName} [get]
 func (c *subscriptionController) GetCategorySubscribersEmails(ctx *gin.Context) {
 	category := ctx.Param("categoryName")
 
@@ -60,9 +60,9 @@ func (c *subscriptionController) GetCategorySubscribersEmails(ctx *gin.Context) 
 //	@Success		200	{array}		string
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
-//	@Router			/subscriptions/categories [get]
+//	@Router			/subscriptions/books/categories [get]
 func (c *subscriptionController) GetSubscribedCategories(ctx *gin.Context) {
-	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
+	userIDString := ctx.GetHeader(header.USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -90,9 +90,9 @@ func (c *subscriptionController) GetSubscribedCategories(ctx *gin.Context) {
 //	@Success		200	{object}	map[string]string
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
-//	@Router			/subscriptions/categories [post]
+//	@Router			/subscriptions/books/categories [post]
 func (c *subscriptionController) SubscribeCategory(ctx *gin.Context) {
-	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
+	userIDString := ctx.GetHeader(header.USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -126,9 +126,9 @@ func (c *subscriptionController) SubscribeCategory(ctx *gin.Context) {
 //	@Success		200	{object}	map[string]string
 //	@Failure		400	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
-//	@Router			/subscriptions/categories/{categoryName} [delete]
+//	@Router			/subscriptions/books/categories/{categoryName} [delete]
 func (c *subscriptionController) UnsubscribeCategory(ctx *gin.Context) {
-	userIDString := ctx.GetHeader(sharedconstants.HEADER_USER_ID)
+	userIDString := ctx.GetHeader(header.USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

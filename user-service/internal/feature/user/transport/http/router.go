@@ -14,13 +14,20 @@ func NewRouter(userHandler UserHandler) *gin.Engine {
 	docs.SwaggerInfo.BasePath = "/"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.POST(route.SIGN_UP, userHandler.SignUp)
-	r.POST(route.SIGN_IN, userHandler.SignIn)
-	r.GET(route.ME, userHandler.GetMe)
-
-	nonAPIGatewayGroup := r.Group("")
+	userGroup := r.Group("")
 	{
-		nonAPIGatewayGroup.GET(route.EMAILS, userHandler.GetEmailsByUserIDs)
+		userGroup.POST(route.SIGN_UP, userHandler.SignUp)
+		userGroup.POST(route.SIGN_IN, userHandler.SignIn)
+
+		privateGroup := userGroup.Group("")
+		{
+			privateGroup.GET(route.ME, userHandler.GetMe)
+		}
+
+		nonAPIGatewayGroup := userGroup.Group("")
+		{
+			nonAPIGatewayGroup.GET(route.EMAILS, userHandler.GetEmailsByUserIDs)
+		}
 	}
 
 	return r

@@ -3,7 +3,7 @@ module github.com/Yarik7610/library-backend/subscription-service
 go 1.25.6
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20250901145417-c9f0035e87e1
+	github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b
 	github.com/gin-gonic/gin v1.10.1
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/spf13/viper v1.20.1

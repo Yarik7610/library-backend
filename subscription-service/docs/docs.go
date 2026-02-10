@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/subscriptions/categories": {
+        "/subscriptions/books/categories": {
             "get": {
                 "security": [
                     {
@@ -116,7 +116,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/subscriptions/categories/{categoryName}": {
+        "/subscriptions/books/categories/{categoryName}": {
             "get": {
                 "description": "Returns emails of all users subscribed to the given category",
                 "produces": [

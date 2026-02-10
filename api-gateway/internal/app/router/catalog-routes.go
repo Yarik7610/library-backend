@@ -10,23 +10,35 @@ import (
 func registerCatalogRoutes(r *gin.Engine, catalogServiceHandler gin.HandlerFunc) {
 	catalogGroup := r.Group(route.CATALOG)
 	{
-		catalogGroup.GET(route.BOOKS+route.CATEGORIES, catalogServiceHandler)
-		catalogGroup.GET(route.BOOKS+route.CATEGORIES+"/:categoryName", catalogServiceHandler)
-		catalogGroup.GET(route.AUTHORS+"/:authorID"+route.BOOKS, catalogServiceHandler)
-		catalogGroup.GET(route.BOOKS+"/:bookID"+route.PREVIEW, core.InjectHeaders(), catalogServiceHandler)
-		catalogGroup.GET(route.BOOKS+"/:bookID", catalogServiceHandler)
-		catalogGroup.GET(route.BOOKS+route.SEARCH, catalogServiceHandler)
-		catalogGroup.GET(route.BOOKS+route.NEW, catalogServiceHandler)
-		catalogGroup.GET(route.BOOKS+route.POPULAR, catalogServiceHandler)
-		catalogGroup.GET(route.BOOKS+"/:bookID"+route.VIEWS, catalogServiceHandler)
-
-		adminGroup := catalogGroup.Group("")
-		adminGroup.Use(middleware.AuthRequired(), middleware.AdminRequired(), core.InjectHeaders())
+		bookGroup := catalogGroup.Group(route.BOOKS)
 		{
-			adminGroup.DELETE(route.BOOKS+"/:bookID", catalogServiceHandler)
-			adminGroup.POST(route.BOOKS, catalogServiceHandler)
-			adminGroup.DELETE(route.AUTHORS+"/:authorID", catalogServiceHandler)
-			adminGroup.POST(route.AUTHORS, catalogServiceHandler)
+			bookGroup.GET(route.CATEGORIES, catalogServiceHandler)
+			bookGroup.GET(route.CATEGORIES+"/:categoryName", catalogServiceHandler)
+			bookGroup.GET("/:bookID"+route.PREVIEW, core.InjectHeaders(), catalogServiceHandler)
+			bookGroup.GET("/:bookID", catalogServiceHandler)
+			bookGroup.GET(route.SEARCH, catalogServiceHandler)
+			bookGroup.GET(route.NEW, catalogServiceHandler)
+			bookGroup.GET(route.POPULAR, catalogServiceHandler)
+			bookGroup.GET("/:bookID"+route.VIEWS, catalogServiceHandler)
+
+			adminGroup := bookGroup.Group("")
+			adminGroup.Use(middleware.AuthRequired(), middleware.AdminRequired(), core.InjectHeaders())
+			{
+				adminGroup.DELETE("/:bookID", catalogServiceHandler)
+				adminGroup.POST("", catalogServiceHandler)
+			}
+		}
+
+		authorGroup := catalogGroup.Group(route.AUTHORS)
+		{
+			authorGroup.GET("/:authorID"+route.BOOKS, catalogServiceHandler)
+
+			adminGroup := authorGroup.Group("")
+			adminGroup.Use(middleware.AuthRequired(), middleware.AdminRequired(), core.InjectHeaders())
+			{
+				adminGroup.DELETE("/:authorID", catalogServiceHandler)
+				adminGroup.POST("", catalogServiceHandler)
+			}
 		}
 	}
 }

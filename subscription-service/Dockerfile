@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main ./cmd
+RUN go build -o main ./cmd/subscription-service
 
 FROM golang:1.25-alpine
 

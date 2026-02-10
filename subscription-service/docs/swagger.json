@@ -4,7 +4,7 @@
         "contact": {}
     },
     "paths": {
-        "/subscriptions/categories": {
+        "/subscriptions/books/categories": {
             "get": {
                 "security": [
                     {
@@ -105,7 +105,7 @@
                 }
             }
         },
-        "/subscriptions/categories/{categoryName}": {
+        "/subscriptions/books/categories/{categoryName}": {
             "get": {
                 "description": "Returns emails of all users subscribed to the given category",
                 "produces": [

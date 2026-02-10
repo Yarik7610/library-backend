@@ -16,22 +16,33 @@ func NewRouter(catalogHandler CatalogHandler) *gin.Engine {
 
 	catalogGroup := r.Group(route.CATALOG)
 	{
-		catalogGroup.GET(route.BOOKS+route.CATEGORIES, catalogHandler.GetCategories)
-		catalogGroup.GET(route.BOOKS+route.CATEGORIES+"/:categoryName", catalogHandler.ListBooksByCategory)
-		catalogGroup.GET(route.AUTHORS+"/:authorID"+route.BOOKS, catalogHandler.GetBooksByAuthorID)
-		catalogGroup.GET(route.BOOKS+"/:bookID"+route.PREVIEW, catalogHandler.PreviewBook)
-		catalogGroup.GET(route.BOOKS+"/:bookID", catalogHandler.GetBookPage)
-		catalogGroup.GET(route.BOOKS+route.SEARCH, catalogHandler.SearchBooks)
-		catalogGroup.GET(route.BOOKS+route.NEW, catalogHandler.GetNewBooks)
-		catalogGroup.GET(route.BOOKS+route.POPULAR, catalogHandler.GetPopularBooks)
-		catalogGroup.GET(route.BOOKS+"/:bookID"+route.VIEWS, catalogHandler.GetBookViewsCount)
-
-		adminGroup := catalogGroup.Group("")
+		bookGroup := catalogGroup.Group(route.BOOKS)
 		{
-			adminGroup.DELETE(route.BOOKS+"/:bookID", catalogHandler.DeleteBook)
-			adminGroup.POST(route.BOOKS, catalogHandler.AddBook)
-			adminGroup.DELETE(route.AUTHORS+"/:authorID", catalogHandler.DeleteAuthor)
-			adminGroup.POST(route.AUTHORS, catalogHandler.CreateAuthor)
+			bookGroup.GET(route.CATEGORIES, catalogHandler.GetCategories)
+			bookGroup.GET(route.CATEGORIES+"/:categoryName", catalogHandler.ListBooksByCategory)
+			bookGroup.GET("/:bookID"+route.PREVIEW, catalogHandler.PreviewBook)
+			bookGroup.GET("/:bookID", catalogHandler.GetBookPage)
+			bookGroup.GET(route.SEARCH, catalogHandler.SearchBooks)
+			bookGroup.GET(route.NEW, catalogHandler.GetNewBooks)
+			bookGroup.GET(route.POPULAR, catalogHandler.GetPopularBooks)
+			bookGroup.GET("/:bookID"+route.VIEWS, catalogHandler.GetBookViewsCount)
+
+			adminGroup := bookGroup.Group("")
+			{
+				adminGroup.DELETE("/:bookID", catalogHandler.DeleteBook)
+				adminGroup.POST("", catalogHandler.AddBook)
+			}
+		}
+
+		authorGroup := catalogGroup.Group(route.AUTHORS)
+		{
+			authorGroup.GET("/:authorID"+route.BOOKS, catalogHandler.GetBooksByAuthorID)
+
+			adminGroup := authorGroup.Group("")
+			{
+				adminGroup.DELETE("/:authorID", catalogHandler.DeleteAuthor)
+				adminGroup.POST("", catalogHandler.CreateAuthor)
+			}
 		}
 	}
 
