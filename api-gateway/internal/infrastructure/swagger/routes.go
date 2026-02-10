@@ -14,11 +14,11 @@ func RegisterRoutes(r *gin.Engine) {
 	docs.SwaggerInfo.BasePath = "/"
 
 	r.GET("/swagger-json/doc.json", func(c *gin.Context) {
-		userDoc := fetchDocsJSON(microservice.USER_ADDRESS)
-		catalogDoc := fetchDocsJSON(microservice.USER_ADDRESS)
-		subDoc := fetchDocsJSON(microservice.USER_ADDRESS)
+		userDocs := fetchDocsJSON(microservice.USER_ADDRESS)
+		catalogDocs := fetchDocsJSON(microservice.CATALOG_ADDRESS)
+		subDocs := fetchDocsJSON(microservice.SUBSCRIPTIONS_ADDRESS)
 
-		mergedDoc := mergeDocs(userDoc, catalogDoc, subDoc)
+		mergedDoc := mergeDocs(userDocs, catalogDocs, subDocs)
 		c.JSON(http.StatusOK, mergedDoc)
 	})
 

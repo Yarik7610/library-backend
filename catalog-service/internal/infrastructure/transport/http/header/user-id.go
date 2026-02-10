@@ -1,4 +1,4 @@
-package headers
+package header
 
 import (
 	"strconv"
@@ -8,7 +8,7 @@ import (
 )
 
 func GetUserID(ctx *gin.Context) (uint64, error) {
-	userIDString := ctx.GetHeader(header.HEADER_USER_ID)
+	userIDString := ctx.GetHeader(header.USER_ID)
 	userID, err := strconv.ParseUint(userIDString, 10, 64)
 	if err != nil {
 		return 0, err

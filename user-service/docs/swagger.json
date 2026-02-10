@@ -1,206 +1,274 @@
 {
-  "swagger": "2.0",
-  "info": {
-    "contact": {}
-  },
-  "paths": {
-    "/emails": {
-      "get": {
-        "description": "Returns a list of emails for given user IDs",
-        "produces": ["application/json"],
-        "tags": ["internal"],
-        "summary": "Get emails by user IDs",
-        "parameters": [
-          {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "collectionFormat": "csv",
-            "description": "User IDs",
-            "name": "ids",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
     },
-    "/me": {
-      "get": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Returns info about the authenticated user",
-        "produces": ["application/json"],
-        "tags": ["user"],
-        "summary": "Get current user info",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/dto.User"
+    "paths": {
+        "/emails": {
+            "get": {
+                "description": "Returns a list of emails for given user IDs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internal"
+                ],
+                "summary": "Get emails by user IDs",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "User IDs",
+                        "name": "ids",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    }
+                }
             }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
+        },
+        "/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns info about the authorized user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get current user info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "401": {
+                        "description": "The token is missing, invalid or expired",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    }
+                }
             }
-          }
+        },
+        "/sign-in": {
+            "post": {
+                "description": "Authorize existings user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Authorize user",
+                "parameters": [
+                    {
+                        "description": "Sign in payload",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SignInUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Token"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/sign-up": {
+            "post": {
+                "description": "Creates a new user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Register new user",
+                "parameters": [
+                    {
+                        "description": "Sign up payload",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SignUpUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "409": {
+                        "description": "Entity already exists",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    }
+                }
+            }
         }
-      }
     },
-    "/sign-in": {
-      "post": {
-        "description": "Authorize existings user",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["user"],
-        "summary": "Authorize user",
-        "parameters": [
-          {
-            "description": "Sign in data",
-            "name": "user",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/dto.SignInUserRequest"
+    "definitions": {
+        "dto.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
+        },
+        "dto.SignInUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
             }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
+        },
+        "dto.SignUpUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 5
+                }
             }
-          }
+        },
+        "dto.Token": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.User": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isAdmin": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
         }
-      }
-    },
-    "/sign-up": {
-      "post": {
-        "description": "Creates a new user account",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["user"],
-        "summary": "Register new user",
-        "parameters": [
-          {
-            "description": "Sign up data",
-            "name": "user",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/dto.SignUpUserRequest"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created",
-            "schema": {
-              "$ref": "#/definitions/dto.User"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
     }
-  },
-  "definitions": {
-    "dto.SignInUserRequest": {
-      "type": "object",
-      "required": ["email", "password"],
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      }
-    },
-    "dto.SignUpUserRequest": {
-      "type": "object",
-      "required": ["email", "name", "password"],
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string",
-          "minLength": 5
-        }
-      }
-    },
-    "dto.User": {
-      "type": "object",
-      "properties": {
-        "created_at": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "id": {
-          "type": "integer"
-        },
-        "is_admin": {
-          "type": "boolean"
-        },
-        "name": {
-          "type": "string"
-        }
-      }
-    }
-  }
 }

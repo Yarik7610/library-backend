@@ -2,15 +2,15 @@ package http
 
 import (
 	"net/http"
-	"strconv"
 
-	"github.com/Yarik7610/library-backend-common/sharedconstants"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/service"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/dto"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/mapper"
+	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/query"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/errs"
 
 	httpInfrastructure "github.com/Yarik7610/library-backend/user-service/internal/infrastructure/transport/http"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/transport/http/header"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -39,7 +39,7 @@ func NewUserHandler(userService service.UserService) UserHandler {
 //	@Produce		json
 //	@Param			user	body		dto.SignUpUserRequest	true	"Sign up payload"
 //	@Success		201		{object}	dto.User
-//	@Failure		400 {object} dto.Error "Bad request"
+//	@Failure		400	{object} dto.Error "Bad request"
 //	@Failure		409 {object} dto.Error "Entity already exists"
 //	@Failure		500	{object} dto.Error "Internal server error"
 //	@Router			/sign-up [post]
@@ -104,26 +104,26 @@ func (h *userHandler) SignIn(c *gin.Context) {
 //	@Security 	BearerAuth
 //	@Success		200	{object}	dto.User
 //	@Failure		401 {object} 	dto.Error "The token is missing, invalid or expired"
+//	@Failure		404 {object} 	dto.Error "Entity not found"
 //	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/me [get]
 func (h *userHandler) GetMe(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	userIDString := c.GetHeader(sharedconstants.HEADER_USER_ID)
-	userID, err := strconv.ParseUint(userIDString, 10, 64)
+	userID, err := header.GetUserID(c)
 	if err != nil {
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
-	user, customErr := h.userService.GetMe(uint(userID))
-	if customErr != nil {
-		zap.S().Errorf("Me error: %v\n", customErr)
-		c.JSON(customErr.Code, gin.H{"error": customErr.Message})
+	userDomain, err := h.userService.GetMe(ctx, uint(userID))
+	if err != nil {
+		zap.S().Errorf("Get me error: %v\n", err)
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, mapper.UserDomainToDTO(userDomain))
 }
 
 // GetEmailsByUserIDs godoc
@@ -132,29 +132,27 @@ func (h *userHandler) GetMe(c *gin.Context) {
 //	@Description	Returns a list of emails for given user IDs
 //	@Tags			internal
 //	@Produce		json
-//	@Param			ids	query		[]int	true	"User IDs"
+//	@Param	ids	query	[]int	true "User IDs" collectionFormat(multi)
 //	@Success		200	{array}		string
-//	@Failure		400	{object}	map[string]string
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/emails [get]
 func (h *userHandler) GetEmailsByUserIDs(c *gin.Context) {
-	userIDsStrings := c.QueryArray("ids")
+	ctx := c.Request.Context()
 
-	userIDs := make([]uint, 0)
-	for _, s := range userIDsStrings {
-		userID, err := strconv.ParseUint(s, 10, 64)
-		if err != nil {
-			zap.S().Errorf("Get emails by user IDs error: %v\n", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		userIDs = append(userIDs, uint(userID))
-	}
-
-	emails, err := h.userService.GetEmailsByUserIDs(userIDs)
-	if err != nil {
-		zap.S().Errorf("Get emails error: %v\n", err)
-		c.JSON(err.Code, gin.H{"error": err.Message})
+	var getEmailsByUserIDsQuery query.GetEmailsByUserIDs
+	if err := c.ShouldBindQuery(&getEmailsByUserIDsQuery); err != nil {
+		zap.S().Errorf("Parse user IDs error: %v\n", err)
+		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
+
+	emails, err := h.userService.GetEmailsByUserIDs(ctx, getEmailsByUserIDsQuery.IDs)
+	if err != nil {
+		zap.S().Errorf("Get emails error: %v\n", err)
+		httpInfrastructure.RenderError(c, err)
+		return
+	}
+
 	c.JSON(http.StatusOK, emails)
 }

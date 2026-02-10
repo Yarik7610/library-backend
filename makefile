@@ -1,4 +1,4 @@
-.PHONY: up down start stop swagger watch book-added-topic
+.PHONY: up down swagger watch book-added-topic
 
 up:
 	docker compose up --build
@@ -6,25 +6,11 @@ up:
 down:
 	docker compose down -v
 
-start: 
-ifeq ($(SERVICE),)
-	docker compose start 
-else 
-	docker compose start $(SERVICE)-service
-endif
-
-stop:
-ifeq ($(SERVICE),)
-	docker compose stop
-else
-	docker compose stop $(SERVICE)-service postgres-$(SERVICE)
-endif
-
 swagger:
-	cd $(SERVICE)-service && \
+	cd $(SERVICE) && \
 	swag init \
-		-g cmd/$(SERVICE)-service/main.go \
-		-o docs \
+		-g cmd/$(SERVICE)/main.go \
+		-o docs 
 
 watch:
 ifeq ($(SERVICE),)

@@ -9,7 +9,7 @@ import (
 func UserModelToDomain(userModel *model.User) domain.User {
 	return domain.User{
 		ID:      userModel.ID,
-		Name:    userModel.Email,
+		Name:    userModel.Name,
 		Email:   userModel.Email,
 		IsAdmin: userModel.IsAdmin,
 	}

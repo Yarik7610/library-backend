@@ -1,4 +1,9 @@
 definitions:
+  dto.Error:
+    properties:
+      error:
+        type: string
+    type: object
   dto.SignInUserRequest:
     properties:
       email:
@@ -6,8 +11,8 @@ definitions:
       password:
         type: string
     required:
-      - email
-      - password
+    - email
+    - password
     type: object
   dto.SignUpUserRequest:
     properties:
@@ -16,22 +21,26 @@ definitions:
       name:
         type: string
       password:
+        maxLength: 30
         minLength: 5
         type: string
     required:
-      - email
-      - name
-      - password
+    - email
+    - name
+    - password
+    type: object
+  dto.Token:
+    properties:
+      accessToken:
+        type: string
     type: object
   dto.User:
     properties:
-      created_at:
-        type: string
       email:
         type: string
       id:
         type: integer
-      is_admin:
+      isAdmin:
         type: boolean
       name:
         type: string
@@ -43,16 +52,16 @@ paths:
     get:
       description: Returns a list of emails for given user IDs
       parameters:
-        - collectionFormat: csv
-          description: User IDs
-          in: query
-          items:
-            type: integer
-          name: ids
-          required: true
-          type: array
+      - collectionFormat: multi
+        description: User IDs
+        in: query
+        items:
+          type: integer
+        name: ids
+        required: true
+        type: array
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -61,91 +70,109 @@ paths:
               type: string
             type: array
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.Error'
       summary: Get emails by user IDs
       tags:
-        - internal
+      - internal
   /me:
     get:
-      description: Returns info about the authenticated user
+      description: Returns info about the authorized user
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/dto.User"
+            $ref: '#/definitions/dto.User'
         "401":
-          description: Unauthorized
+          description: The token is missing, invalid or expired
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
+        "404":
+          description: Entity not found
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.Error'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Get current user info
       tags:
-        - user
+      - user
   /sign-in:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Authorize existings user
       parameters:
-        - description: Sign in data
-          in: body
-          name: user
-          required: true
-          schema:
-            $ref: "#/definitions/dto.SignInUserRequest"
+      - description: Sign in payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignInUserRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Token'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
+        "404":
+          description: Entity not found
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.Error'
       summary: Authorize user
       tags:
-        - user
+      - user
   /sign-up:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Creates a new user account
       parameters:
-        - description: Sign up data
-          in: body
-          name: user
-          required: true
-          schema:
-            $ref: "#/definitions/dto.SignUpUserRequest"
+      - description: Sign up payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignUpUserRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: "#/definitions/dto.User"
+            $ref: '#/definitions/dto.User'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
+        "409":
+          description: Entity already exists
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.Error'
       summary: Register new user
       tags:
-        - user
+      - user
 swagger: "2.0"

@@ -8,7 +8,7 @@ type Config struct {
 	ServerPort           string `mapstructure:"SERVER_PORT"`
 	PostgresURL          string `mapstructure:"POSTGRES_URL"`
 	JWTSecret            string `mapstructure:"JWT_SECRET"`
-	JWTExpirationSeconds uint   `mapstucture:"JWT_EXPIRATION_SECONDS"`
+	JWTExpirationSeconds uint   `mapstructure:"JWT_EXPIRATION_SECONDS"`
 	Mail                 string `mapstructure:"MAIL"`
 }
 

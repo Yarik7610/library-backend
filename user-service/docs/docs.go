@@ -31,7 +31,7 @@ const docTemplate = `{
                         "items": {
                             "type": "integer"
                         },
-                        "collectionFormat": "csv",
+                        "collectionFormat": "multi",
                         "description": "User IDs",
                         "name": "ids",
                         "in": "query",
@@ -49,12 +49,15 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -67,7 +70,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns info about the authenticated user",
+                "description": "Returns info about the authorized user",
                 "produces": [
                     "application/json"
                 ],
@@ -83,12 +86,21 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "The token is missing, invalid or expired",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -109,7 +121,7 @@ const docTemplate = `{
                 "summary": "Authorize user",
                 "parameters": [
                     {
-                        "description": "Sign in data",
+                        "description": "Sign in payload",
                         "name": "user",
                         "in": "body",
                         "required": true,
@@ -122,19 +134,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Token"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -155,7 +173,7 @@ const docTemplate = `{
                 "summary": "Register new user",
                 "parameters": [
                     {
-                        "description": "Sign up data",
+                        "description": "Sign up payload",
                         "name": "user",
                         "in": "body",
                         "required": true,
@@ -172,12 +190,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "409": {
+                        "description": "Entity already exists",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -185,6 +212,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SignInUserRequest": {
             "type": "object",
             "required": [
@@ -216,23 +251,29 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string",
+                    "maxLength": 30,
                     "minLength": 5
+                }
+            }
+        },
+        "dto.Token": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
                 }
             }
         },
         "dto.User": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "is_admin": {
+                "isAdmin": {
                     "type": "boolean"
                 },
                 "name": {
