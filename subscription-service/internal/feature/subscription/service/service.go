@@ -1,145 +1,93 @@
 package service
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"slices"
-	"strconv"
-	"strings"
+	"context"
 
-	"github.com/Yarik7610/library-backend-common/custom"
-	"github.com/Yarik7610/library-backend-common/microservice"
-	"github.com/Yarik7610/library-backend-common/transport/http/route"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/domain"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/repository/postgres"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/repository/postgres/model"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/service/mapper"
+
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/errs"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/catalog"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/user"
 )
 
 type SubscriptionService interface {
-	GetCategorySubscribersEmails(category string) ([]string, *custom.Err)
-	GetUserBookCategories(userID uint) ([]string, *custom.Err)
-	Create(userID uint, category string) (*model.UserBookCategory, *custom.Err)
-	Delete(userID uint, category string) *custom.Err
+	GetBookCategorySubscribedUserEmails(ctx context.Context, bookCategory string) ([]string, error)
+	GetUserSubscribedBookCategories(ctx context.Context, userID uint) ([]string, error)
+	SubscribeToBookCategory(ctx context.Context, userID uint, bookCategory string) (*domain.UserBookCategory, error)
+	UnsubscribeFromBookCategory(ctx context.Context, userID uint, bookCategory string) error
 }
 
-type catalogService struct {
-	userBookCategoryRepository postgres.UserBookCategoryRepository
+type subscriptionService struct {
+	userBookCategorySubscriptionRepository postgres.UserBookCategorySubscriptionRepository
+	catalogMicroserviceClient              catalog.Client
+	userMicroserviceClient                 user.Client
 }
 
-func NewSubscriptionService(userBookCategoryRepository postgres.UserBookCategoryRepository) SubscriptionService {
-	return &catalogService{userBookCategoryRepository: userBookCategoryRepository}
+func NewSubscriptionService(
+	userBookCategorySubscriptionRepository postgres.UserBookCategorySubscriptionRepository,
+	catalogMicroserviceClient catalog.Client,
+	userMicroserviceClient user.Client,
+) SubscriptionService {
+	return &subscriptionService{
+		userBookCategorySubscriptionRepository: userBookCategorySubscriptionRepository,
+		catalogMicroserviceClient:              catalogMicroserviceClient,
+		userMicroserviceClient:                 userMicroserviceClient,
+	}
 }
 
-func (s *catalogService) GetCategorySubscribersEmails(category string) ([]string, *custom.Err) {
-	subscribersIDs, err := s.userBookCategoryRepository.GetBookCategoryUserIDs(category)
+func (s *subscriptionService) GetBookCategorySubscribedUserEmails(ctx context.Context, bookCategory string) ([]string, error) {
+	userIDs, err := s.userBookCategorySubscriptionRepository.GetSubscriptionUserIDs(ctx, bookCategory)
 	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+		return nil, err
 	}
 
-	emails, customErr := s.getEmailsByUserIDs(subscribersIDs)
-	if customErr != nil {
-		return nil, customErr
+	emails, err := s.userMicroserviceClient.GetEmailsByUserIDs(ctx, userIDs)
+	if err != nil {
+		return nil, err
 	}
 	return emails, nil
 }
 
-func (s *catalogService) GetUserBookCategories(userID uint) ([]string, *custom.Err) {
-	subscribedCategories, err := s.userBookCategoryRepository.GetUserBookCategories(userID)
+func (s *subscriptionService) GetUserSubscribedBookCategories(ctx context.Context, userID uint) ([]string, error) {
+	subscribedUserBookCategories, err := s.userBookCategorySubscriptionRepository.GetUserSubscribedBookCategories(ctx, userID)
 	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+		return nil, err
 	}
-	return subscribedCategories, nil
+	return subscribedUserBookCategories, nil
 }
 
-func (s *catalogService) Create(userID uint, category string) (*model.UserBookCategory, *custom.Err) {
-	exists, customErr := s.categoryExists(category)
-	if customErr != nil {
-		return nil, customErr
+func (s *subscriptionService) SubscribeToBookCategory(ctx context.Context, userID uint, bookCategory string) (*domain.UserBookCategory, error) {
+	exists, err := s.catalogMicroserviceClient.BookCategoryExists(ctx, bookCategory)
+	if err != nil {
+		return nil, err
 	}
 	if !exists {
-		return nil, custom.NewErr(http.StatusBadRequest, "can't subscribe on unknown category")
+		return nil, errs.NewEntityNotFoundError("Book category")
 	}
 
-	subscribedCategory := model.UserBookCategory{
-		UserID:   userID,
-		Category: category,
+	userBookCategoryModel := model.UserBookCategory{
+		UserID:       userID,
+		BookCategory: bookCategory,
 	}
-	err := s.userBookCategoryRepository.Create(&subscribedCategory)
-	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
+	if err := s.userBookCategorySubscriptionRepository.Create(ctx, &userBookCategoryModel); err != nil {
+		return nil, err
 	}
-	return &subscribedCategory, nil
+
+	userBookCategoryDomain := mapper.UserBookCategoryToDomain(&userBookCategoryModel)
+	return &userBookCategoryDomain, nil
 }
 
-func (s *catalogService) Delete(userID uint, category string) *custom.Err {
-	exists, customErr := s.categoryExists(category)
-	if customErr != nil {
-		return customErr
+func (s *subscriptionService) UnsubscribeFromBookCategory(ctx context.Context, userID uint, bookCategory string) error {
+	exists, err := s.catalogMicroserviceClient.BookCategoryExists(ctx, bookCategory)
+	if err != nil {
+		return err
 	}
 	if !exists {
-		return custom.NewErr(http.StatusBadRequest, "can't unsubscribe from unknown category")
+		return errs.NewEntityNotFoundError("Book category")
 	}
 
-	subscribedCategory, err := s.userBookCategoryRepository.FindUserBookCategory(userID, category)
-	if err != nil {
-		return custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
-	if subscribedCategory == nil {
-		return custom.NewErr(http.StatusBadRequest, "didn't find such category in your subscriptions")
-	}
-
-	err = s.userBookCategoryRepository.Delete(userID, category)
-	if err != nil {
-		return custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
-	return nil
-}
-
-func (s *catalogService) categoryExists(category string) (bool, *custom.Err) {
-	resp, err := http.Get(microservice.CATALOG_ADDRESS + route.CATALOG + route.CATEGORIES)
-	if err != nil {
-		return false, custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false, custom.NewErr(http.StatusInternalServerError, fmt.Sprintf("catalog microservice return status code: %d", resp.StatusCode))
-	}
-
-	var categories []string
-	if err := json.NewDecoder(resp.Body).Decode(&categories); err != nil {
-		return false, custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
-
-	category = strings.ToLower(category)
-	return slices.Contains(categories, category), nil
-}
-
-func (s *catalogService) getEmailsByUserIDs(userIDs []uint) ([]string, *custom.Err) {
-	req, err := http.NewRequest("GET", microservice.USER_ADDRESS+route.EMAILS, nil)
-	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
-
-	q := req.URL.Query()
-	for _, userID := range userIDs {
-		q.Add("ids", strconv.FormatUint(uint64(userID), 10))
-	}
-	req.URL.RawQuery = q.Encode()
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, custom.NewErr(http.StatusInternalServerError, fmt.Sprintf("user microservice return status code: %d", resp.StatusCode))
-	}
-
-	var emails []string
-	if err := json.NewDecoder(resp.Body).Decode(&emails); err != nil {
-		return nil, custom.NewErr(http.StatusInternalServerError, err.Error())
-	}
-	return emails, nil
+	return s.userBookCategorySubscriptionRepository.Delete(ctx, userID, bookCategory)
 }

@@ -4,6 +4,8 @@ import (
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/repository/postgres"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/service"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/transport/http"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/catalog"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/user"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -13,8 +15,11 @@ type Feature struct {
 }
 
 func NewFeature(postgresDB *gorm.DB) *Feature {
-	userBookCategoryRepository := postgres.NewUserBookCategoryRepository(postgresDB)
-	subscriptionService := service.NewSubscriptionService(userBookCategoryRepository)
+	catalogMicroserviceClient := catalog.NewClient()
+	userMicroserviceClient := user.NewClient()
+
+	userBookCategorySubscriptionRepository := postgres.NewUserBookCategorySubscriptionRepository(postgresDB)
+	subscriptionService := service.NewSubscriptionService(userBookCategorySubscriptionRepository, catalogMicroserviceClient, userMicroserviceClient)
 	httpSubscriptionHandler := http.NewSubscriptionHandler(subscriptionService)
 
 	httpRouter := http.NewRouter(httpSubscriptionHandler)

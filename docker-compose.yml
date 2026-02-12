@@ -18,6 +18,7 @@ services:
   kafka-1:
     image: apache/kafka:latest
     container_name: kafka-1
+    restart: always
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092 # Consumers, producers listen to this addr
@@ -41,6 +42,7 @@ services:
   kafka-2:
     image: apache/kafka:latest
     container_name: kafka-2
+    restart: always
     environment:
       KAFKA_NODE_ID: 2
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
@@ -64,6 +66,7 @@ services:
   kafka-3:
     image: apache/kafka:latest
     container_name: kafka-3
+    restart: always
     environment:
       KAFKA_NODE_ID: 3
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
@@ -87,6 +90,7 @@ services:
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
+    restart: always
     ports:
       - "8090:8080"
     environment:
@@ -102,6 +106,7 @@ services:
   api-gateway:
     container_name: "api-gateway"
     build: ./api-gateway
+    restart: always
     env_file:
       - ./.env
     environment:
