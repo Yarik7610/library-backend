@@ -42,7 +42,7 @@ func (c *client) BookCategoryExists(ctx context.Context, bookCategory string) (b
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return false, errs.NewInternalServerError().WithCause(fmt.Errorf("catalog microservice returned status code: %d", resp.StatusCode))
+		return false, errs.NewInternalServerError().WithCause(fmt.Errorf("Catalog microservice returned status code: %d", resp.StatusCode))
 	}
 
 	var bookCategories []string

@@ -47,7 +47,7 @@ func (c *client) GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]stri
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errs.NewInternalServerError().WithCause(fmt.Errorf("user microservice returned status code: %d", resp.StatusCode))
+		return nil, errs.NewInternalServerError().WithCause(fmt.Errorf("User microservice returned status code: %d", resp.StatusCode))
 	}
 
 	var emails []string

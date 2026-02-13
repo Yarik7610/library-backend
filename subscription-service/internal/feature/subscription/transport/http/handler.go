@@ -1,17 +1,16 @@
 package http
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/service"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/transport/http/dto"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/transport/http/mapper"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/errs"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/observability/logging"
 	httpInfrastructure "github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/header"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type SubscriptionHandler interface {
@@ -22,11 +21,17 @@ type SubscriptionHandler interface {
 }
 
 type subscriptionHandler struct {
+	logger              *logging.Logger
 	subscriptionService service.SubscriptionService
 }
 
-func NewSubscriptionHandler(subscriptionService service.SubscriptionService) SubscriptionHandler {
-	return &subscriptionHandler{subscriptionService: subscriptionService}
+func NewSubscriptionHandler(
+	logger *logging.Logger,
+	subscriptionService service.SubscriptionService) SubscriptionHandler {
+	return &subscriptionHandler{
+		logger:              logger,
+		subscriptionService: subscriptionService,
+	}
 }
 
 // GetBookCategorySubscribedUserEmails godoc
@@ -47,7 +52,7 @@ func (h *subscriptionHandler) GetBookCategorySubscribedUserEmails(c *gin.Context
 
 	emails, err := h.subscriptionService.GetBookCategorySubscribedUserEmails(ctx, bookCategory)
 	if err != nil {
-		zap.S().Errorf("Get book category subscribed user email error: %v\n", err)
+		h.logger.Error("Get book category subscribed user email error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -79,7 +84,7 @@ func (h *subscriptionHandler) GetUserSubscribedBookCategories(c *gin.Context) {
 
 	userSubscribedBookCategories, err := h.subscriptionService.GetUserSubscribedBookCategories(ctx, uint(userID))
 	if err != nil {
-		zap.S().Errorf("Get user subscribed book categories error: %v\n", err)
+		h.logger.Error("Get user subscribed book categories error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -118,12 +123,7 @@ func (h *subscriptionHandler) SubscribeToBookCategory(c *gin.Context) {
 
 	userBookCategoryDomain, err := h.subscriptionService.SubscribeToBookCategory(ctx, uint(userID), subscribeToBookCategoryDTO.BookCategory)
 	if err != nil {
-		var infrastructureError *errs.Error
-		if errors.As(err, &infrastructureError) {
-			zap.S().Errorf("Subscribe to book category error: %v", infrastructureError.Cause)
-		} else {
-			zap.S().Errorf("Subscribe to book category error: %v", err)
-		}
+		h.logger.Error("Subscribe to book category error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -157,7 +157,7 @@ func (h *subscriptionHandler) UnsubscribeFromBookCategory(c *gin.Context) {
 	bookCategory := c.Param("categoryName")
 
 	if err := h.subscriptionService.UnsubscribeFromBookCategory(ctx, uint(userID), bookCategory); err != nil {
-		zap.S().Errorf("Unsubscribe from book category error: %v\n", err)
+		h.logger.Error("Unsubscribe from book category error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}

@@ -3,23 +3,19 @@ package postgres
 import (
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/repository/postgres/model"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/config"
-	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func Connect() *gorm.DB {
-	db, err := gorm.Open(postgres.Open(config.Data.PostgresURL), &gorm.Config{})
+func Connect(config *config.Config) (*gorm.DB, error) {
+	db, err := gorm.Open(postgres.Open(config.PostgresURL), &gorm.Config{})
 	if err != nil {
-		zap.S().Fatalf("GORM open error: %v\n", err)
+		return nil, err
 	}
-	zap.S().Info("Successfully connected to Postgres")
 
-	err = db.AutoMigrate(&model.UserBookCategory{})
-	if err != nil {
-		zap.S().Fatalf("GORM auto migrate error: %v", err)
+	if err = db.AutoMigrate(&model.UserBookCategory{}); err != nil {
+		return nil, err
 	}
-	zap.S().Info("Successfully made auto migrate")
 
-	return db
+	return db, nil
 }
