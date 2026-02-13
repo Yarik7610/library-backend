@@ -1,19 +1,33 @@
 definitions:
-  dto.Create:
+  dto.Error:
     properties:
-      category:
+      error:
+        type: string
+    type: object
+  dto.SubscribeToBookCategoryRequest:
+    properties:
+      bookCategory:
         type: string
     required:
-      - category
+    - bookCategory
+    type: object
+  dto.UserBookCategory:
+    properties:
+      bookCategory:
+        type: string
+      id:
+        type: integer
+      userId:
+        type: integer
     type: object
 info:
   contact: {}
 paths:
   /subscriptions/books/categories:
     get:
-      description: Returns a list of categories for the user
+      description: Returns a list of book categories for the user
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -22,102 +36,108 @@ paths:
               type: string
             type: array
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
+        "401":
+          description: The token is missing, invalid or expired
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "404":
+          description: Entity not found
+          schema:
+            $ref: '#/definitions/dto.Error'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       security:
-        - BearerAuth: []
-      summary: Get categories the current user is subscribed to
+      - BearerAuth: []
+      summary: Get book categories the current user is subscribed to
       tags:
-        - subscription
+      - subscription
     post:
-      description: Adds the category to the user's subscriptions
+      description: Adds the book category to the user's book category subscriptions
       parameters:
-        - description: Category to subscribe
-          in: body
-          name: category
-          required: true
-          schema:
-            $ref: "#/definitions/dto.Create"
+      - description: Book category to subscribe
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SubscribeToBookCategoryRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.UserBookCategory'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
+        "401":
+          description: The token is missing, invalid or expired
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "404":
+          description: Entity not found
+          schema:
+            $ref: '#/definitions/dto.Error'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       security:
-        - BearerAuth: []
-      summary: Subscribe current user to a category
+      - BearerAuth: []
+      summary: Subscribe current user to a book category
       tags:
-        - subscription
+      - subscription
   /subscriptions/books/categories/{categoryName}:
     delete:
       description: Removes the category from the user's subscriptions
       parameters:
-        - description: Category name to unsubscribe
-          in: path
-          name: categoryName
-          required: true
-          type: string
+      - description: Category name to unsubscribe
+        in: path
+        name: categoryName
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+        "204":
+          description: No content
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
+        "401":
+          description: The token is missing, invalid or expired
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "404":
+          description: Entity not found
+          schema:
+            $ref: '#/definitions/dto.Error'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Unsubscribe current user from a category
       tags:
-        - subscription
+      - subscription
     get:
-      description: Returns emails of all users subscribed to the given category
+      description: Returns emails of all users subscribed to the given book category
       parameters:
-        - description: Category name
-          in: path
-          name: categoryName
-          required: true
-          type: string
+      - description: Category name
+        in: path
+        name: categoryName
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -126,18 +146,14 @@ paths:
               type: string
             type: array
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.Error'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get emails of users subscribed to a category
+            $ref: '#/definitions/dto.Error'
+      summary: Get emails of users subscribed to a book category
       tags:
-        - internal
+      - internal
 swagger: "2.0"

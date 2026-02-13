@@ -18,14 +18,14 @@ func NewRouter(subscriptionHandler SubscriptionHandler) *gin.Engine {
 	{
 		bookCategoryGroup := subscriptionGroup.Group(route.BOOKS + route.CATEGORIES)
 		{
-			bookCategoryGroup.GET("", subscriptionHandler.GetUserBookCategories)
-			bookCategoryGroup.POST("", subscriptionHandler.Create)
-			bookCategoryGroup.DELETE("/:categoryName", subscriptionHandler.Delete)
+			bookCategoryGroup.GET("", subscriptionHandler.GetUserSubscribedBookCategories)
+			bookCategoryGroup.POST("", subscriptionHandler.SubscribeToBookCategory)
+			bookCategoryGroup.DELETE("/:categoryName", subscriptionHandler.UnsubscribeFromBookCategory)
 		}
 
 		nonAPIGatewayGroup := bookCategoryGroup.Group("")
 		{
-			nonAPIGatewayGroup.GET("/:categoryName", subscriptionHandler.GetCategorySubscribersEmails)
+			nonAPIGatewayGroup.GET("/:categoryName", subscriptionHandler.GetBookCategorySubscribedUserEmails)
 		}
 	}
 

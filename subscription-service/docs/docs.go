@@ -22,14 +22,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns a list of categories for the user",
+                "description": "Returns a list of book categories for the user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "subscription"
                 ],
-                "summary": "Get categories the current user is subscribed to",
+                "summary": "Get book categories the current user is subscribed to",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -41,21 +41,27 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "The token is missing, invalid or expired",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -66,22 +72,22 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Adds the category to the user's subscriptions",
+                "description": "Adds the book category to the user's book category subscriptions",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "subscription"
                 ],
-                "summary": "Subscribe current user to a category",
+                "summary": "Subscribe current user to a book category",
                 "parameters": [
                     {
-                        "description": "Category to subscribe",
+                        "description": "Book category to subscribe",
                         "name": "category",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.Create"
+                            "$ref": "#/definitions/dto.SubscribeToBookCategoryRequest"
                         }
                     }
                 ],
@@ -89,28 +95,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.UserBookCategory"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "The token is missing, invalid or expired",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -118,14 +127,14 @@ const docTemplate = `{
         },
         "/subscriptions/books/categories/{categoryName}": {
             "get": {
-                "description": "Returns emails of all users subscribed to the given category",
+                "description": "Returns emails of all users subscribed to the given book category",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "internal"
                 ],
-                "summary": "Get emails of users subscribed to a category",
+                "summary": "Get emails of users subscribed to a book category",
                 "parameters": [
                     {
                         "type": "string",
@@ -146,21 +155,15 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -189,31 +192,31 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                    "204": {
+                        "description": "No content"
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "The token is missing, invalid or expired",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -221,14 +224,36 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.Create": {
+        "dto.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SubscribeToBookCategoryRequest": {
             "type": "object",
             "required": [
-                "category"
+                "bookCategory"
             ],
             "properties": {
-                "category": {
+                "bookCategory": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UserBookCategory": {
+            "type": "object",
+            "properties": {
+                "bookCategory": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "integer"
                 }
             }
         }

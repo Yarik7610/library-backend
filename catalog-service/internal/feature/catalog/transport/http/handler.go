@@ -54,7 +54,7 @@ func (h *catalogHandler) GetCategories(c *gin.Context) {
 
 	categories, err := h.catalogService.GetCategories(ctx)
 	if err != nil {
-		zap.S().Errorf("List categories error: %v\n", err)
+		zap.S().Errorf("Get categories error: %v\n", err)
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -80,7 +80,6 @@ func (h *catalogHandler) PreviewBook(c *gin.Context) {
 	bookIDString := c.Param("bookID")
 	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
 	if err != nil {
-		zap.S().Errorf("Preview book ID param error: %v\n", err)
 		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
@@ -117,7 +116,6 @@ func (h *catalogHandler) GetBooksByAuthorID(c *gin.Context) {
 	authorIDString := c.Param("authorID")
 	authorID, err := strconv.ParseUint(authorIDString, 10, 64)
 	if err != nil {
-		zap.S().Errorf("Get books by author ID param error: %v\n", err)
 		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
@@ -151,7 +149,6 @@ func (h *catalogHandler) GetBookPage(c *gin.Context) {
 	bookIDString := c.Param("bookID")
 	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
 	if err != nil {
-		zap.S().Errorf("Get book page book ID param error: %v\n", err)
 		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
@@ -227,7 +224,6 @@ func (h *catalogHandler) DeleteBook(c *gin.Context) {
 	bookIDString := c.Param("bookID")
 	bookID, err := strconv.ParseUint(bookIDString, 10, 64)
 	if err != nil {
-		zap.S().Errorf("Delete book ID param error: %v\n", err)
 		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
@@ -356,7 +352,7 @@ func (h *catalogHandler) GetBookViewsCount(c *gin.Context) {
 
 	viewsCount, err := h.catalogService.GetBookViewsCount(ctx, uint(bookID))
 	if err != nil {
-		zap.S().Errorf("Get popular books error: %v\n", err)
+		zap.S().Errorf("Get book views count error: %v\n", err)
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -448,7 +444,6 @@ func (h *catalogHandler) SearchBooks(c *gin.Context) {
 	}
 
 	if query.Author == "" && query.Title == "" {
-		zap.S().Error("Search books error: both author and title are empty")
 		httpInfrastructure.RenderError(c, errs.NewBadRequestError("Can't have both empty author and title query strings"))
 		return
 	}

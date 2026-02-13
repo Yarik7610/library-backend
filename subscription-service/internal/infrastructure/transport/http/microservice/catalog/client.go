@@ -30,7 +30,7 @@ func (c *client) BookCategoryExists(ctx context.Context, bookCategory string) (b
 	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+route.CATALOG+route.CATEGORIES, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+route.CATALOG+route.BOOKS+route.CATEGORIES, nil)
 	if err != nil {
 		return false, errs.NewInternalServerError().WithCause(err)
 	}

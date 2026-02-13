@@ -1,21 +1,24 @@
 package http
 
 import (
+	"errors"
 	"net/http"
-	"strconv"
 
-	"github.com/Yarik7610/library-backend-common/transport/http/header"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/service"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/transport/http/dto"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/transport/http/mapper"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/errs"
+	httpInfrastructure "github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/header"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
 type SubscriptionHandler interface {
-	GetCategorySubscribersEmails(c *gin.Context)
-	GetUserBookCategories(c *gin.Context)
-	Create(c *gin.Context)
-	Delete(c *gin.Context)
+	GetBookCategorySubscribedUserEmails(c *gin.Context)
+	GetUserSubscribedBookCategories(c *gin.Context)
+	SubscribeToBookCategory(c *gin.Context)
+	UnsubscribeFromBookCategory(c *gin.Context)
 }
 
 type subscriptionHandler struct {
@@ -26,96 +29,109 @@ func NewSubscriptionHandler(subscriptionService service.SubscriptionService) Sub
 	return &subscriptionHandler{subscriptionService: subscriptionService}
 }
 
-// GetCategorySubscribersEmails godoc
+// GetBookCategorySubscribedUserEmails godoc
 //
-//	@Summary		Get emails of users subscribed to a category
-//	@Description	Returns emails of all users subscribed to the given category
+//	@Summary		Get emails of users subscribed to a book category
+//	@Description	Returns emails of all users subscribed to the given book category
 //	@Tags			internal
 //	@Param			categoryName	path	string	true	"Category name"
 //	@Produce		json
 //	@Success		200	{array}		string
-//	@Failure		400	{object}	map[string]string
-//	@Failure		500	{object}	map[string]string
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/subscriptions/books/categories/{categoryName} [get]
-func (h *subscriptionHandler) GetCategorySubscribersEmails(c *gin.Context) {
-	category := c.Param("categoryName")
+func (h *subscriptionHandler) GetBookCategorySubscribedUserEmails(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	emails, err := h.subscriptionService.GetCategorySubscribersEmails(category)
+	bookCategory := c.Param("categoryName")
+
+	emails, err := h.subscriptionService.GetBookCategorySubscribedUserEmails(ctx, bookCategory)
 	if err != nil {
-		zap.S().Errorf("Get category subscribers IDs error: %v\n", err)
-		c.JSON(err.Code, gin.H{"error": err.Message})
+		zap.S().Errorf("Get book category subscribed user email error: %v\n", err)
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, emails)
 }
 
-// GetUserBookCategories godoc
+// GetUserSubscribedBookCategories godoc
 //
-//	@Summary		Get categories the current user is subscribed to
-//	@Description	Returns a list of categories for the user
+//	@Summary		Get book categories the current user is subscribed to
+//	@Description	Returns a list of book categories for the user
 //	@Tags			subscription
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Success		200	{array}		string
-//	@Failure		400	{object}	map[string]string
-//	@Failure		500	{object}	map[string]string
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		401 {object} 	dto.Error "The token is missing, invalid or expired"
+//	@Failure		404 {object} 	dto.Error "Entity not found"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/subscriptions/books/categories [get]
-func (h *subscriptionHandler) GetUserBookCategories(c *gin.Context) {
-	userIDString := c.GetHeader(header.USER_ID)
-	userID, err := strconv.ParseUint(userIDString, 10, 64)
+func (h *subscriptionHandler) GetUserSubscribedBookCategories(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userID, err := header.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
-	subscribedCategories, customErr := h.subscriptionService.GetUserBookCategories(uint(userID))
-	if customErr != nil {
-		zap.S().Errorf("Get subscribed categories error: %v\n", customErr)
-		c.JSON(customErr.Code, gin.H{"error": customErr.Message})
+	userSubscribedBookCategories, err := h.subscriptionService.GetUserSubscribedBookCategories(ctx, uint(userID))
+	if err != nil {
+		zap.S().Errorf("Get user subscribed book categories error: %v\n", err)
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, subscribedCategories)
+	c.JSON(http.StatusOK, userSubscribedBookCategories)
 }
 
-// Create godoc
+// SubscribeToBookCategory godoc
 //
-//	@Summary		Subscribe current user to a category
-//	@Description	Adds the category to the user's subscriptions
+//	@Summary		Subscribe current user to a book category
+//	@Description	Adds the book category to the user's book category subscriptions
 //	@Tags			subscription
-//	@Param			category	body	dto.Create	true	"Category to subscribe"
+//	@Param			category	body	dto.SubscribeToBookCategoryRequest	true	"Book category to subscribe"
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		200	{object}	map[string]string
-//	@Failure		400	{object}	map[string]string
-//	@Failure		500	{object}	map[string]string
+//	@Success		200	{object}	dto.UserBookCategory
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		401 {object} 	dto.Error "The token is missing, invalid or expired"
+//	@Failure		404 {object} 	dto.Error "Entity not found"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/subscriptions/books/categories [post]
-func (h *subscriptionHandler) Create(c *gin.Context) {
-	userIDString := c.GetHeader(header.USER_ID)
-	userID, err := strconv.ParseUint(userIDString, 10, 64)
+func (h *subscriptionHandler) SubscribeToBookCategory(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userID, err := header.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
-	var subscribeCategoryDTO dto.Create
-	if err := c.ShouldBindJSON(&subscribeCategoryDTO); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var subscribeToBookCategoryDTO dto.SubscribeToBookCategoryRequest
+	if err := c.ShouldBindJSON(&subscribeToBookCategoryDTO); err != nil {
+		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
 
-	subscribedCategory, customErr := h.subscriptionService.Create(uint(userID), subscribeCategoryDTO.Category)
-	if customErr != nil {
-		zap.S().Errorf("Subscribe category error: %v\n", customErr)
-		c.JSON(customErr.Code, gin.H{"error": customErr.Message})
+	userBookCategoryDomain, err := h.subscriptionService.SubscribeToBookCategory(ctx, uint(userID), subscribeToBookCategoryDTO.BookCategory)
+	if err != nil {
+		var infrastructureError *errs.Error
+		if errors.As(err, &infrastructureError) {
+			zap.S().Errorf("Subscribe to book category error: %v", infrastructureError.Cause)
+		} else {
+			zap.S().Errorf("Subscribe to book category error: %v", err)
+		}
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, subscribedCategory)
+	c.JSON(http.StatusOK, mapper.UserBookCategoryDomainToDTO(userBookCategoryDomain))
 }
 
-// Delete godoc
+// UnsubscribeFromBookCategory godoc
 //
 //	@Summary		Unsubscribe current user from a category
 //	@Description	Removes the category from the user's subscriptions
@@ -123,24 +139,26 @@ func (h *subscriptionHandler) Create(c *gin.Context) {
 //	@Param			categoryName	path	string	true	"Category name to unsubscribe"
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		200	{object}	map[string]string
-//	@Failure		400	{object}	map[string]string
-//	@Failure		500	{object}	map[string]string
+//	@Success		204	"No content"
+//	@Failure		400 {object} 	dto.Error "Bad request"
+//	@Failure		401 {object} 	dto.Error "The token is missing, invalid or expired"
+//	@Failure		404 {object} 	dto.Error "Entity not found"
+//	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/subscriptions/books/categories/{categoryName} [delete]
-func (h *subscriptionHandler) Delete(c *gin.Context) {
-	userIDString := c.GetHeader(header.USER_ID)
-	userID, err := strconv.ParseUint(userIDString, 10, 64)
+func (h *subscriptionHandler) UnsubscribeFromBookCategory(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userID, err := header.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 
-	category := c.Param("categoryName")
+	bookCategory := c.Param("categoryName")
 
-	customErr := h.subscriptionService.Delete(uint(userID), category)
-	if customErr != nil {
-		zap.S().Errorf("Unsubscribe category error: %v\n", customErr)
-		c.JSON(customErr.Code, gin.H{"error": customErr.Message})
+	if err := h.subscriptionService.UnsubscribeFromBookCategory(ctx, uint(userID), bookCategory); err != nil {
+		zap.S().Errorf("Unsubscribe from book category error: %v\n", err)
+		httpInfrastructure.RenderError(c, err)
 		return
 	}
 

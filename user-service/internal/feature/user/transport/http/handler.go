@@ -105,6 +105,7 @@ func (h *userHandler) SignIn(c *gin.Context) {
 //	@Success		200	{object}	dto.User
 //	@Failure		401 {object} 	dto.Error "The token is missing, invalid or expired"
 //	@Failure		404 {object} 	dto.Error "Entity not found"
+//	@Failure		409 {object} 	dto.Error "Entity already exists"
 //	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/me [get]
 func (h *userHandler) GetMe(c *gin.Context) {
@@ -142,14 +143,13 @@ func (h *userHandler) GetEmailsByUserIDs(c *gin.Context) {
 
 	var getEmailsByUserIDsQuery query.GetEmailsByUserIDs
 	if err := c.ShouldBindQuery(&getEmailsByUserIDsQuery); err != nil {
-		zap.S().Errorf("Parse user IDs error: %v\n", err)
 		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
 
 	emails, err := h.userService.GetEmailsByUserIDs(ctx, getEmailsByUserIDsQuery.IDs)
 	if err != nil {
-		zap.S().Errorf("Get emails error: %v\n", err)
+		zap.S().Errorf("Get emails by user IDs error: %v\n", err)
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
