@@ -8,13 +8,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func Create(userID uint, isAdmin bool) (string, error) {
+func Create(config *config.Config, userID uint, isAdmin bool) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
 		Subject:   strconv.FormatInt(int64(userID), 10),
 		Audience:  jwt.ClaimStrings{strconv.FormatBool(isAdmin)},
-		ExpiresAt: &jwt.NumericDate{Time: time.Now().Add(time.Second * time.Duration(config.Data.JWTExpirationSeconds))},
+		ExpiresAt: &jwt.NumericDate{Time: time.Now().Add(time.Second * time.Duration(config.JWTExpirationSeconds))},
 	})
 
-	tokenString, err := token.SignedString([]byte(config.Data.JWTSecret))
+	tokenString, err := token.SignedString([]byte(config.JWTSecret))
 	return tokenString, err
 }

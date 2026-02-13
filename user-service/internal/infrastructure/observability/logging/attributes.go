@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/errs"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/errs"
 )
 
 func String(key, val string) slog.Attr {

@@ -7,12 +7,13 @@ import (
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/dto"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/mapper"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/query"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/errs"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/logging"
 
 	httpInfrastructure "github.com/Yarik7610/library-backend/user-service/internal/infrastructure/transport/http"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/transport/http/header"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type UserHandler interface {
@@ -23,11 +24,20 @@ type UserHandler interface {
 }
 
 type userHandler struct {
+	config      *config.Config
+	logger      *logging.Logger
 	userService service.UserService
 }
 
-func NewUserHandler(userService service.UserService) UserHandler {
-	return &userHandler{userService: userService}
+func NewUserHandler(
+	config *config.Config,
+	logger *logging.Logger,
+	userService service.UserService) UserHandler {
+	return &userHandler{
+		config:      config,
+		logger:      logger,
+		userService: userService,
+	}
 }
 
 // SignUp godoc
@@ -54,7 +64,7 @@ func (h *userHandler) SignUp(c *gin.Context) {
 
 	userDomain := mapper.SignUpUserRequestDTOToDomain(&signUpUserRequestDTO)
 	if err := h.userService.SignUp(ctx, &userDomain); err != nil {
-		zap.S().Errorf("Sign up error: %v\n", err)
+		h.logger.Error("Sign up error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -87,7 +97,7 @@ func (h *userHandler) SignIn(c *gin.Context) {
 	userDomain := mapper.SignInUserRequestDTOToDomain(&signInUserRequestDTO)
 	tokenDomain, err := h.userService.SignIn(ctx, &userDomain)
 	if err != nil {
-		zap.S().Errorf("Sign in error: %v\n", err)
+		h.logger.Error("Sign in error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -105,7 +115,6 @@ func (h *userHandler) SignIn(c *gin.Context) {
 //	@Success		200	{object}	dto.User
 //	@Failure		401 {object} 	dto.Error "The token is missing, invalid or expired"
 //	@Failure		404 {object} 	dto.Error "Entity not found"
-//	@Failure		409 {object} 	dto.Error "Entity already exists"
 //	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/me [get]
 func (h *userHandler) GetMe(c *gin.Context) {
@@ -119,7 +128,7 @@ func (h *userHandler) GetMe(c *gin.Context) {
 
 	userDomain, err := h.userService.GetMe(ctx, uint(userID))
 	if err != nil {
-		zap.S().Errorf("Get me error: %v\n", err)
+		h.logger.Error("Get me error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -149,7 +158,7 @@ func (h *userHandler) GetEmailsByUserIDs(c *gin.Context) {
 
 	emails, err := h.userService.GetEmailsByUserIDs(ctx, getEmailsByUserIDsQuery.IDs)
 	if err != nil {
-		zap.S().Errorf("Get emails by user IDs error: %v\n", err)
+		h.logger.Error("Get emails by user IDs error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}

@@ -10,11 +10,10 @@ type Config struct {
 	JWTSecret            string `mapstructure:"JWT_SECRET"`
 	JWTExpirationSeconds uint   `mapstructure:"JWT_EXPIRATION_SECONDS"`
 	Mail                 string `mapstructure:"MAIL"`
+	Env                  string `mapstructure:"ENV"`
 }
 
-var Data Config
-
-func Init() error {
+func Init() (*Config, error) {
 	viper.AutomaticEnv()
 
 	viper.BindEnv("SERVER_PORT")
@@ -22,7 +21,11 @@ func Init() error {
 	viper.BindEnv("JWT_SECRET")
 	viper.BindEnv("JWT_EXPIRATION_SECONDS")
 	viper.BindEnv("MAIL")
+	viper.BindEnv("ENV")
 
-	err := viper.Unmarshal(&Data)
-	return err
+	var config Config
+	if err := viper.Unmarshal(&config); err != nil {
+		return nil, err
+	}
+	return &config, nil
 }

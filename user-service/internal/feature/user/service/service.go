@@ -6,6 +6,7 @@ import (
 	"github.com/Yarik7610/library-backend/user-service/internal/domain"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/repository/postgres"
 	mapper "github.com/Yarik7610/library-backend/user-service/internal/feature/user/service/mapper/postgres"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/errs"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/jwt"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/password"
@@ -19,11 +20,12 @@ type UserService interface {
 }
 
 type userService struct {
+	config         *config.Config
 	userRepository postgres.UserRepository
 }
 
-func NewUserService(userRepository postgres.UserRepository) UserService {
-	return &userService{userRepository: userRepository}
+func NewUserService(config *config.Config, userRepository postgres.UserRepository) UserService {
+	return &userService{config: config, userRepository: userRepository}
 }
 
 func (s *userService) SignUp(ctx context.Context, userDomain *domain.User) error {
@@ -51,7 +53,7 @@ func (s *userService) SignIn(ctx context.Context, userDomain *domain.User) (*dom
 		return nil, errs.NewBadRequestError("Wrong email or password")
 	}
 
-	accessToken, err := jwt.Create(foundUser.ID, foundUser.IsAdmin)
+	accessToken, err := jwt.Create(s.config, foundUser.ID, foundUser.IsAdmin)
 	if err != nil {
 		return nil, err
 	}

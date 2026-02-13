@@ -27,7 +27,7 @@ func NewContainer() *Container {
 	if err != nil {
 		logger.Fatal("Postgres connect error", logging.Error(err))
 	}
-	logger.Info("Connected to Postgres and seeded it succesfully")
+	logger.Info("Connected to Postgres and migrated it succesfully")
 
 	subscriptionFeature := subscription.NewFeature(logger, postgresDB)
 
