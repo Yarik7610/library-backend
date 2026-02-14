@@ -7,16 +7,19 @@ import (
 type Config struct {
 	Mail         string `mapstructure:"MAIL"`
 	MailPassword string `mapstructure:"MAIL_PASSWORD"`
+	Env          string `mapstructure:"ENV"`
 }
 
-var Data Config
-
-func Init() error {
+func Init() (*Config, error) {
 	viper.AutomaticEnv()
 
 	viper.BindEnv("MAIL")
 	viper.BindEnv("MAIL_PASSWORD")
+	viper.BindEnv("ENV")
 
-	err := viper.Unmarshal(&Data)
-	return err
+	var config Config
+	if err := viper.Unmarshal(&config); err != nil {
+		return nil, err
+	}
+	return &config, nil
 }

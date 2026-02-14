@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main ./cmd
+RUN go build -o main ./cmd/notification-service
 
 FROM golang:1.25-alpine
 

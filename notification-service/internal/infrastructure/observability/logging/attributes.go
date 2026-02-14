@@ -2,11 +2,8 @@ package logging
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
-
-	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/errs"
 )
 
 func String(key, val string) slog.Attr {
@@ -18,19 +15,6 @@ func Int(key string, value int) slog.Attr {
 }
 
 func Error(err error) slog.Attr {
-	var infrastructureError *errs.Error
-
-	if errors.As(err, &infrastructureError) {
-		attributes := []any{
-			Int("code", int(infrastructureError.Code)),
-			String("message", infrastructureError.Message),
-		}
-		if infrastructureError.Cause != nil {
-			attributes = append(attributes, String("cause", infrastructureError.Cause.Error()))
-		}
-		return slog.Group("error", attributes...)
-	}
-
 	return slog.String("error", err.Error())
 }
 

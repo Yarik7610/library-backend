@@ -17,10 +17,6 @@ func Int(key string, value int) slog.Attr {
 	return slog.Int(key, value)
 }
 
-func Any(key string, val any) slog.Attr {
-	return slog.Any(key, val)
-}
-
 func Error(err error) slog.Attr {
 	var infrastructureError *errs.Error
 

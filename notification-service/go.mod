@@ -3,10 +3,10 @@ module github.com/Yarik7610/library-backend/notification-service
 go 1.25.6
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20250901145417-c9f0035e87e1
+	github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b
+	github.com/lmittmann/tint v1.1.3
 	github.com/segmentio/kafka-go v0.4.49
 	github.com/spf13/viper v1.20.1
-	go.uber.org/zap v1.27.0
 )
 
 require (

@@ -50,8 +50,7 @@ func (s *sender) WithSubject(subject string) {
 
 func (s *sender) Send(body string, to []string) error {
 	message := s.buildMessage(body, to)
-	err := smtp.SendMail(s.Addr(), s.auth, s.from, to, message)
-	return err
+	return smtp.SendMail(s.Addr(), s.auth, s.from, to, message)
 }
 
 func (s *sender) buildMessage(body string, to []string) []byte {

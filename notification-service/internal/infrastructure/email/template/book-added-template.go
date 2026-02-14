@@ -1,13 +1,13 @@
-package email
+package template
 
 import (
 	"fmt"
 
-	"github.com/Yarik7610/library-backend-common/broker/event"
-	"github.com/Yarik7610/library-backend/notification-service/internal/utils"
+	"github.com/Yarik7610/library-backend-common/broker/kafka/event"
+	"github.com/Yarik7610/library-backend/notification-service/pkg/utils"
 )
 
-func FormatBookAddedEmailHTML(addedBook *event.BookAdded) string {
+func GetBookAddedEmailTemplate(addedBook *event.BookAdded) string {
 	return fmt.Sprintf(`
 		<!DOCTYPE html>
 		<html>
@@ -24,7 +24,7 @@ func FormatBookAddedEmailHTML(addedBook *event.BookAdded) string {
 		</html>`,
 		utils.Capitalize(addedBook.Category),
 		addedBook.Title,
-		addedBook.AuthorName,
+		addedBook.AuthorFullname,
 		addedBook.Year,
 	)
 }
