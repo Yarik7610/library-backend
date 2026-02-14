@@ -19,7 +19,7 @@ func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.
 	userRepository := postgres.NewUserRepository(postgresDB)
 
 	if err := seed.Admin(config, userRepository); err != nil {
-		logger.Fatal("Postgres seed error", logging.Error(err))
+		logger.Fatal("Postgres admin seed error", logging.Error(err))
 	}
 
 	userService := service.NewUserService(config, userRepository)

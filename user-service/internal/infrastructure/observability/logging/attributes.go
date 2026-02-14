@@ -35,7 +35,7 @@ func Error(err error) slog.Attr {
 		return slog.Group("error", attributes...)
 	}
 
-	return slog.Group("error", String("message", infrastructureError.Cause.Error()))
+	return slog.String("error", err.Error())
 }
 
 func TraceAttributes(ctx context.Context) []slog.Attr {

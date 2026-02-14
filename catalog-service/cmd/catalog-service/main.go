@@ -1,32 +1,14 @@
 package main
 
 import (
-	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/broker/kafka"
-
-	sharedKafka "github.com/Yarik7610/library-backend-common/broker/kafka"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/redis"
-	"go.uber.org/zap"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/app"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/logging"
 )
 
-func init() {
-	zap.ReplaceGlobals(zap.Must(zap.NewDevelopment()))
-}
-
 func main() {
-	if err := config.Init(); err != nil {
-		zap.S().Fatalf("Config load error: %v\n", err)
-	}
+	container := app.NewContainer()
 
-	postgresDB := postgres.Connect()
-	redisClient := redis.Connect()
-	bookAddedWriter := kafka.NewWriter(sharedKafka.BOOK_ADDED_TOPIC)
-
-	catalogFeature := catalog.NewFeature(postgresDB, redisClient, bookAddedWriter)
-
-	if err := catalogFeature.HTTPRouter.Run(":" + config.Data.ServerPort); err != nil {
-		zap.S().Fatalf("Start error on port %s: %v", config.Data.ServerPort, err)
+	if err := container.CatalogFeature.HTTPRouter.Run(":" + container.Config.ServerPort); err != nil {
+		container.Logger.Fatal("Start server error", logging.String("port", container.Config.ServerPort), logging.Error(err))
 	}
 }

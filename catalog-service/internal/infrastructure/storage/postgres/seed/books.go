@@ -7,27 +7,21 @@ import (
 
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
-	"go.uber.org/zap"
 )
 
-func Books(bookRepository postgres.BookRepository, pageRepository postgres.PageRepository, authorRepository postgres.AuthorRepository) {
+func Books(bookRepository postgres.BookRepository, pageRepository postgres.PageRepository, authorRepository postgres.AuthorRepository) error {
 	ctx := context.Background()
 
 	bookCount, err := bookRepository.Count(ctx)
 	if err != nil {
-		zap.S().Fatalf("Failed to count books for seed need: %v", err)
+		return err
 	}
 
 	if bookCount != 0 {
-		zap.S().Info("Seeded books already exist, skip seeding")
-		return
+		return nil
 	}
 
-	zap.S().Info("No books found, start seeding...")
-	if err := seedBooks(ctx, bookRepository, pageRepository, authorRepository); err != nil {
-		zap.S().Fatalf("Books seed error: %v", err)
-	}
-	zap.S().Info("Successfully seeded books")
+	return seedBooks(ctx, bookRepository, pageRepository, authorRepository)
 }
 
 func seedBooks(ctx context.Context, bookRepository postgres.BookRepository, pageRepository postgres.PageRepository, authorRepository postgres.AuthorRepository) error {

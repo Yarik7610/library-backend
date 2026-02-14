@@ -10,10 +10,10 @@ import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/mapper"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http/query"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/errs"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/logging"
 	httpInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/transport/http"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/transport/http/header"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type CatalogHandler interface {
@@ -33,11 +33,12 @@ type CatalogHandler interface {
 }
 
 type catalogHandler struct {
+	logger         *logging.Logger
 	catalogService service.CatalogService
 }
 
-func NewCatalogHandler(catalogService service.CatalogService) CatalogHandler {
-	return &catalogHandler{catalogService: catalogService}
+func NewCatalogHandler(logger *logging.Logger, catalogService service.CatalogService) CatalogHandler {
+	return &catalogHandler{logger: logger, catalogService: catalogService}
 }
 
 // GetCategories godoc
@@ -54,7 +55,7 @@ func (h *catalogHandler) GetCategories(c *gin.Context) {
 
 	categories, err := h.catalogService.GetCategories(ctx)
 	if err != nil {
-		zap.S().Errorf("Get categories error: %v\n", err)
+		h.logger.Error("Get categories error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -91,7 +92,7 @@ func (h *catalogHandler) PreviewBook(c *gin.Context) {
 
 	bookDomain, err := h.catalogService.PreviewBook(ctx, uint(bookID), uint(userID))
 	if err != nil {
-		zap.S().Errorf("Preview book error: %v\n", err)
+		h.logger.Error("Preview book error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -122,7 +123,7 @@ func (h *catalogHandler) GetBooksByAuthorID(c *gin.Context) {
 
 	bookDomains, err := h.catalogService.GetBooksByAuthorID(ctx, uint(authorID))
 	if err != nil {
-		zap.S().Errorf("Get books by author ID error: %v\n", err)
+		h.logger.Error("Get books by author ID error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -161,7 +162,7 @@ func (h *catalogHandler) GetBookPage(c *gin.Context) {
 
 	pageDomain, err := h.catalogService.GetBookPage(ctx, uint(bookID), query.PageNumber)
 	if err != nil {
-		zap.S().Errorf("Get book page error: %v\n", err)
+		h.logger.Error("Get book page error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -196,7 +197,7 @@ func (h *catalogHandler) AddBook(c *gin.Context) {
 
 	bookDomain := mapper.AddBookRequestToDomain(&createBookDTO)
 	if err := h.catalogService.AddBook(ctx, &bookDomain); err != nil {
-		zap.S().Errorf("Add book error: %v\n", err.Error())
+		h.logger.Error("Add book error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -230,7 +231,7 @@ func (h *catalogHandler) DeleteBook(c *gin.Context) {
 
 	err = h.catalogService.DeleteBook(ctx, uint(bookID))
 	if err != nil {
-		zap.S().Errorf("Delete book error: %v\n", err)
+		h.logger.Error("Delete book error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -265,7 +266,7 @@ func (h *catalogHandler) CreateAuthor(c *gin.Context) {
 
 	authorDomain := mapper.CreateAuthorRequestDTOToDomain(&createAuthorRequestDTO)
 	if err := h.catalogService.CreateAuthor(ctx, &authorDomain); err != nil {
-		zap.S().Errorf("Create author error: %v\n", err.Error())
+		h.logger.Error("Create author error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -298,7 +299,7 @@ func (h *catalogHandler) DeleteAuthor(c *gin.Context) {
 	}
 
 	if err := h.catalogService.DeleteAuthor(ctx, uint(authorID)); err != nil {
-		zap.S().Errorf("Delete author error: %v\n", err)
+		h.logger.Error("Delete author error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -321,7 +322,7 @@ func (h *catalogHandler) GetNewBooks(c *gin.Context) {
 
 	newBookDomains, err := h.catalogService.GetNewBooks(ctx)
 	if err != nil {
-		zap.S().Errorf("Get new books error: %v\n", err)
+		h.logger.Error("Get new books", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -352,7 +353,7 @@ func (h *catalogHandler) GetBookViewsCount(c *gin.Context) {
 
 	viewsCount, err := h.catalogService.GetBookViewsCount(ctx, uint(bookID))
 	if err != nil {
-		zap.S().Errorf("Get book views count error: %v\n", err)
+		h.logger.Error("Get book views count error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -374,7 +375,7 @@ func (h *catalogHandler) GetPopularBooks(c *gin.Context) {
 
 	popularBookDomains, err := h.catalogService.GetPopularBooks(ctx)
 	if err != nil {
-		zap.S().Errorf("Get popular books error: %v\n", err)
+		h.logger.Error("Get popular books error", logging.Error(err))
 		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
 		return
 	}
@@ -410,7 +411,7 @@ func (h *catalogHandler) ListBooksByCategory(c *gin.Context) {
 
 	bookDomains, err := h.catalogService.ListBooksByCategory(ctx, categoryName, query.Page, query.Count, query.Sort, query.Order)
 	if err != nil {
-		zap.S().Errorf("List books by category error: %v\n", err)
+		h.logger.Error("List books by category error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -460,7 +461,7 @@ func (h *catalogHandler) SearchBooks(c *gin.Context) {
 	}
 
 	if err != nil {
-		zap.S().Errorf("Search books error: %v", err)
+		h.logger.Error("Search books error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}

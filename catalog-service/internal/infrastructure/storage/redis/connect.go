@@ -6,21 +6,19 @@ import (
 
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
 	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
 )
 
-func Connect() *redis.Client {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", config.Data.RedisHost, config.Data.RedisPort),
+func Connect(config *config.Config) (*redis.Client, error) {
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", config.RedisHost, config.RedisPort),
 		Password: "",
 		DB:       0,
 	})
 
 	ctx := context.Background()
-	if err := rdb.Ping(ctx).Err(); err != nil {
-		zap.S().Fatalf("Redis connect error: %v", err)
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		return nil, err
 	}
-	zap.S().Info("Successfully connected to Redis")
 
-	return rdb
+	return redisClient, nil
 }

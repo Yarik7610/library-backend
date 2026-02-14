@@ -22,10 +22,7 @@ func Admin(config *config.Config, userRepository postgres.UserRepository) error 
 		return nil
 	}
 
-	if err := seedAdmin(ctx, config, userRepository); err != nil {
-		return err
-	}
-	return nil
+	return seedAdmin(ctx, config, userRepository)
 }
 
 func seedAdmin(ctx context.Context, config *config.Config, userRepository postgres.UserRepository) error {

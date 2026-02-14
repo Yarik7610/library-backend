@@ -13,8 +13,8 @@ import (
 	redisRepositories "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/redis"
 	postgresMapper "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service/mapper/postgres"
 	redisMapper "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service/mapper/redis"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/logging"
 	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -37,7 +37,8 @@ type CatalogService interface {
 }
 
 type catalogService struct {
-	db                       *gorm.DB
+	logger                   *logging.Logger
+	postgresDB               *gorm.DB
 	bookAddedWriter          *kafka.Writer
 	redisBookRepository      redisRepositories.BookRepository
 	postgresAuthorRepository postgres.AuthorRepository
@@ -46,14 +47,16 @@ type catalogService struct {
 }
 
 func NewCatalogService(
-	db *gorm.DB,
+	logger *logging.Logger,
+	postgresDB *gorm.DB,
 	bookAddedWriter *kafka.Writer,
 	redisBookRepository redisRepositories.BookRepository,
 	postgresAuthorRepository postgres.AuthorRepository,
 	postgresBookRepository postgres.BookRepository,
 	postgresPageRepository postgres.PageRepository) CatalogService {
 	return &catalogService{
-		db:                       db,
+		logger:                   logger,
+		postgresDB:               postgresDB,
 		bookAddedWriter:          bookAddedWriter,
 		redisBookRepository:      redisBookRepository,
 		postgresAuthorRepository: postgresAuthorRepository,
@@ -157,7 +160,7 @@ func (s *catalogService) PreviewBook(ctx context.Context, bookID, userID uint) (
 
 	if userID > 0 {
 		if err := s.redisBookRepository.UpdateViewsCount(ctx, bookID, userID); err != nil {
-			zap.S().Warnf("Skip update book views count with ID %s because of error: %v", bookID, err)
+			s.logger.Warn("Skip update book views count", logging.Int("bookID", int(bookID)), logging.Error(err))
 		}
 	}
 
@@ -172,7 +175,7 @@ func (s *catalogService) AddBook(ctx context.Context, bookDomain *domain.Book) e
 	var createdBookModel model.Book
 	var authorModel *model.Author
 
-	err := s.db.WithContext(txCtx).Transaction(func(tx *gorm.DB) error {
+	err := s.postgresDB.WithContext(txCtx).Transaction(func(tx *gorm.DB) error {
 		postgresAuthorRepositoryTX := s.postgresAuthorRepository.WithinTX(tx)
 		postgresPageRepositoryTX := s.postgresPageRepository.WithinTX(tx)
 		postgresBookRepositoryTX := s.postgresBookRepository.WithinTX(tx)
@@ -222,10 +225,10 @@ func (s *catalogService) AddBook(ctx context.Context, bookDomain *domain.Book) e
 			Year:           createdBookModel.Year,
 			Category:       createdBookModel.Category,
 		})
-	kafkaCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	kafkaCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	if err := s.bookAddedWriter.WriteMessages(kafkaCtx, kafka.Message{Value: bookAddedEvent}); err != nil {
-		zap.S().Errorf("Book added event write error: %v\n", err)
+		s.logger.Error("Book added event write error", logging.Error(err))
 	}
 
 	return nil
