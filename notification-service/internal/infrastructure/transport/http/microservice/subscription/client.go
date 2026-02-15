@@ -27,7 +27,7 @@ func (c *client) GetBookCategorySubscribedUserEmails(ctx context.Context, bookCa
 	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+route.SUBSCRIPTIONS+route.CATEGORIES+"/"+bookCategory, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+route.SUBSCRIPTIONS+route.BOOKS+route.CATEGORIES+"/"+bookCategory, nil)
 	if err != nil {
 		return nil, err
 	}

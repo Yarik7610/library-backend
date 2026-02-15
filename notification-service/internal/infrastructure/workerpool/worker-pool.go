@@ -6,46 +6,46 @@ import (
 
 type Pool[J any] interface {
 	Run(fn func(J))
-	Stop()
 	Feed(jobs []J)
+	Stop()
 }
 
 type pool[J any] struct {
-	size int
-	fn   func(J)
-	jobs chan J
-	wg   sync.WaitGroup
+	workersCount int
+	fn           func(J)
+	jobs         chan J
+	wg           sync.WaitGroup
 }
 
-func New[J any](size int) Pool[J] {
+func New[J any](workersCount, jobsMaxSize int) Pool[J] {
 	return &pool[J]{
-		size: size,
-		jobs: make(chan J, size),
+		workersCount: workersCount,
+		jobs:         make(chan J, jobsMaxSize),
 	}
 }
 
 func (p *pool[J]) Run(fn func(J)) {
 	p.fn = fn
-	for range p.size {
+	for range p.workersCount {
 		go p.worker()
+	}
+}
+
+func (p *pool[J]) Feed(jobs []J) {
+	for _, j := range jobs {
+		p.wg.Add(1)
+		p.jobs <- j
 	}
 }
 
 func (p *pool[J]) Stop() {
 	close(p.jobs)
-}
-
-func (p *pool[J]) Feed(tasks []J) {
-	for _, task := range tasks {
-		p.wg.Add(1)
-		p.jobs <- task
-	}
 	p.wg.Wait()
 }
 
 func (p *pool[J]) worker() {
-	for job := range p.jobs {
-		p.fn(job)
+	for j := range p.jobs {
+		p.fn(j)
 		p.wg.Done()
 	}
 }

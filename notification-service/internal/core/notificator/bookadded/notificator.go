@@ -3,7 +3,6 @@ package bookadded
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	"github.com/Yarik7610/library-backend-common/broker/kafka/event"
 	"github.com/Yarik7610/library-backend/notification-service/internal/core/job"
@@ -25,7 +24,8 @@ type notificator struct {
 	bookAddedReader    *kafka.Reader
 	emailSender        email.Sender
 	subscriptionClient subscription.Client
-	stop               chan struct{}
+	ctx                context.Context
+	cancel             context.CancelFunc
 }
 
 func NewNotificator(
@@ -34,49 +34,71 @@ func NewNotificator(
 	emailSender email.Sender,
 	subscriptionClient subscription.Client,
 ) Notificator {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	return &notificator{
 		logger:             logger,
 		bookAddedReader:    bookAddedReader,
 		emailSender:        emailSender,
 		subscriptionClient: subscriptionClient,
-		stop:               make(chan struct{}),
+		ctx:                ctx,
+		cancel:             cancel,
 	}
 }
 
 func (n *notificator) Stop() {
-	close(n.stop)
+	n.cancel()
+	n.bookAddedReader.Close()
 }
 
 func (n *notificator) Run() {
-	defer n.bookAddedReader.Close()
+	const (
+		WORKERS_COUNT = 20
+		JOBS_MAX_SIZE = 100
+	)
 
-	const WORKER_POOL_SIZE = 100
-
-	workerPool := n.startWorkerPool(WORKER_POOL_SIZE)
+	workerPool := n.startWorkerPool(WORKERS_COUNT, JOBS_MAX_SIZE)
 	defer workerPool.Stop()
 
 	for {
 		select {
-		case <-n.stop:
+		case <-n.ctx.Done():
 			n.logger.Info("Stopping book added notificator")
 			return
 		default:
 		}
 
-		message, err := n.readMessage()
+		message, err := n.bookAddedReader.FetchMessage(n.ctx)
 		if err != nil {
+			if n.ctx.Err() != nil {
+				return
+			}
+			n.logger.Error("Added book message fetch error", logging.Error(err))
 			continue
 		}
 
-		n.processMessage(workerPool, message)
+		if err := n.processMessage(workerPool, message); err != nil {
+			if n.ctx.Err() != nil {
+				return
+			}
+			n.logger.Error("Added book message process error", logging.Error(err))
+			continue
+		}
+
+		if err := n.bookAddedReader.CommitMessages(n.ctx, message); err != nil {
+			if n.ctx.Err() != nil {
+				return
+			}
+			n.logger.Error("Added book message commit error", logging.Any("message", message), logging.Error(err))
+		}
 	}
 }
 
-func (n *notificator) startWorkerPool(size int) workerpool.Pool[job.BookAdded] {
-	workerPool := workerpool.New[job.BookAdded](size)
+func (n *notificator) startWorkerPool(workersCount, jobsMaxSize int) workerpool.Pool[job.BookAdded] {
+	workerPool := workerpool.New[job.BookAdded](workersCount, jobsMaxSize)
 
 	workerPool.Run(func(job job.BookAdded) {
-		body := template.GetBookAddedEmailTemplate(job.AddedBook)
+		body := template.ParseBookAddedTemplate(job.AddedBook)
 
 		if err := n.emailSender.Send(body, []string{job.Email}); err != nil {
 			n.logger.Error("Added book send mail error", logging.String("email", job.Email), logging.Error(err))
@@ -86,50 +108,28 @@ func (n *notificator) startWorkerPool(size int) workerpool.Pool[job.BookAdded] {
 	return workerPool
 }
 
-func (n *notificator) readMessage() (kafka.Message, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	message, err := n.bookAddedReader.ReadMessage(ctx)
-	if err != nil {
-		n.logger.Error("Added book topic read message error", logging.Error(err))
-		return kafka.Message{}, err
-	}
-
-	return message, nil
-}
-
-func (n *notificator) processMessage(workerPool workerpool.Pool[job.BookAdded], message kafka.Message) {
+func (n *notificator) processMessage(workerPool workerpool.Pool[job.BookAdded], message kafka.Message) error {
 	addedBook, err := n.parseEvent(message.Value)
 	if err != nil {
-		return
+		return err
 	}
 
-	emails, err := n.fetchSubscribedUserEmails(addedBook.Category)
+	emails, err := n.subscriptionClient.GetBookCategorySubscribedUserEmails(n.ctx, addedBook.Category)
 	if err != nil {
-		return
+		return err
 	}
 
 	jobs := n.buildJobs(addedBook, emails)
 	workerPool.Feed(jobs)
+	return nil
 }
 
 func (n *notificator) parseEvent(data []byte) (*event.BookAdded, error) {
 	var addedBook event.BookAdded
 	if err := json.Unmarshal(data, &addedBook); err != nil {
-		n.logger.Error("Added book unmarshal error", logging.Error(err))
 		return nil, err
 	}
 	return &addedBook, nil
-}
-
-func (n *notificator) fetchSubscribedUserEmails(bookCategory string) ([]string, error) {
-	emails, err := n.subscriptionClient.GetBookCategorySubscribedUserEmails(context.Background(), bookCategory)
-	if err != nil {
-		n.logger.Error("Get book category subscribed user emails error", logging.Error(err))
-		return nil, err
-	}
-	return emails, nil
 }
 
 func (n *notificator) buildJobs(book *event.BookAdded, emails []string) []job.BookAdded {

@@ -7,7 +7,7 @@ import (
 	"github.com/Yarik7610/library-backend/notification-service/pkg/utils"
 )
 
-func GetBookAddedEmailTemplate(addedBook *event.BookAdded) string {
+func ParseBookAddedTemplate(addedBook *event.BookAdded) string {
 	return fmt.Sprintf(`
 		<!DOCTYPE html>
 		<html>

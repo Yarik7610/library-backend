@@ -10,12 +10,12 @@ func String(key, val string) slog.Attr {
 	return slog.String(key, val)
 }
 
-func Int(key string, value int) slog.Attr {
-	return slog.Int(key, value)
+func Any(key string, value any) slog.Attr {
+	return slog.Any(key, value)
 }
 
 func Error(err error) slog.Attr {
-	return slog.String("error", err.Error())
+	return String("error", err.Error())
 }
 
 func TraceAttributes(ctx context.Context) []slog.Attr {

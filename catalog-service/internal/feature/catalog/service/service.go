@@ -225,7 +225,7 @@ func (s *catalogService) AddBook(ctx context.Context, bookDomain *domain.Book) e
 			Year:           createdBookModel.Year,
 			Category:       createdBookModel.Category,
 		})
-	kafkaCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	kafkaCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	if err := s.bookAddedWriter.WriteMessages(kafkaCtx, kafka.Message{Value: bookAddedEvent}); err != nil {
 		s.logger.Error("Book added event write error", logging.Error(err))
