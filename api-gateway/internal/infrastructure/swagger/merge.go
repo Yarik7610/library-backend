@@ -1,40 +1,44 @@
 package swagger
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"maps"
 	"net/http"
-
-	"go.uber.org/zap"
+	"time"
 )
 
-func fetchDocsJSON(serviceURL string) map[string]any {
-	resp, err := http.Get(fmt.Sprintf("%s/swagger/doc.json", serviceURL))
+func fetchDocsJSON(microserviceAddress string) (map[string]any, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", microserviceAddress+"/swagger/doc.json", nil)
 	if err != nil {
-		zap.S().Errorf("Error fetching swagger from %s: %v\n", serviceURL, err)
-		return nil
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		zap.S().Errorf("Error fetching swagger from %s: %v\n, wrong status code: %d", serviceURL, resp.StatusCode)
-		return nil
+		return nil, fmt.Errorf("Microservice returned status code: %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		zap.S().Errorf("Error reading swagger body from %s: %v\n", serviceURL, err)
-		return nil
+		return nil, err
 	}
 
 	var m map[string]any
 	if err := json.Unmarshal(body, &m); err != nil {
-		zap.S().Errorf("Error unmarshalling swagger from %s: %v\n", serviceURL, err)
-		return nil
+		return nil, err
 	}
-	return m
+	return m, nil
 }
 
 func mergeDocs(docs ...map[string]any) map[string]any {

@@ -4,15 +4,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Yarik7610/library-backend/api-gateway/internal/app"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/jwt"
+
+	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/errs"
 
 	userContext "github.com/Yarik7610/library-backend/api-gateway/internal/app/context/user"
 	"github.com/gin-gonic/gin"
 )
 
-func AuthContext() gin.HandlerFunc {
+func AuthContext(config *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
@@ -22,14 +23,14 @@ func AuthContext() gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == authHeader {
-			app.NewUnauthorizedError(c)
+			errs.NewUnauthorizedError(c)
 			c.Abort()
 			return
 		}
 
-		claims, err := jwt.Verify(tokenString, config.Data.JWTSecret)
+		claims, err := jwt.Verify(tokenString, config.JWTSecret)
 		if err != nil {
-			app.NewUnauthorizedError(c)
+			errs.NewUnauthorizedError(c)
 			c.Abort()
 			return
 		}

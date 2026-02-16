@@ -6,11 +6,11 @@ require (
 	github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/lmittmann/tint v1.1.3
 	github.com/spf13/viper v1.20.1
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.6
-	go.uber.org/zap v1.27.0
 )
 
 require (

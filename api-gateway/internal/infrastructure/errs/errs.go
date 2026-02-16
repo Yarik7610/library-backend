@@ -1,4 +1,4 @@
-package app
+package errs
 
 import (
 	"net/http"
@@ -17,4 +17,8 @@ func NewUnauthorizedError(c *gin.Context) {
 
 func NewForbiddenError(c *gin.Context) {
 	c.JSON(http.StatusForbidden, Error{Error: "The token is valid, but lacks permission"})
+}
+
+func NewInternalServerError(c *gin.Context) {
+	c.JSON(http.StatusInternalServerError, Error{Error: "Internal server error"})
 }

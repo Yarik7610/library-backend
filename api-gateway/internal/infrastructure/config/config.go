@@ -7,16 +7,19 @@ import (
 type Config struct {
 	ServerPort string `mapstructure:"SERVER_PORT"`
 	JWTSecret  string `mapstructure:"JWT_SECRET"`
+	Env        string `mapstructure:"ENV"`
 }
 
-var Data Config
-
-func Init() error {
+func Init() (*Config, error) {
 	viper.AutomaticEnv()
 
 	viper.BindEnv("SERVER_PORT")
 	viper.BindEnv("JWT_SECRET")
+	viper.BindEnv("ENV")
 
-	err := viper.Unmarshal(&Data)
-	return err
+	var config Config
+	if err := viper.Unmarshal(&config); err != nil {
+		return nil, err
+	}
+	return &config, nil
 }

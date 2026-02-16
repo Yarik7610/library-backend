@@ -7,14 +7,15 @@ import (
 	"strconv"
 
 	"github.com/Yarik7610/library-backend-common/transport/http/header"
+	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/observability/logging"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
-func ForwardTo(target string) gin.HandlerFunc {
+func ForwardTo(logger *logging.Logger, target string) gin.HandlerFunc {
 	targetURL, err := url.Parse(target)
 	if err != nil {
-		zap.S().Fatalf("Failed to parse target URL %s: %v", target, err)
+		logger.Fatal("Forward URL parse error", logging.String("target", target), logging.Error(err))
+		return nil
 	}
 
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
@@ -37,7 +38,7 @@ func ForwardTo(target string) gin.HandlerFunc {
 	}
 
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		zap.S().Errorf("API-gateway error: %v\n", err)
+		logger.Error("API-gateway error:", logging.String("target", target), logging.Error(err))
 		http.Error(w, err.Error(), http.StatusBadGateway)
 	}
 
