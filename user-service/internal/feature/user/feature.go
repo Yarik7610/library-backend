@@ -15,16 +15,16 @@ type Feature struct {
 	HTTPRouter *gin.Engine
 }
 
-func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.DB) *Feature {
+func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.DB) (*Feature, error) {
 	userRepository := postgres.NewUserRepository(postgresDB)
 
 	if err := seed.Admin(config, userRepository); err != nil {
-		logger.Fatal("Postgres admin seed error", logging.Error(err))
+		return nil, err
 	}
 
 	userService := service.NewUserService(config, userRepository)
 	userHandler := http.NewUserHandler(config, logger, userService)
 
 	httpRouter := http.NewRouter(userHandler)
-	return &Feature{HTTPRouter: httpRouter}
+	return &Feature{HTTPRouter: httpRouter}, nil
 }

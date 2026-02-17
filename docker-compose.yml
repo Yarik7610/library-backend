@@ -103,6 +103,16 @@ services:
     networks:
       - e-commerce-backend
 
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    restart: always
+    ports:
+      - "16686:16686" # UI
+      - "4318:4318" # OTLP HTTP
+    networks:
+      - e-commerce-backend
+
   api-gateway:
     container_name: "api-gateway"
     build: ./api-gateway
@@ -148,8 +158,10 @@ services:
     env_file:
       - ./.env
     environment:
-      SERVER_PORT: 8081
+      SERVICE_NAME: user-service
+      HTTP_SERVER_PORT: 8081
       POSTGRES_URL: postgres://root:password@postgres-user:5432/db?sslmode=disable
+      JWT_EXPIRATION_SECONDS: 604800 # 7 days
     volumes:
       - ./user-service:/app
     networks:

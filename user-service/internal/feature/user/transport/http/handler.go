@@ -64,7 +64,7 @@ func (h *userHandler) SignUp(c *gin.Context) {
 
 	userDomain := mapper.SignUpUserRequestDTOToDomain(&signUpUserRequestDTO)
 	if err := h.userService.SignUp(ctx, &userDomain); err != nil {
-		h.logger.Error("Sign up error", logging.Error(err))
+		h.logger.Error(ctx, "Sign up error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -97,7 +97,7 @@ func (h *userHandler) SignIn(c *gin.Context) {
 	userDomain := mapper.SignInUserRequestDTOToDomain(&signInUserRequestDTO)
 	tokenDomain, err := h.userService.SignIn(ctx, &userDomain)
 	if err != nil {
-		h.logger.Error("Sign in error", logging.Error(err))
+		h.logger.Error(ctx, "Sign in error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -128,7 +128,7 @@ func (h *userHandler) GetMe(c *gin.Context) {
 
 	userDomain, err := h.userService.GetMe(ctx, uint(userID))
 	if err != nil {
-		h.logger.Error("Get me error", logging.Error(err))
+		h.logger.Error(ctx, "Get me error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -158,7 +158,7 @@ func (h *userHandler) GetEmailsByUserIDs(c *gin.Context) {
 
 	emails, err := h.userService.GetEmailsByUserIDs(ctx, getEmailsByUserIDsQuery.IDs)
 	if err != nil {
-		h.logger.Error("Get emails by user IDs error", logging.Error(err))
+		h.logger.Error(ctx, "Get emails by user IDs error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}

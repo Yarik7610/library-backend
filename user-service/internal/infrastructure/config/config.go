@@ -1,30 +1,21 @@
 package config
 
-import (
-	"github.com/spf13/viper"
-)
+import "github.com/ilyakaznacheev/cleanenv"
 
 type Config struct {
-	ServerPort           string `mapstructure:"SERVER_PORT"`
-	PostgresURL          string `mapstructure:"POSTGRES_URL"`
-	JWTSecret            string `mapstructure:"JWT_SECRET"`
-	JWTExpirationSeconds uint   `mapstructure:"JWT_EXPIRATION_SECONDS"`
-	Mail                 string `mapstructure:"MAIL"`
-	Env                  string `mapstructure:"ENV"`
+	Env                      string `env:"ENV"`
+	ServiceName              string `env:"SERVICE_NAME"`
+	HTTPServerPort           string `env:"HTTP_SERVER_PORT"`
+	PostgresURL              string `env:"POSTGRES_URL"`
+	Mail                     string `env:"MAIL"`
+	JWTSecret                string `env:"JWT_SECRET"`
+	JWTExpirationSeconds     uint   `env:"JWT_EXPIRATION_SECONDS"`
+	OTelExporterOTLPEndpoint string `env:"OTEL_EXPORTER_OTLP_ENDPOINT"`
 }
 
-func Init() (*Config, error) {
-	viper.AutomaticEnv()
-
-	viper.BindEnv("SERVER_PORT")
-	viper.BindEnv("POSTGRES_URL")
-	viper.BindEnv("JWT_SECRET")
-	viper.BindEnv("JWT_EXPIRATION_SECONDS")
-	viper.BindEnv("MAIL")
-	viper.BindEnv("ENV")
-
+func Parse() (*Config, error) {
 	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := cleanenv.ReadEnv(&config); err != nil {
 		return nil, err
 	}
 	return &config, nil

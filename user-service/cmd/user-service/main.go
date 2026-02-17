@@ -1,6 +1,12 @@
 package main
 
 import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/app"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/logging"
 )
@@ -8,7 +14,27 @@ import (
 func main() {
 	container := app.NewContainer()
 
-	if err := container.UserFeature.HTTPRouter.Run(":" + container.Config.ServerPort); err != nil {
-		container.Logger.Fatal("Start server error", logging.String("port", container.Config.ServerPort), logging.Error(err))
+	go func() {
+		container.Logger.Info(context.Background(), "Starting container")
+		if err := container.Start(); err != nil {
+			container.Logger.Fatal(context.Background(),
+				"Start container error",
+				logging.String("HTTP port", container.Config.HTTPServerPort),
+				logging.Error(err))
+		}
+	}()
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	container.Logger.Info(context.Background(), "Shutting container down gracefully")
+	if err := container.Stop(shutdownCtx); err != nil {
+		container.Logger.Fatal(context.Background(), "Gracefull container shutdown failed")
 	}
+	container.Logger.Info(context.Background(), "Container stopped gracefully")
 }

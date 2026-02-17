@@ -35,24 +35,29 @@ func NewLogger(env string) *Logger {
 	return &Logger{logger: slog.New(loggerHandler)}
 }
 
-func (l *Logger) Debug(msg string, attributes ...slog.Attr) {
-	l.logger.LogAttrs(context.Background(), slog.LevelDebug, msg, attributes...)
+func (l *Logger) Debug(ctx context.Context, msg string, attributes ...slog.Attr) {
+	attributes = append(attributes, traceAttributes(ctx)...)
+	l.logger.LogAttrs(ctx, slog.LevelDebug, msg, attributes...)
 }
 
-func (l *Logger) Info(msg string, attributes ...slog.Attr) {
-	l.logger.LogAttrs(context.Background(), slog.LevelInfo, msg, attributes...)
+func (l *Logger) Info(ctx context.Context, msg string, attributes ...slog.Attr) {
+	attributes = append(attributes, traceAttributes(ctx)...)
+	l.logger.LogAttrs(ctx, slog.LevelInfo, msg, attributes...)
 }
 
-func (l *Logger) Warn(msg string, attributes ...slog.Attr) {
-	l.logger.LogAttrs(context.Background(), slog.LevelWarn, msg, attributes...)
+func (l *Logger) Warn(ctx context.Context, msg string, attributes ...slog.Attr) {
+	attributes = append(attributes, traceAttributes(ctx)...)
+	l.logger.LogAttrs(ctx, slog.LevelWarn, msg, attributes...)
 }
 
-func (l *Logger) Error(msg string, attributes ...slog.Attr) {
-	l.logger.LogAttrs(context.Background(), slog.LevelError, msg, attributes...)
+func (l *Logger) Error(ctx context.Context, msg string, attributes ...slog.Attr) {
+	attributes = append(attributes, traceAttributes(ctx)...)
+	l.logger.LogAttrs(ctx, slog.LevelError, msg, attributes...)
 }
 
-func (l *Logger) Fatal(msg string, attributes ...slog.Attr) {
-	l.logger.LogAttrs(context.Background(), slog.LevelError, msg, attributes...)
+func (l *Logger) Fatal(ctx context.Context, msg string, attributes ...slog.Attr) {
+	attributes = append(attributes, traceAttributes(ctx)...)
+	l.logger.LogAttrs(ctx, slog.LevelError, msg, attributes...)
 	os.Exit(1)
 }
 
