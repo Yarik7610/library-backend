@@ -10,13 +10,13 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main ./cmd/api-gateway
+RUN go build -o /usr/local/bin/service-main ./cmd/api-gateway
 
 FROM golang:1.25-alpine
 
 WORKDIR /app
-COPY --from=builder /app/main .
+COPY --from=builder /usr/local/bin/service-main /usr/local/bin/service-main
 COPY --from=builder /go/bin/air /usr/local/bin/
 
-# CMD ["./main"]
+# CMD ["service-main"]
 CMD ["air", "-c", ".air.toml"]
