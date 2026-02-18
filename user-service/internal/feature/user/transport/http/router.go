@@ -1,6 +1,8 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/Yarik7610/library-backend-common/transport/http/route"
 	"github.com/Yarik7610/library-backend/user-service/docs"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
@@ -10,10 +12,11 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
-func NewRouter(config *config.Config, userHandler UserHandler) *gin.Engine {
+func NewRouter(config *config.Config, metricsHandler http.Handler, userHandler UserHandler) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(otelgin.Middleware(config.ServiceName))
+	r.GET("/metrics", gin.WrapH(metricsHandler))
 
 	docs.SwaggerInfo.BasePath = "/"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

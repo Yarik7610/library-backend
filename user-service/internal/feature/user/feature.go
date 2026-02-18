@@ -6,6 +6,7 @@ import (
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/logging"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/metrics"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/storage/postgres/seed"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -24,7 +25,11 @@ func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.
 
 	userService := service.NewUserService(config, userRepository)
 	userHandler := http.NewUserHandler(config, logger, userService)
+	metricsHandler, err := metrics.Init()
+	if err != nil {
+		return nil, err
+	}
 
-	httpRouter := http.NewRouter(config, userHandler)
+	httpRouter := http.NewRouter(config, metricsHandler, userHandler)
 	return &Feature{HTTPRouter: httpRouter}, nil
 }
