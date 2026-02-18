@@ -10,6 +10,7 @@ import (
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/errs"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/logging"
+	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/tracing"
 
 	httpInfrastructure "github.com/Yarik7610/library-backend/user-service/internal/infrastructure/transport/http"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/transport/http/header"
@@ -63,7 +64,12 @@ func (h *userHandler) SignUp(c *gin.Context) {
 	}
 
 	userDomain := mapper.SignUpUserRequestDTOToDomain(&signUpUserRequestDTO)
+
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.SignUp")
+	defer span.End()
+
 	if err := h.userService.SignUp(ctx, &userDomain); err != nil {
+		tracing.Error(span, err)
 		h.logger.Error(ctx, "Sign up error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
@@ -95,8 +101,13 @@ func (h *userHandler) SignIn(c *gin.Context) {
 	}
 
 	userDomain := mapper.SignInUserRequestDTOToDomain(&signInUserRequestDTO)
+
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.SignIn")
+	defer span.End()
+
 	tokenDomain, err := h.userService.SignIn(ctx, &userDomain)
 	if err != nil {
+		tracing.Error(span, err)
 		h.logger.Error(ctx, "Sign in error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
@@ -126,8 +137,12 @@ func (h *userHandler) GetMe(c *gin.Context) {
 		return
 	}
 
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetMe")
+	defer span.End()
+
 	userDomain, err := h.userService.GetMe(ctx, uint(userID))
 	if err != nil {
+		tracing.Error(span, err)
 		h.logger.Error(ctx, "Get me error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
@@ -156,8 +171,12 @@ func (h *userHandler) GetEmailsByUserIDs(c *gin.Context) {
 		return
 	}
 
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetEmailsByUserIDs")
+	defer span.End()
+
 	emails, err := h.userService.GetEmailsByUserIDs(ctx, getEmailsByUserIDsQuery.IDs)
 	if err != nil {
+		tracing.Error(span, err)
 		h.logger.Error(ctx, "Get emails by user IDs error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return

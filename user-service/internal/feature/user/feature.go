@@ -25,6 +25,6 @@ func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.
 	userService := service.NewUserService(config, userRepository)
 	userHandler := http.NewUserHandler(config, logger, userService)
 
-	httpRouter := http.NewRouter(userHandler)
+	httpRouter := http.NewRouter(config, userHandler)
 	return &Feature{HTTPRouter: httpRouter}, nil
 }
