@@ -60,8 +60,3 @@ func (l *Logger) Fatal(ctx context.Context, msg string, attributes ...slog.Attr)
 	l.logger.LogAttrs(ctx, slog.LevelError, msg, attributes...)
 	os.Exit(1)
 }
-
-func (l *Logger) With(attributes ...slog.Attr) *Logger {
-	updatedLoggerHandler := l.logger.Handler().WithAttrs(attributes)
-	return &Logger{logger: slog.New(updatedLoggerHandler)}
-}
