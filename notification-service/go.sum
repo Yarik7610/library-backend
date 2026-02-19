@@ -1,5 +1,5 @@
-github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b h1:o/I0z/T+wSJIKAcpqgXnDI+BW5nwCBXeS+ZWXq6e5m4=
-github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b/go.mod h1:P2rPl3zSN6murag7nSKLZy+vZP0wJTYwrspw7kpdHSo=
+github.com/Yarik7610/library-backend-common v0.0.0-20260219081414-d5334b3d7c53 h1:25PmW/Jz/emF6PQcwppyI2Mpo76tCJKboQodDkfvElA=
+github.com/Yarik7610/library-backend-common v0.0.0-20260219081414-d5334b3d7c53/go.mod h1:P2rPl3zSN6murag7nSKLZy+vZP0wJTYwrspw7kpdHSo=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=

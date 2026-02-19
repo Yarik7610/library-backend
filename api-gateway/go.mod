@@ -3,7 +3,7 @@ module github.com/Yarik7610/library-backend/api-gateway
 go 1.25.6
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b
+	github.com/Yarik7610/library-backend-common v0.0.0-20260219081414-d5334b3d7c53
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/lmittmann/tint v1.1.3

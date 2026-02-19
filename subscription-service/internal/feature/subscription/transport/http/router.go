@@ -16,7 +16,7 @@ func NewRouter(config *config.Config, metricsHandler http.Handler, subscriptionH
 	r := gin.Default()
 
 	r.Use(otelgin.Middleware(config.ServiceName))
-	r.GET("/metrics", gin.WrapH(metricsHandler))
+	r.GET(route.METRICS, gin.WrapH(metricsHandler))
 
 	docs.SwaggerInfo.BasePath = "/"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

@@ -14,7 +14,7 @@ require (
 	gorm.io/gorm v1.31.1
 )
 
-require github.com/Yarik7610/library-backend-common v0.0.0-20260209114637-85c00314fc8b
+require github.com/Yarik7610/library-backend-common v0.0.0-20260219081414-d5334b3d7c53
 
 require github.com/lmittmann/tint v1.1.3
 
