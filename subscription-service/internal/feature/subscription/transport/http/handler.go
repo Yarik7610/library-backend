@@ -6,8 +6,10 @@ import (
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/service"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/transport/http/dto"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/transport/http/mapper"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/errs"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/observability/logging"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/observability/tracing"
 	httpInfrastructure "github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/header"
 	"github.com/gin-gonic/gin"
@@ -21,14 +23,17 @@ type SubscriptionHandler interface {
 }
 
 type subscriptionHandler struct {
+	config              *config.Config
 	logger              *logging.Logger
 	subscriptionService service.SubscriptionService
 }
 
 func NewSubscriptionHandler(
+	config *config.Config,
 	logger *logging.Logger,
 	subscriptionService service.SubscriptionService) SubscriptionHandler {
 	return &subscriptionHandler{
+		config:              config,
 		logger:              logger,
 		subscriptionService: subscriptionService,
 	}
@@ -50,9 +55,13 @@ func (h *subscriptionHandler) GetBookCategorySubscribedUserEmails(c *gin.Context
 
 	bookCategory := c.Param("categoryName")
 
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetBookCategorySubscribedUserEmails")
+	defer span.End()
+
 	emails, err := h.subscriptionService.GetBookCategorySubscribedUserEmails(ctx, bookCategory)
 	if err != nil {
-		h.logger.Error("Get book category subscribed user email error", logging.Error(err))
+		tracing.Error(span, err)
+		h.logger.Error(ctx, "Get book category subscribed user email error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -82,9 +91,13 @@ func (h *subscriptionHandler) GetUserSubscribedBookCategories(c *gin.Context) {
 		return
 	}
 
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetUserSubscribedBookCategories")
+	defer span.End()
+
 	userSubscribedBookCategories, err := h.subscriptionService.GetUserSubscribedBookCategories(ctx, uint(userID))
 	if err != nil {
-		h.logger.Error("Get user subscribed book categories error", logging.Error(err))
+		tracing.Error(span, err)
+		h.logger.Error(ctx, "Get user subscribed book categories error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -121,9 +134,13 @@ func (h *subscriptionHandler) SubscribeToBookCategory(c *gin.Context) {
 		return
 	}
 
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.SubscribeToBookCategory")
+	defer span.End()
+
 	userBookCategoryDomain, err := h.subscriptionService.SubscribeToBookCategory(ctx, uint(userID), subscribeToBookCategoryDTO.BookCategory)
 	if err != nil {
-		h.logger.Error("Subscribe to book category error", logging.Error(err))
+		tracing.Error(span, err)
+		h.logger.Error(ctx, "Subscribe to book category error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}
@@ -156,8 +173,12 @@ func (h *subscriptionHandler) UnsubscribeFromBookCategory(c *gin.Context) {
 
 	bookCategory := c.Param("categoryName")
 
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.UnsubscribeFromBookCategory")
+	defer span.End()
+
 	if err := h.subscriptionService.UnsubscribeFromBookCategory(ctx, uint(userID), bookCategory); err != nil {
-		h.logger.Error("Unsubscribe from book category error", logging.Error(err))
+		tracing.Error(span, err)
+		h.logger.Error(ctx, "Unsubscribe from book category error", logging.Error(err))
 		httpInfrastructure.RenderError(c, err)
 		return
 	}

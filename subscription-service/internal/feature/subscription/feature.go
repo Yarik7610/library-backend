@@ -23,7 +23,7 @@ func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.
 
 	userBookCategorySubscriptionRepository := postgres.NewUserBookCategorySubscriptionRepository(postgresDB)
 	subscriptionService := service.NewSubscriptionService(userBookCategorySubscriptionRepository, catalogMicroserviceClient, userMicroserviceClient)
-	httpSubscriptionHandler := http.NewSubscriptionHandler(logger, subscriptionService)
+	httpSubscriptionHandler := http.NewSubscriptionHandler(config, logger, subscriptionService)
 	metricsHandler, err := metrics.Init()
 	if err != nil {
 		return nil, err

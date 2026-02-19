@@ -11,6 +11,7 @@ import (
 	"github.com/Yarik7610/library-backend-common/microservice"
 	"github.com/Yarik7610/library-backend-common/transport/http/route"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/errs"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type Client interface {
@@ -18,11 +19,17 @@ type Client interface {
 }
 
 type client struct {
-	baseURL string
+	baseURL    string
+	httpClient *http.Client
 }
 
 func NewClient() Client {
-	return &client{baseURL: microservice.USER_ADDRESS}
+	return &client{
+		baseURL: microservice.USER_ADDRESS,
+		httpClient: &http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+		},
+	}
 }
 
 func (c *client) GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]string, error) {
@@ -40,7 +47,7 @@ func (c *client) GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]stri
 	}
 	req.URL.RawQuery = query.Encode()
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, errs.NewInternalServerError().WithCause(err)
 	}

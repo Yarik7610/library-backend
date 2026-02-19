@@ -12,6 +12,7 @@ import (
 	"github.com/Yarik7610/library-backend-common/microservice"
 	"github.com/Yarik7610/library-backend-common/transport/http/route"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/errs"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type Client interface {
@@ -19,11 +20,17 @@ type Client interface {
 }
 
 type client struct {
-	baseURL string
+	baseURL    string
+	httpClient *http.Client
 }
 
 func NewClient() Client {
-	return &client{baseURL: microservice.CATALOG_ADDRESS}
+	return &client{
+		baseURL: microservice.CATALOG_ADDRESS,
+		httpClient: &http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+		},
+	}
 }
 
 func (c *client) BookCategoryExists(ctx context.Context, bookCategory string) (bool, error) {
@@ -35,7 +42,7 @@ func (c *client) BookCategoryExists(ctx context.Context, bookCategory string) (b
 		return false, errs.NewInternalServerError().WithCause(err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return false, errs.NewInternalServerError().WithCause(err)
 	}
