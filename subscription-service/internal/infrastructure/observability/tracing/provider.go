@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"

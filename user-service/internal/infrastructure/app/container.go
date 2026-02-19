@@ -66,7 +66,6 @@ func (c *Container) Start() error {
 
 func (c *Container) Stop(ctx context.Context) error {
 	if err := c.httpServer.Shutdown(ctx); err != nil {
-
 		return err
 	}
 
