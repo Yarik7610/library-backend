@@ -3,6 +3,7 @@ package postgres
 import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres/model"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
+	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -15,6 +16,10 @@ func Connect(config *config.Config) (*gorm.DB, error) {
 
 	err = db.AutoMigrate(&model.Author{}, &model.Book{}, &model.Page{})
 	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Use(otelgorm.NewPlugin()); err != nil {
 		return nil, err
 	}
 

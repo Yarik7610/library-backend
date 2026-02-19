@@ -10,6 +10,10 @@ scrape_configs:
     static_configs:
       - targets: ["user-service:8081"]
 
+  - job_name: "catalog-service"
+    static_configs:
+      - targets: ["catalog-service:8082"]
+
   - job_name: "subscription-service"
     static_configs:
       - targets: ["subscription-service:8083"]

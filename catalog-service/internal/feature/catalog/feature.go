@@ -5,6 +5,7 @@ import (
 	redisRepositories "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/redis"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres/seed"
 	"github.com/gin-gonic/gin"
@@ -18,23 +19,24 @@ type Feature struct {
 }
 
 func NewFeature(
+	config *config.Config,
 	logger *logging.Logger,
 	postgresDB *gorm.DB,
 	redisClient *redis.Client,
 	bookAddedWriter *kafka.Writer,
-) *Feature {
+) (*Feature, error) {
 	redisBookRepository := redisRepositories.NewBookRepository(redisClient)
 	postgresBookRepository := postgresRepositories.NewBookRepository(postgresDB)
 	postgresPageRepository := postgresRepositories.NewPageRepository(postgresDB)
 	postgresAuthorRepository := postgresRepositories.NewAuthorRepository(postgresDB)
 
 	if err := seed.Books(postgresBookRepository, postgresPageRepository, postgresAuthorRepository); err != nil {
-		logger.Fatal("Postgres books seed error", logging.Error(err))
+		return nil, err
 	}
 
 	catalogService := service.NewCatalogService(logger, postgresDB, bookAddedWriter, redisBookRepository, postgresAuthorRepository, postgresBookRepository, postgresPageRepository)
 	httpCatalogHandler := http.NewCatalogHandler(logger, catalogService)
 
 	httpRouter := http.NewRouter(httpCatalogHandler)
-	return &Feature{HTTPRouter: httpRouter}
+	return &Feature{HTTPRouter: httpRouter}, nil
 }

@@ -1,50 +1,87 @@
 package app
 
 import (
+	"context"
+	"errors"
 	"log"
+	"net/http"
 
 	sharedKafka "github.com/Yarik7610/library-backend-common/broker/kafka"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/broker/kafka"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/logging"
+	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/tracing"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/redis"
 )
 
 type Container struct {
-	Config         *config.Config
-	Logger         *logging.Logger
-	CatalogFeature *catalog.Feature
+	Config          *config.Config
+	Logger          *logging.Logger
+	httpServer      *http.Server
+	shutdownTracing func(context.Context) error
 }
 
 func NewContainer() *Container {
-	config, err := config.Init()
+	config, err := config.Parse()
 	if err != nil {
 		log.Fatalf("Config load error: %v\n", err)
 	}
 
 	logger := logging.NewLogger(config.Env)
 
+	shutdownTracing, err := tracing.Init(config)
+	if err != nil {
+		logger.Fatal(context.Background(), "Tracing init error", logging.Error(err))
+	}
+
 	postgresDB, err := postgres.Connect(config)
 	if err != nil {
-		logger.Fatal("Postgres connect error", logging.Error(err))
+		logger.Fatal(context.Background(), "Postgres connect error", logging.Error(err))
 	}
-	logger.Info("Connected to Postgres and migrated it succesfully")
 
 	redisClient, err := redis.Connect(config)
 	if err != nil {
-		logger.Fatal("Redis connect error", logging.Error(err))
+		logger.Fatal(context.Background(), "Redis connect error", logging.Error(err))
 	}
-	logger.Info("Successfully connected to Redis")
 
 	bookAddedWriter := kafka.NewWriter(sharedKafka.BOOK_ADDED_TOPIC)
 
-	catalogFeature := catalog.NewFeature(logger, postgresDB, redisClient, bookAddedWriter)
+	catalogFeature, err := catalog.NewFeature(config, logger, postgresDB, redisClient, bookAddedWriter)
+	if err != nil {
+		logger.Fatal(context.Background(), "Catalog feature init error", logging.Error(err))
+	}
+
+	httpServer := &http.Server{
+		Addr:    ":" + config.HTTPServerPort,
+		Handler: catalogFeature.HTTPRouter,
+	}
 
 	return &Container{
-		Config:         config,
-		Logger:         logger,
-		CatalogFeature: catalogFeature,
+		Config:          config,
+		Logger:          logger,
+		httpServer:      httpServer,
+		shutdownTracing: shutdownTracing,
 	}
+}
+
+func (c *Container) Start() error {
+	err := c.httpServer.ListenAndServe()
+	if errors.Is(err, http.ErrServerClosed) {
+		return nil
+	}
+	return err
+}
+
+func (c *Container) Stop(ctx context.Context) error {
+	if err := c.httpServer.Shutdown(ctx); err != nil {
+		return err
+	}
+
+	if err := c.shutdownTracing(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }

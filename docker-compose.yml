@@ -210,7 +210,8 @@ services:
     env_file:
       - ./.env
     environment:
-      SERVER_PORT: 8082
+      SERVICE_NAME: catalog-service
+      HTTP_SERVER_PORT: 8082
       POSTGRES_URL: postgres://root:password@postgres-catalog:5432/db?sslmode=disable
       REDIS_HOST: redis
       REDIS_PORT: 6379
