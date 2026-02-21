@@ -46,7 +46,7 @@ func NewContainer() *Container {
 		logger.Fatal(context.Background(), "Redis connect error", logging.Error(err))
 	}
 
-	bookAddedWriter := kafka.NewWriter(sharedKafka.BOOK_ADDED_TOPIC)
+	bookAddedWriter := kafka.NewOtelWriter(config, sharedKafka.BOOK_ADDED_TOPIC)
 
 	catalogFeature, err := catalog.NewFeature(config, logger, postgresDB, redisClient, bookAddedWriter)
 	if err != nil {

@@ -23,11 +23,11 @@ type pageRepository struct {
 }
 
 func NewPageRepository(db *gorm.DB) PageRepository {
-	return &pageRepository{name: "Page(s)", timeout: 500 * time.Millisecond, db: db}
+	return &pageRepository{name: "Page(s)", timeout: 1 * time.Second, db: db}
 }
 
 func (r *pageRepository) WithinTX(tx *gorm.DB) PageRepository {
-	return &pageRepository{name: "Page(s)", timeout: 500 * time.Millisecond, db: tx}
+	return &pageRepository{name: "Page(s)", timeout: 1 * time.Second, db: tx}
 }
 
 func (r *pageRepository) Create(ctx context.Context, page *model.Page) error {

@@ -40,7 +40,7 @@ type bookRepository struct {
 }
 
 func NewBookRepository(rdb *redis.Client) BookRepository {
-	return &bookRepository{name: "Book(s)", timeout: 500 * time.Millisecond, rdb: rdb}
+	return &bookRepository{name: "Book(s)", timeout: 1 * time.Second, rdb: rdb}
 }
 
 func (r *bookRepository) SetCategories(ctx context.Context, categories []string) error {
@@ -144,7 +144,13 @@ func (r *bookRepository) GetPopularBookIDs(ctx context.Context) ([]string, error
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	popularBookIDs, err := r.rdb.ZRevRange(ctx, POPULAR_BOOKS_KEY, 0, POPULAR_BOOKS_COUNT-1).Result()
+	popularBookIDs, err := r.rdb.ZRangeArgs(ctx, redis.ZRangeArgs{
+		Key:   POPULAR_BOOKS_KEY,
+		Start: 0,
+		Stop:  POPULAR_BOOKS_COUNT - 1,
+		Rev:   true,
+	},
+	).Result()
 	if err != nil {
 		if redisInfrastructure.IsNil(err) {
 			return nil, nil

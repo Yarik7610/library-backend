@@ -25,7 +25,7 @@ type userRepository struct {
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
-	return &userRepository{name: "User(s)", timeout: 500 * time.Millisecond, db: db}
+	return &userRepository{name: "User(s)", timeout: 1 * time.Second, db: db}
 }
 
 func (r *userRepository) Create(ctx context.Context, user *model.User) error {

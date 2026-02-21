@@ -23,11 +23,11 @@ type authorRepository struct {
 }
 
 func NewAuthorRepository(db *gorm.DB) AuthorRepository {
-	return &authorRepository{name: "Author(s)", timeout: 500 * time.Millisecond, db: db}
+	return &authorRepository{name: "Author(s)", timeout: 1 * time.Second, db: db}
 }
 
 func (r *authorRepository) WithinTX(tx *gorm.DB) AuthorRepository {
-	return &authorRepository{name: "Author(s)", timeout: 500 * time.Millisecond, db: tx}
+	return &authorRepository{name: "Author(s)", timeout: 1 * time.Second, db: tx}
 }
 
 func (r *authorRepository) Create(ctx context.Context, author *model.Author) error {

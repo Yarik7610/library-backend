@@ -28,7 +28,7 @@ type bookCategorySubscriptionRepository struct {
 func NewUserBookCategorySubscriptionRepository(db *gorm.DB) UserBookCategorySubscriptionRepository {
 	return &bookCategorySubscriptionRepository{
 		name:    "Book category subscription(s)",
-		timeout: 500 * time.Millisecond,
+		timeout: 1 * time.Second,
 		db:      db,
 	}
 }

@@ -36,11 +36,11 @@ type bookRepository struct {
 }
 
 func NewBookRepository(db *gorm.DB) BookRepository {
-	return &bookRepository{name: "Book(s)", timeout: 500 * time.Millisecond, db: db}
+	return &bookRepository{name: "Book(s)", timeout: 1 * time.Second, db: db}
 }
 
 func (r *bookRepository) WithinTX(tx *gorm.DB) BookRepository {
-	return &bookRepository{name: "Books(s)", timeout: 500 * time.Millisecond, db: tx}
+	return &bookRepository{name: "Books(s)", timeout: 1 * time.Second, db: tx}
 }
 
 func (r *bookRepository) GetCategories(ctx context.Context) ([]string, error) {

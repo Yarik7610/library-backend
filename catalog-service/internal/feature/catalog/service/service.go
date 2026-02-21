@@ -13,6 +13,7 @@ import (
 	redisRepositories "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/redis"
 	postgresMapper "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service/mapper/postgres"
 	redisMapper "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service/mapper/redis"
+	kafkaInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/broker/kafka"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/logging"
 	"github.com/segmentio/kafka-go"
 	"gorm.io/gorm"
@@ -39,7 +40,7 @@ type CatalogService interface {
 type catalogService struct {
 	logger                   *logging.Logger
 	postgresDB               *gorm.DB
-	bookAddedWriter          *kafka.Writer
+	bookAddedWriter          *kafkaInfrastructure.OtelWriter
 	redisBookRepository      redisRepositories.BookRepository
 	postgresAuthorRepository postgres.AuthorRepository
 	postgresBookRepository   postgres.BookRepository
@@ -49,7 +50,7 @@ type catalogService struct {
 func NewCatalogService(
 	logger *logging.Logger,
 	postgresDB *gorm.DB,
-	bookAddedWriter *kafka.Writer,
+	bookAddedWriter *kafkaInfrastructure.OtelWriter,
 	redisBookRepository redisRepositories.BookRepository,
 	postgresAuthorRepository postgres.AuthorRepository,
 	postgresBookRepository postgres.BookRepository,
@@ -77,7 +78,7 @@ func (s *catalogService) GetCategories(ctx context.Context) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		go s.redisBookRepository.SetCategories(ctx, categories)
+		go s.redisBookRepository.SetCategories(context.WithoutCancel(ctx), categories)
 	}
 
 	return categories, nil
@@ -99,7 +100,7 @@ func (s *catalogService) GetNewBooks(ctx context.Context) ([]domain.Book, error)
 	}
 
 	postgresNewBookDomains := postgresMapper.BookWithAuthorModelsToDomains(postgresNewBookWithAuthorModels)
-	go s.redisBookRepository.SetNew(ctx, redisMapper.BookDomainsToBookWithAuthorModels(postgresNewBookDomains))
+	go s.redisBookRepository.SetNew(context.WithoutCancel(ctx), redisMapper.BookDomainsToBookWithAuthorModels(postgresNewBookDomains))
 	return postgresNewBookDomains, nil
 }
 
@@ -160,7 +161,7 @@ func (s *catalogService) PreviewBook(ctx context.Context, bookID, userID uint) (
 
 	if userID > 0 {
 		if err := s.redisBookRepository.UpdateViewsCount(ctx, bookID, userID); err != nil {
-			s.logger.Warn("Skip update book views count", logging.Int("bookID", int(bookID)), logging.Error(err))
+			s.logger.Warn(ctx, "Skip update book views count", logging.Int("bookID", int(bookID)), logging.Error(err))
 		}
 	}
 
@@ -225,10 +226,14 @@ func (s *catalogService) AddBook(ctx context.Context, bookDomain *domain.Book) e
 			Year:           createdBookModel.Year,
 			Category:       createdBookModel.Category,
 		})
+	if err != nil {
+		return err
+	}
+
 	kafkaCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	if err := s.bookAddedWriter.WriteMessages(kafkaCtx, kafka.Message{Value: bookAddedEvent}); err != nil {
-		s.logger.Error("Book added event write error", logging.Error(err))
+		s.logger.Error(ctx, "Book added event write error", logging.Error(err))
 	}
 
 	return nil
