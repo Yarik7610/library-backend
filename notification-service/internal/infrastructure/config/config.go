@@ -1,24 +1,20 @@
 package config
 
 import (
-	"github.com/spf13/viper"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
-	Mail         string `mapstructure:"MAIL"`
-	MailPassword string `mapstructure:"MAIL_PASSWORD"`
-	Env          string `mapstructure:"ENV"`
+	Env                      string `env:"ENV"`
+	ServiceName              string `env:"SERVICE_NAME"`
+	Mail                     string `env:"MAIL"`
+	MailPassword             string `env:"MAIL_PASSWORD"`
+	OTelExporterOTLPEndpoint string `env:"OTEL_EXPORTER_OTLP_ENDPOINT"`
 }
 
-func Init() (*Config, error) {
-	viper.AutomaticEnv()
-
-	viper.BindEnv("MAIL")
-	viper.BindEnv("MAIL_PASSWORD")
-	viper.BindEnv("ENV")
-
+func Parse() (*Config, error) {
 	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := cleanenv.ReadEnv(&config); err != nil {
 		return nil, err
 	}
 	return &config, nil

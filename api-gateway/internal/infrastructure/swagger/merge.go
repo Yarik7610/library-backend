@@ -11,7 +11,7 @@ import (
 )
 
 func fetchDocsJSON(microserviceAddress string) (map[string]any, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", microserviceAddress+"/swagger/doc.json", nil)

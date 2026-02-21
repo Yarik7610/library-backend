@@ -9,6 +9,7 @@ import (
 
 	"github.com/Yarik7610/library-backend-common/microservice"
 	"github.com/Yarik7610/library-backend-common/transport/http/route"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type Client interface {
@@ -16,15 +17,21 @@ type Client interface {
 }
 
 type client struct {
-	baseURL string
+	baseURL    string
+	httpClient *http.Client
 }
 
 func NewClient() Client {
-	return &client{baseURL: microservice.SUBSCRIPTIONS_ADDRESS}
+	return &client{
+		baseURL: microservice.SUBSCRIPTIONS_ADDRESS,
+		httpClient: &http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+		},
+	}
 }
 
 func (c *client) GetBookCategorySubscribedUserEmails(ctx context.Context, bookCategory string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+route.SUBSCRIPTIONS+route.BOOKS+route.CATEGORIES+"/"+bookCategory, nil)
@@ -32,7 +39,7 @@ func (c *client) GetBookCategorySubscribedUserEmails(ctx context.Context, bookCa
 		return nil, err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

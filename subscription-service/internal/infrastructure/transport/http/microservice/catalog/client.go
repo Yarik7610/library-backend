@@ -34,7 +34,7 @@ func NewClient() Client {
 }
 
 func (c *client) BookCategoryExists(ctx context.Context, bookCategory string) (bool, error) {
-	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+route.CATALOG+route.BOOKS+route.CATEGORIES, nil)

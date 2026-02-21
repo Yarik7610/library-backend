@@ -264,6 +264,8 @@ services:
     restart: always
     env_file:
       - ./.env
+    environment:
+      SERVICE_NAME: notification-service
     volumes:
       - ./notification-service:/app
     networks:

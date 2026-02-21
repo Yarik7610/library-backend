@@ -33,7 +33,7 @@ func NewClient() Client {
 }
 
 func (c *client) GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+route.EMAILS, nil)
