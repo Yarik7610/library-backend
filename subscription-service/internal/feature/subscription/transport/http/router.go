@@ -15,7 +15,12 @@ import (
 func NewRouter(config *config.Config, metricsHandler http.Handler, subscriptionHandler SubscriptionHandler) *gin.Engine {
 	r := gin.Default()
 
-	r.Use(otelgin.Middleware(config.ServiceName))
+	r.Use(otelgin.Middleware(config.ServiceName,
+		otelgin.WithGinFilter(func(c *gin.Context) bool {
+			return c.FullPath() != route.METRICS
+		}),
+	))
+
 	r.GET(route.METRICS, gin.WrapH(metricsHandler))
 
 	docs.SwaggerInfo.BasePath = "/"
