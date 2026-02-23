@@ -4,7 +4,7 @@ tmp_dir = "tmp"
 [build]
   poll = true
   poll_interval = 500
-  kill_delay = "1s"
+  kill_delay = "10s"
   send_interrupt = true
   args_bin = []
   bin = "./tmp/main"

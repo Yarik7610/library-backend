@@ -19,6 +19,7 @@ func main() {
 		if err := container.Start(); err != nil {
 			container.Logger.Fatal(context.Background(),
 				"Start container error",
+				logging.String("HTTP port", container.Config.HTTPServerPort),
 				logging.Error(err))
 		}
 	}()
@@ -33,7 +34,7 @@ func main() {
 
 	container.Logger.Info(context.Background(), "Shutting container down gracefully")
 	if err := container.Stop(shutdownCtx); err != nil {
-		container.Logger.Fatal(context.Background(), "Gracefull container shutdown failed")
+		container.Logger.Fatal(context.Background(), "Graceful container shutdown failed", logging.Error(err))
 	}
 	container.Logger.Info(context.Background(), "Container stopped gracefully")
 }

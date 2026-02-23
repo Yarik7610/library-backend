@@ -15,8 +15,8 @@ import (
 )
 
 type Notificator interface {
-	Run()
-	Stop()
+	Run(ctx context.Context)
+	Stop(ctx context.Context)
 }
 
 type notificator struct {
@@ -24,8 +24,6 @@ type notificator struct {
 	bookAddedReader    *kafka.Reader
 	emailSender        email.Sender
 	subscriptionClient subscription.Client
-	ctx                context.Context
-	cancel             context.CancelFunc
 }
 
 func NewNotificator(
@@ -34,87 +32,81 @@ func NewNotificator(
 	emailSender email.Sender,
 	subscriptionClient subscription.Client,
 ) Notificator {
-	ctx, cancel := context.WithCancel(context.Background())
-
 	return &notificator{
 		logger:             logger,
 		bookAddedReader:    bookAddedReader,
 		emailSender:        emailSender,
 		subscriptionClient: subscriptionClient,
-		ctx:                ctx,
-		cancel:             cancel,
 	}
 }
 
-func (n *notificator) Stop() {
-	n.cancel()
+func (n *notificator) Stop(ctx context.Context) {
 	n.bookAddedReader.Close()
 }
 
-func (n *notificator) Run() {
+func (n *notificator) Run(ctx context.Context) {
 	const (
 		WORKERS_COUNT = 20
 		JOBS_MAX_SIZE = 100
 	)
 
-	workerPool := n.startWorkerPool(WORKERS_COUNT, JOBS_MAX_SIZE)
+	workerPool := n.startWorkerPool(ctx, WORKERS_COUNT, JOBS_MAX_SIZE)
 	defer workerPool.Stop()
 
 	for {
 		select {
-		case <-n.ctx.Done():
-			n.logger.Info("Stopping book added notificator")
+		case <-ctx.Done():
 			return
 		default:
 		}
 
-		message, err := n.bookAddedReader.FetchMessage(n.ctx)
+		message, err := n.bookAddedReader.FetchMessage(ctx)
 		if err != nil {
-			if n.ctx.Err() != nil {
+			if ctx.Err() != nil {
 				return
 			}
-			n.logger.Error("Added book message fetch error", logging.Error(err))
+			n.logger.Error(ctx, "Added book message fetch error", logging.Error(err))
 			continue
 		}
 
-		if err := n.processMessage(workerPool, message); err != nil {
-			if n.ctx.Err() != nil {
+		if err := n.processMessage(ctx, workerPool, message); err != nil {
+			if ctx.Err() != nil {
 				return
 			}
-			n.logger.Error("Added book message process error", logging.Error(err))
+			n.logger.Error(ctx, "Added book message process error", logging.Error(err))
 			continue
 		}
 
-		if err := n.bookAddedReader.CommitMessages(n.ctx, message); err != nil {
-			if n.ctx.Err() != nil {
+		if err := n.bookAddedReader.CommitMessages(ctx, message); err != nil {
+			if ctx.Err() != nil {
 				return
 			}
-			n.logger.Error("Added book message commit error", logging.Any("message", message), logging.Error(err))
+			n.logger.Error(ctx, "Added book message commit error", logging.Any("message", message), logging.Error(err))
 		}
 	}
 }
 
-func (n *notificator) startWorkerPool(workersCount, jobsMaxSize int) workerpool.Pool[job.BookAdded] {
+func (n *notificator) startWorkerPool(ctx context.Context, workersCount, jobsMaxSize int) workerpool.Pool[job.BookAdded] {
 	workerPool := workerpool.New[job.BookAdded](workersCount, jobsMaxSize)
 
 	workerPool.Run(func(job job.BookAdded) {
 		body := template.ParseBookAddedTemplate(job.AddedBook)
 
 		if err := n.emailSender.Send(body, []string{job.Email}); err != nil {
-			n.logger.Error("Added book send mail error", logging.String("email", job.Email), logging.Error(err))
+			n.logger.Error(ctx, "Added book send mail error", logging.String("email", job.Email), logging.Error(err))
 		}
 	})
 
 	return workerPool
 }
 
-func (n *notificator) processMessage(workerPool workerpool.Pool[job.BookAdded], message kafka.Message) error {
+func (n *notificator) processMessage(ctx context.Context, workerPool workerpool.Pool[job.BookAdded], message kafka.Message) error {
 	addedBook, err := n.parseEvent(message.Value)
 	if err != nil {
 		return err
 	}
 
-	emails, err := n.subscriptionClient.GetBookCategorySubscribedUserEmails(n.ctx, addedBook.Category)
+	emails, err := n.subscriptionClient.GetBookCategorySubscribedUserEmails(ctx, addedBook.Category)
 	if err != nil {
 		return err
 	}

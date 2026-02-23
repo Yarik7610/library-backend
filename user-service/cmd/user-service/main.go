@@ -34,7 +34,7 @@ func main() {
 
 	container.Logger.Info(context.Background(), "Shutting container down gracefully")
 	if err := container.Stop(shutdownCtx); err != nil {
-		container.Logger.Fatal(context.Background(), "Gracefull container shutdown failed")
+		container.Logger.Fatal(context.Background(), "Graceful container shutdown failed", logging.Error(err))
 	}
 	container.Logger.Info(context.Background(), "Container stopped gracefully")
 }
