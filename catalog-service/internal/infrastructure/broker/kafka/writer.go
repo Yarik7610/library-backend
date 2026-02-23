@@ -40,7 +40,9 @@ func (w *OtelWriter) WriteMessages(ctx context.Context, msgs ...kafka.Message) e
 	)
 	defer span.End()
 
+	// Use key-value buffer because HTTP headers aren't working in Kafka (raw bytes allowed only)
 	carrier := propagation.MapCarrier{}
+	// Enrich carrier with current ctx
 	otel.GetTextMapPropagator().Inject(ctx, carrier)
 
 	for i := range msgs {

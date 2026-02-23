@@ -6,11 +6,14 @@ import (
 
 	"github.com/Yarik7610/library-backend-common/broker/kafka/event"
 	"github.com/Yarik7610/library-backend/notification-service/internal/core/job"
+	kafkaInfrastructure "github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/broker/kafka"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/email"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/email/template"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/observability/logging"
+	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/observability/tracing"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/transport/http/microservice/subscription"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/workerpool"
+
 	"github.com/segmentio/kafka-go"
 )
 
@@ -21,14 +24,14 @@ type Notificator interface {
 
 type notificator struct {
 	logger             *logging.Logger
-	bookAddedReader    *kafka.Reader
+	bookAddedReader    *kafkaInfrastructure.OtelReader
 	emailSender        email.Sender
 	subscriptionClient subscription.Client
 }
 
 func NewNotificator(
 	logger *logging.Logger,
-	bookAddedReader *kafka.Reader,
+	bookAddedReader *kafkaInfrastructure.OtelReader,
 	emailSender email.Sender,
 	subscriptionClient subscription.Client,
 ) Notificator {
@@ -60,7 +63,7 @@ func (n *notificator) Run(ctx context.Context) {
 		default:
 		}
 
-		message, err := n.bookAddedReader.FetchMessage(ctx)
+		message, spanCtx, span, err := n.bookAddedReader.FetchMessage(ctx)
 		if err != nil {
 			if ctx.Err() != nil {
 				return
@@ -69,20 +72,23 @@ func (n *notificator) Run(ctx context.Context) {
 			continue
 		}
 
-		if err := n.processMessage(ctx, workerPool, message); err != nil {
+		if err := n.processMessage(spanCtx, workerPool, message); err != nil {
 			if ctx.Err() != nil {
 				return
 			}
-			n.logger.Error(ctx, "Added book message process error", logging.Error(err))
+			tracing.Error(span, err)
+			n.logger.Error(spanCtx, "Added book message process error", logging.Error(err))
 			continue
 		}
 
-		if err := n.bookAddedReader.CommitMessages(ctx, message); err != nil {
+		if err := n.bookAddedReader.CommitMessages(spanCtx, message); err != nil {
 			if ctx.Err() != nil {
 				return
 			}
-			n.logger.Error(ctx, "Added book message commit error", logging.Any("message", message), logging.Error(err))
+			tracing.Error(span, err)
+			n.logger.Error(spanCtx, "Added book message commit error", logging.Any("message", message), logging.Error(err))
 		}
+		span.End()
 	}
 }
 
@@ -93,7 +99,9 @@ func (n *notificator) startWorkerPool(ctx context.Context, workersCount, jobsMax
 		body := template.ParseBookAddedTemplate(job.AddedBook)
 
 		if err := n.emailSender.Send(body, []string{job.Email}); err != nil {
-			n.logger.Error(ctx, "Added book send mail error", logging.String("email", job.Email), logging.Error(err))
+			n.logger.Error(ctx, "Added book send mail error",
+				logging.String("email", job.Email),
+				logging.Error(err))
 		}
 	})
 

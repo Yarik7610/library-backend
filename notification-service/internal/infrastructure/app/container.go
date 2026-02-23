@@ -44,7 +44,7 @@ func NewContainer() *Container {
 
 	subscriptionClient := subscription.NewClient()
 
-	bookAddedReader := kafka.NewReader(sharedKafka.BOOK_ADDED_TOPIC, sharedKafka.BOOK_ADDED_CONSUMER_GROUP_ID)
+	bookAddedReader := kafka.NewOtelReader(config, sharedKafka.BOOK_ADDED_TOPIC, sharedKafka.BOOK_ADDED_CONSUMER_GROUP_ID)
 	bookAddedEmailSender := email.NewSender(config.Mail, config.MailPassword)
 	bookAddedEmailSender.WithSubject("Book category subscription notification")
 
