@@ -19,6 +19,11 @@ services:
     image: apache/kafka:latest
     container_name: kafka-1
     restart: always
+    healthcheck:
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "kafka-1:9092"]
+      interval: 15s
+      timeout: 15s
+      retries: 5
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092 # Consumers, producers listen to this addr
@@ -43,6 +48,11 @@ services:
     image: apache/kafka:latest
     container_name: kafka-2
     restart: always
+    healthcheck:
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "kafka-2:9092"]
+      interval: 15s
+      timeout: 15s
+      retries: 5
     environment:
       KAFKA_NODE_ID: 2
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
@@ -67,6 +77,11 @@ services:
     image: apache/kafka:latest
     container_name: kafka-3
     restart: always
+    healthcheck:
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "kafka-3:9092"]
+      interval: 15s
+      timeout: 15s
+      retries: 5
     environment:
       KAFKA_NODE_ID: 3
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
@@ -86,6 +101,23 @@ services:
       - kafka-3-data:/var/lib/kafka/data
     networks:
       - e-commerce-backend
+
+  kafka-init:
+    image: apache/kafka:latest
+    container_name: kafka-init
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+    networks:
+      - e-commerce-backend
+    command: >
+      /bin/sh -c "
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-1:9092 --create --if-not-exists --topic book.added
+      "
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -262,6 +294,15 @@ services:
     container_name: "notification-service"
     build: ./notification-service
     restart: always
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
     env_file:
       - ./.env
     environment:
