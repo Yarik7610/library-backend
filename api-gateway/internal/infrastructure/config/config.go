@@ -1,24 +1,18 @@
 package config
 
-import (
-	"github.com/spf13/viper"
-)
+import "github.com/ilyakaznacheev/cleanenv"
 
 type Config struct {
-	ServerPort string `mapstructure:"SERVER_PORT"`
-	JWTSecret  string `mapstructure:"JWT_SECRET"`
-	Env        string `mapstructure:"ENV"`
+	Env                      string `env:"ENV"`
+	ServiceName              string `env:"SERVICE_NAME"`
+	HTTPServerPort           string `env:"HTTP_SERVER_PORT"`
+	JWTSecret                string `env:"JWT_SECRET"`
+	OTelExporterOTLPEndpoint string `env:"OTEL_EXPORTER_OTLP_ENDPOINT"`
 }
 
-func Init() (*Config, error) {
-	viper.AutomaticEnv()
-
-	viper.BindEnv("SERVER_PORT")
-	viper.BindEnv("JWT_SECRET")
-	viper.BindEnv("ENV")
-
+func Parse() (*Config, error) {
 	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := cleanenv.ReadEnv(&config); err != nil {
 		return nil, err
 	}
 	return &config, nil

@@ -8,6 +8,8 @@ import (
 	"maps"
 	"net/http"
 	"time"
+
+	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/errs"
 )
 
 func fetchDocsJSON(microserviceAddress string) (map[string]any, error) {
@@ -16,27 +18,27 @@ func fetchDocsJSON(microserviceAddress string) (map[string]any, error) {
 
 	req, err := http.NewRequestWithContext(ctx, "GET", microserviceAddress+"/swagger/doc.json", nil)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewInternalServerError().WithCause(err)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewInternalServerError().WithCause(err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Microservice returned status code: %d", resp.StatusCode)
+		return nil, errs.NewInternalServerError().WithCause(fmt.Errorf("Microservice returned status code: %d", resp.StatusCode))
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewInternalServerError().WithCause(err)
 	}
 
 	var m map[string]any
 	if err := json.Unmarshal(body, &m); err != nil {
-		return nil, err
+		return nil, errs.NewInternalServerError().WithCause(err)
 	}
 	return m, nil
 }

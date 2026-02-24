@@ -6,10 +6,13 @@ import (
 
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/jwt"
+	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/observability/tracing"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/errs"
 
 	userContext "github.com/Yarik7610/library-backend/api-gateway/internal/app/context/user"
+	httpInfrastructure "github.com/Yarik7610/library-backend/api-gateway/internal/infrastructure/transport/http"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,16 +24,22 @@ func AuthContext(config *config.Config) gin.HandlerFunc {
 			return
 		}
 
+		span := trace.SpanFromContext(c.Request.Context())
+
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == authHeader {
-			errs.NewUnauthorizedError(c)
+			err := errs.NewUnauthorizedError()
+			tracing.Error(span, err)
+			httpInfrastructure.RenderError(c, err)
 			c.Abort()
 			return
 		}
 
 		claims, err := jwt.Verify(tokenString, config.JWTSecret)
 		if err != nil {
-			errs.NewUnauthorizedError(c)
+			err := errs.NewUnauthorizedError().WithCause(err)
+			tracing.Error(span, err)
+			httpInfrastructure.RenderError(c, err)
 			c.Abort()
 			return
 		}

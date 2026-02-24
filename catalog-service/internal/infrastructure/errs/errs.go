@@ -37,18 +37,6 @@ func (e *Error) WithCause(err error) *Error {
 	return e
 }
 
-func (e *Error) SetCause(err error) {
-	e.Cause = err
-}
-
-func (e *Error) SetCode(code Code) {
-	e.Code = code
-}
-
-func (e *Error) SetMessage(message string) {
-	e.Message = message
-}
-
 func NewEntityNotFoundError(entityName string) *Error {
 	return NewError(CodeNotFound, fmt.Sprintf("%s not found", entityName))
 }

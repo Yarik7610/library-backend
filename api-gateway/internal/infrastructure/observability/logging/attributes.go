@@ -2,8 +2,9 @@ package logging
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 func String(key, val string) slog.Attr {
@@ -14,17 +15,20 @@ func Error(err error) slog.Attr {
 	return String("error", err.Error())
 }
 
-func TraceAttributes(ctx context.Context) []slog.Attr {
-	var attributes []slog.Attr
+func traceAttributes(ctx context.Context) []slog.Attr {
+	if ctx == nil {
+		return nil
+	}
 
-	if traceID := ctx.Value("trace_id"); traceID != nil {
-		attributes = append(attributes, String("trace_id", fmt.Sprint(traceID)))
+	span := trace.SpanFromContext(ctx)
+	spanContext := span.SpanContext()
+
+	if !spanContext.IsValid() {
+		return nil
 	}
-	if spanID := ctx.Value("span_id"); spanID != nil {
-		attributes = append(attributes, String("span_id", fmt.Sprint(spanID)))
+
+	return []slog.Attr{
+		slog.String("trace_id", spanContext.TraceID().String()),
+		slog.String("span_id", spanContext.SpanID().String()),
 	}
-	if userID := ctx.Value("user_id"); userID != nil {
-		attributes = append(attributes, String("user_id", fmt.Sprint(userID)))
-	}
-	return attributes
 }
