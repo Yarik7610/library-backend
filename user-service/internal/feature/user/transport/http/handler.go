@@ -6,7 +6,6 @@ import (
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/service"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/dto"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/mapper"
-	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http/query"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/errs"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/logging"
@@ -21,7 +20,6 @@ type UserHandler interface {
 	SignUp(c *gin.Context)
 	SignIn(c *gin.Context)
 	GetMe(c *gin.Context)
-	GetEmailsByUserIDs(c *gin.Context)
 }
 
 type userHandler struct {
@@ -149,38 +147,4 @@ func (h *userHandler) GetMe(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, mapper.UserDomainToDTO(userDomain))
-}
-
-// GetEmailsByUserIDs godoc
-//
-//	@Summary		Get emails by user IDs
-//	@Description	Returns a list of emails for given user IDs
-//	@Tags			internal
-//	@Produce		json
-//	@Param	ids	query	[]int	true "User IDs" collectionFormat(multi)
-//	@Success		200	{array}		string
-//	@Failure		400 {object} 	dto.Error "Bad request"
-//	@Failure		500	{object} 	dto.Error "Internal server error"
-//	@Router			/emails [get]
-func (h *userHandler) GetEmailsByUserIDs(c *gin.Context) {
-	ctx := c.Request.Context()
-
-	var getEmailsByUserIDsQuery query.GetEmailsByUserIDs
-	if err := c.ShouldBindQuery(&getEmailsByUserIDsQuery); err != nil {
-		httpInfrastructure.RenderError(c, errs.NewBadRequestError(err.Error()))
-		return
-	}
-
-	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetEmailsByUserIDs")
-	defer span.End()
-
-	emails, err := h.userService.GetEmailsByUserIDs(ctx, getEmailsByUserIDsQuery.IDs)
-	if err != nil {
-		tracing.Error(span, err)
-		h.logger.Error(ctx, "Get emails by user IDs error", logging.Error(err))
-		httpInfrastructure.RenderError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, emails)
 }

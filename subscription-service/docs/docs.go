@@ -154,12 +154,6 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Error"
-                        }
-                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {

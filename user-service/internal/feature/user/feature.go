@@ -1,19 +1,25 @@
 package user
 
 import (
+	"net/http"
+
+	pb "github.com/Yarik7610/library-backend-common/transport/grpc/microservice/user"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/repository/postgres"
 	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/service"
-	"github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http"
+	grpcTransport "github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/grpc"
+	httpTransport "github.com/Yarik7610/library-backend/user-service/internal/feature/user/transport/http"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/metrics"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/storage/postgres/seed"
-	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
 type Feature struct {
-	HTTPRouter *gin.Engine
+	HTTPServer *http.Server
+	GRPCServer *grpc.Server
 }
 
 func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.DB) (*Feature, error) {
@@ -24,12 +30,22 @@ func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.
 	}
 
 	userService := service.NewUserService(config, userRepository)
-	userHandler := http.NewUserHandler(config, logger, userService)
+
 	metricsHandler, err := metrics.Init()
 	if err != nil {
 		return nil, err
 	}
+	userHTTPHandler := httpTransport.NewUserHandler(config, logger, userService)
+	userGRPCHandler := grpcTransport.NewUserHandler(config, logger, userService)
 
-	httpRouter := http.NewRouter(config, metricsHandler, userHandler)
-	return &Feature{HTTPRouter: httpRouter}, nil
+	httpRouter := httpTransport.NewRouter(config, metricsHandler, userHTTPHandler)
+	httpServer := &http.Server{
+		Addr:    ":" + config.HTTPServerPort,
+		Handler: httpRouter,
+	}
+
+	gRPCServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
+	pb.RegisterUserServiceServer(gRPCServer, userGRPCHandler)
+
+	return &Feature{HTTPServer: httpServer, GRPCServer: gRPCServer}, nil
 }

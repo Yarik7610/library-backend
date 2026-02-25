@@ -47,7 +47,6 @@ func NewSubscriptionHandler(
 //	@Param			categoryName	path	string	true	"Category name"
 //	@Produce		json
 //	@Success		200	{array}		string
-//	@Failure		400 {object} 	dto.Error "Bad request"
 //	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/subscriptions/books/categories/{categoryName} [get]
 func (h *subscriptionHandler) GetBookCategorySubscribedUserEmails(c *gin.Context) {

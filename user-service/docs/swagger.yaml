@@ -48,38 +48,6 @@ definitions:
 info:
   contact: {}
 paths:
-  /emails:
-    get:
-      description: Returns a list of emails for given user IDs
-      parameters:
-      - collectionFormat: multi
-        description: User IDs
-        in: query
-        items:
-          type: integer
-        name: ids
-        required: true
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: string
-            type: array
-        "400":
-          description: Bad request
-          schema:
-            $ref: '#/definitions/dto.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/dto.Error'
-      summary: Get emails by user IDs
-      tags:
-      - internal
   /me:
     get:
       description: Returns info about the authorized user
