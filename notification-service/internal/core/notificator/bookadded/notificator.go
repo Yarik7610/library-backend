@@ -23,23 +23,23 @@ type Notificator interface {
 }
 
 type notificator struct {
-	logger             *logging.Logger
-	bookAddedReader    *kafkaInfrastructure.OtelReader
-	emailSender        email.Sender
-	subscriptionClient subscription.Client
+	logger                         *logging.Logger
+	bookAddedReader                *kafkaInfrastructure.OtelReader
+	emailSender                    email.Sender
+	subscriptionMicroserviceClient subscription.Client
 }
 
 func NewNotificator(
 	logger *logging.Logger,
 	bookAddedReader *kafkaInfrastructure.OtelReader,
 	emailSender email.Sender,
-	subscriptionClient subscription.Client,
+	subscriptionMicroserviceClient subscription.Client,
 ) Notificator {
 	return &notificator{
-		logger:             logger,
-		bookAddedReader:    bookAddedReader,
-		emailSender:        emailSender,
-		subscriptionClient: subscriptionClient,
+		logger:                         logger,
+		bookAddedReader:                bookAddedReader,
+		emailSender:                    emailSender,
+		subscriptionMicroserviceClient: subscriptionMicroserviceClient,
 	}
 }
 
@@ -114,7 +114,7 @@ func (n *notificator) processMessage(ctx context.Context, workerPool workerpool.
 		return err
 	}
 
-	emails, err := n.subscriptionClient.GetBookCategorySubscribedUserEmails(ctx, addedBook.Category)
+	emails, err := n.subscriptionMicroserviceClient.GetBookCategorySubscribedUserEmails(ctx, addedBook.Category)
 	if err != nil {
 		return err
 	}

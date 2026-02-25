@@ -19,7 +19,8 @@ import (
 )
 
 type CatalogHandler interface {
-	GetCategories(c *gin.Context)
+	GetBookCategories(c *gin.Context)
+	BookCategoryExists(c *gin.Context)
 	PreviewBook(c *gin.Context)
 	GetBooksByAuthorID(c *gin.Context)
 	GetBookPage(c *gin.Context)
@@ -52,7 +53,7 @@ func NewCatalogHandler(
 	}
 }
 
-// GetCategories godoc
+// GetBookCategories godoc
 //
 //	@Summary		Get all book categories
 //	@Description	Returns a list of all available book categories
@@ -61,13 +62,13 @@ func NewCatalogHandler(
 //	@Success		200	{array}		string
 //	@Failure		500	{object} 	dto.Error "Internal server error"
 //	@Router			/catalog/books/categories [get]
-func (h *catalogHandler) GetCategories(c *gin.Context) {
+func (h *catalogHandler) GetBookCategories(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetCategories")
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetBookCategories")
 	defer span.End()
 
-	categories, err := h.catalogService.GetCategories(ctx)
+	categories, err := h.catalogService.GetBookCategories(ctx)
 	if err != nil {
 		tracing.Error(span, err)
 		h.logger.Error(ctx, "Get categories error", logging.Error(err))
@@ -76,6 +77,35 @@ func (h *catalogHandler) GetCategories(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, categories)
+}
+
+// BookCategoryExists godoc
+//
+//	@Summary		Check book category existence
+//	@Description	Returns boolean flag decribing book category existence
+//	@Tags			internal
+//	@Param			categoryName	path	string	true	"Category name"
+//	@Produce		json
+//	@Success		200	{array}		boolean
+//	@Failure		500	{object} 	dto.Error "Internal server error"
+//	@Router			/catalog/books/categories/exists/{categoryName} [get]
+func (h *catalogHandler) BookCategoryExists(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	bookCategory := c.Param("categoryName")
+
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.BookCategoryExists")
+	defer span.End()
+
+	exists, err := h.catalogService.BookCategoryExists(ctx, bookCategory)
+	if err != nil {
+		tracing.Error(span, err)
+		h.logger.Error(ctx, "Book category exists error", logging.Error(err))
+		httpInfrastructure.RenderError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, exists)
 }
 
 // PreviewBook godoc

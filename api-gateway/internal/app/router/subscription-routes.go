@@ -7,15 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func registerSubscriptionRoutes(r *gin.Engine, subscriptionServiceHandler gin.HandlerFunc) {
+func registerSubscriptionRoutes(r *gin.Engine, subscriptionMicroserviceHandler gin.HandlerFunc) {
 	subscriptionGroup := r.Group(route.SUBSCRIPTIONS)
 	{
 		bookCategoryGroup := subscriptionGroup.Group(route.BOOKS + route.CATEGORIES)
 		bookCategoryGroup.Use(middleware.AuthRequired(), core.InjectHeaders())
 		{
-			bookCategoryGroup.GET("", subscriptionServiceHandler)
-			bookCategoryGroup.POST("", subscriptionServiceHandler)
-			bookCategoryGroup.DELETE("/:categoryName", subscriptionServiceHandler)
+			bookCategoryGroup.GET("", subscriptionMicroserviceHandler)
+			bookCategoryGroup.POST("", subscriptionMicroserviceHandler)
+			bookCategoryGroup.DELETE("/:categoryName", subscriptionMicroserviceHandler)
 		}
 	}
 }

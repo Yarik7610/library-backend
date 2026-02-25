@@ -38,7 +38,7 @@ func NewRouter(config *config.Config, metricsHandler http.Handler, userHandler U
 
 		nonAPIGatewayGroup := userGroup.Group("")
 		{
-			nonAPIGatewayGroup.GET(route.EMAILS, userHandler.GetEmailsByUserIDs)
+			nonAPIGatewayGroup.GET(route.EMAILS, userHandler.GetEmailsByUserIDs) // REMOVE after switch to gRPC
 		}
 	}
 

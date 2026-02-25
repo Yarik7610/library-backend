@@ -17,9 +17,9 @@ func Register(
 	config *config.Config,
 	metricsHandler http.Handler,
 	swaggerHandler swagger.Handler,
-	userServiceHandler gin.HandlerFunc,
-	catalogServiceHandler gin.HandlerFunc,
-	subscriptionServiceHandler gin.HandlerFunc,
+	userMicroserviceHandler gin.HandlerFunc,
+	catalogMicroserviceHandler gin.HandlerFunc,
+	subscriptionMicroserviceHandler gin.HandlerFunc,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -37,9 +37,9 @@ func Register(
 
 	swagger.RegisterRoutes(r, swaggerHandler)
 
-	registerUserRoutes(r, userServiceHandler)
-	registerCatalogRoutes(r, catalogServiceHandler)
-	registerSubscriptionRoutes(r, subscriptionServiceHandler)
+	registerUserRoutes(r, userMicroserviceHandler)
+	registerCatalogRoutes(r, catalogMicroserviceHandler)
+	registerSubscriptionRoutes(r, subscriptionMicroserviceHandler)
 
 	return r
 }

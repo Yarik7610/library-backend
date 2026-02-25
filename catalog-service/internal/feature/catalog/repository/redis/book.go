@@ -25,7 +25,7 @@ const (
 
 type BookRepository interface {
 	SetCategories(ctx context.Context, categories []string) error
-	GetCategories(ctx context.Context) ([]string, error)
+	GetBookCategories(ctx context.Context) ([]string, error)
 	SetNew(ctx context.Context, newBooks []model.BookWithAuthor) error
 	GetNew(ctx context.Context) ([]model.BookWithAuthor, error)
 	UpdateViewsCount(ctx context.Context, bookID, userID uint) error
@@ -62,7 +62,7 @@ func (r *bookRepository) SetCategories(ctx context.Context, categories []string)
 	return nil
 }
 
-func (r *bookRepository) GetCategories(ctx context.Context) ([]string, error) {
+func (r *bookRepository) GetBookCategories(ctx context.Context) ([]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 

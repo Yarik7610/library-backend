@@ -16,6 +16,7 @@ import (
 type BookRepository interface {
 	WithinTX(tx *gorm.DB) BookRepository
 	GetCategories(ctx context.Context) ([]string, error)
+	CategoryExists(ctx context.Context, category string) (bool, error)
 	GetNew(ctx context.Context) ([]model.BookWithAuthor, error)
 	GetBooksByIDs(ctx context.Context, bookIDs []string) ([]model.BookWithAuthor, error)
 	GetBooksByAuthorID(ctx context.Context, authorID uint) ([]model.BookWithAuthor, error)
@@ -52,6 +53,19 @@ func (r *bookRepository) GetCategories(ctx context.Context) ([]string, error) {
 		return nil, postgresInfrastructure.NewError(err, r.name)
 	}
 	return categories, nil
+}
+
+func (r *bookRepository) CategoryExists(ctx context.Context, category string) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	query := `SELECT EXISTS (SELECT 1 FROM books WHERE category = ?)`
+
+	var exists bool
+	if err := r.db.WithContext(ctx).Raw(query, category).Scan(&exists).Error; err != nil {
+		return false, postgresInfrastructure.NewError(err, r.name)
+	}
+	return exists, nil
 }
 
 func (r *bookRepository) GetNew(ctx context.Context) ([]model.BookWithAuthor, error) {

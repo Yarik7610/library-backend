@@ -37,7 +37,7 @@ func NewRouter(config *config.Config, metricsHandler http.Handler, subscriptionH
 
 		nonAPIGatewayGroup := bookCategoryGroup.Group("")
 		{
-			nonAPIGatewayGroup.GET("/:categoryName", subscriptionHandler.GetBookCategorySubscribedUserEmails)
+			nonAPIGatewayGroup.GET("/:categoryName", subscriptionHandler.GetBookCategorySubscribedUserEmails) // REMOVE after switch to gRPC
 		}
 	}
 

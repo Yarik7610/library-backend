@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"slices"
-	"strings"
 	"time"
 
 	"github.com/Yarik7610/library-backend-common/microservice"
@@ -37,7 +35,7 @@ func (c *client) BookCategoryExists(ctx context.Context, bookCategory string) (b
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+route.CATALOG+route.BOOKS+route.CATEGORIES, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+route.CATALOG+route.BOOKS+route.CATEGORIES+"/exists"+"/"+bookCategory, nil)
 	if err != nil {
 		return false, errs.NewInternalServerError().WithCause(err)
 	}
@@ -52,11 +50,10 @@ func (c *client) BookCategoryExists(ctx context.Context, bookCategory string) (b
 		return false, errs.NewInternalServerError().WithCause(fmt.Errorf("Catalog microservice returned status code: %d", resp.StatusCode))
 	}
 
-	var bookCategories []string
-	if err := json.NewDecoder(resp.Body).Decode(&bookCategories); err != nil {
+	var exists bool
+	if err := json.NewDecoder(resp.Body).Decode(&exists); err != nil {
 		return false, errs.NewInternalServerError().WithCause(err)
 	}
 
-	bookCategory = strings.ToLower(bookCategory)
-	return slices.Contains(bookCategories, bookCategory), nil
+	return exists, nil
 }

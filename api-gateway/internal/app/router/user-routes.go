@@ -7,16 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func registerUserRoutes(r *gin.Engine, userServiceHandler gin.HandlerFunc) {
+func registerUserRoutes(r *gin.Engine, userMicroserviceHandler gin.HandlerFunc) {
 	userGroup := r.Group("")
 	{
-		userGroup.POST(route.SIGN_UP, userServiceHandler)
-		userGroup.POST(route.SIGN_IN, userServiceHandler)
+		userGroup.POST(route.SIGN_UP, userMicroserviceHandler)
+		userGroup.POST(route.SIGN_IN, userMicroserviceHandler)
 
 		privateGroup := userGroup.Group("")
 		privateGroup.Use(middleware.AuthRequired(), core.InjectHeaders())
 		{
-			privateGroup.GET(route.ME, userServiceHandler)
+			privateGroup.GET(route.ME, userMicroserviceHandler)
 		}
 	}
 }

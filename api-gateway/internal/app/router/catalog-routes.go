@@ -7,37 +7,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func registerCatalogRoutes(r *gin.Engine, catalogServiceHandler gin.HandlerFunc) {
+func registerCatalogRoutes(r *gin.Engine, catalogMicroserviceHandler gin.HandlerFunc) {
 	catalogGroup := r.Group(route.CATALOG)
 	{
 		bookGroup := catalogGroup.Group(route.BOOKS)
 		{
-			bookGroup.GET(route.CATEGORIES, catalogServiceHandler)
-			bookGroup.GET(route.CATEGORIES+"/:categoryName", catalogServiceHandler)
-			bookGroup.GET("/:bookID"+route.PREVIEW, core.InjectHeaders(), catalogServiceHandler)
-			bookGroup.GET("/:bookID", catalogServiceHandler)
-			bookGroup.GET(route.SEARCH, catalogServiceHandler)
-			bookGroup.GET(route.NEW, catalogServiceHandler)
-			bookGroup.GET(route.POPULAR, catalogServiceHandler)
-			bookGroup.GET("/:bookID"+route.VIEWS, catalogServiceHandler)
+			bookGroup.GET(route.CATEGORIES, catalogMicroserviceHandler)
+			bookGroup.GET(route.CATEGORIES+"/:categoryName", catalogMicroserviceHandler)
+			bookGroup.GET("/:bookID"+route.PREVIEW, core.InjectHeaders(), catalogMicroserviceHandler)
+			bookGroup.GET("/:bookID", catalogMicroserviceHandler)
+			bookGroup.GET(route.SEARCH, catalogMicroserviceHandler)
+			bookGroup.GET(route.NEW, catalogMicroserviceHandler)
+			bookGroup.GET(route.POPULAR, catalogMicroserviceHandler)
+			bookGroup.GET("/:bookID"+route.VIEWS, catalogMicroserviceHandler)
 
 			adminGroup := bookGroup.Group("")
 			adminGroup.Use(middleware.AuthRequired(), middleware.AdminRequired(), core.InjectHeaders())
 			{
-				adminGroup.DELETE("/:bookID", catalogServiceHandler)
-				adminGroup.POST("", catalogServiceHandler)
+				adminGroup.DELETE("/:bookID", catalogMicroserviceHandler)
+				adminGroup.POST("", catalogMicroserviceHandler)
 			}
 		}
 
 		authorGroup := catalogGroup.Group(route.AUTHORS)
 		{
-			authorGroup.GET("/:authorID"+route.BOOKS, catalogServiceHandler)
+			authorGroup.GET("/:authorID"+route.BOOKS, catalogMicroserviceHandler)
 
 			adminGroup := authorGroup.Group("")
 			adminGroup.Use(middleware.AuthRequired(), middleware.AdminRequired(), core.InjectHeaders())
 			{
-				adminGroup.DELETE("/:authorID", catalogServiceHandler)
-				adminGroup.POST("", catalogServiceHandler)
+				adminGroup.DELETE("/:authorID", catalogMicroserviceHandler)
+				adminGroup.POST("", catalogMicroserviceHandler)
 			}
 		}
 	}

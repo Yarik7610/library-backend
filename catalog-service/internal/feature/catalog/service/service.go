@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Yarik7610/library-backend-common/broker/kafka/event"
@@ -20,7 +21,8 @@ import (
 )
 
 type CatalogService interface {
-	GetCategories(ctx context.Context) ([]string, error)
+	GetBookCategories(ctx context.Context) ([]string, error)
+	BookCategoryExists(ctx context.Context, bookCategory string) (bool, error)
 	GetNewBooks(ctx context.Context) ([]domain.Book, error)
 	GetBookViewsCount(ctx context.Context, bookID uint) (int64, error)
 	GetPopularBooks(ctx context.Context) ([]domain.Book, error)
@@ -66,8 +68,8 @@ func NewCatalogService(
 	}
 }
 
-func (s *catalogService) GetCategories(ctx context.Context) ([]string, error) {
-	categories, err := s.redisBookRepository.GetCategories(ctx)
+func (s *catalogService) GetBookCategories(ctx context.Context) ([]string, error) {
+	categories, err := s.redisBookRepository.GetBookCategories(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -82,6 +84,11 @@ func (s *catalogService) GetCategories(ctx context.Context) ([]string, error) {
 	}
 
 	return categories, nil
+}
+
+func (s *catalogService) BookCategoryExists(ctx context.Context, bookCategory string) (bool, error) {
+	bookCategory = strings.ToLower(bookCategory)
+	return s.postgresBookRepository.CategoryExists(ctx, bookCategory)
 }
 
 func (s *catalogService) GetNewBooks(ctx context.Context) ([]domain.Book, error) {
