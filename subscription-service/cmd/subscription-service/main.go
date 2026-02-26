@@ -19,7 +19,8 @@ func main() {
 		if err := container.Start(); err != nil {
 			container.Logger.Fatal(context.Background(),
 				"Start container error",
-				logging.String("HTTP port", container.Config.HTTPServerPort),
+				logging.String("HTTP server port", container.Config.HTTPServerPort),
+				logging.String("gRPC server port", container.Config.GRPCServerPort),
 				logging.Error(err))
 		}
 	}()

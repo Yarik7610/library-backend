@@ -24,7 +24,7 @@ type client struct {
 
 func NewClient() Client {
 	return &client{
-		baseURL: microservice.CATALOG_ADDRESS,
+		baseURL: microservice.CATALOG_HTTP_ADDRESS,
 		httpClient: &http.Client{
 			Transport: otelhttp.NewTransport(http.DefaultTransport),
 		},

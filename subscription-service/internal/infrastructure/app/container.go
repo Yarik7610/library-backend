@@ -4,19 +4,28 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/observability/tracing"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/storage/postgres"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/catalog"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/user"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 )
 
 type Container struct {
 	Config          *config.Config
 	Logger          *logging.Logger
 	httpServer      *http.Server
+	gRPCServer      *grpc.Server
+	stopOnce        sync.Once
 	shutdownTracing func(context.Context) error
 }
 
@@ -38,40 +47,76 @@ func NewContainer() *Container {
 		logger.Fatal(context.Background(), "Postgres connect error", logging.Error(err))
 	}
 
-	subscriptionFeature, err := subscription.NewFeature(config, logger, postgresDB)
+	catalogMicroserviceClient := catalog.NewClient()
+	userMicroserviceClient := user.NewClient()
+
+	subscriptionFeature, err := subscription.NewFeature(
+		config, logger, postgresDB,
+		catalogMicroserviceClient, userMicroserviceClient,
+	)
 	if err != nil {
 		logger.Fatal(context.Background(), "Subscription feature init error", logging.Error(err))
-	}
-
-	httpServer := &http.Server{
-		Addr:    ":" + config.HTTPServerPort,
-		Handler: subscriptionFeature.HTTPRouter,
 	}
 
 	return &Container{
 		Config:          config,
 		Logger:          logger,
-		httpServer:      httpServer,
+		httpServer:      subscriptionFeature.HTTPServer,
+		gRPCServer:      subscriptionFeature.GRPCServer,
 		shutdownTracing: shutdownTracing,
 	}
 }
 
 func (c *Container) Start() error {
-	err := c.httpServer.ListenAndServe()
-	if errors.Is(err, http.ErrServerClosed) {
-		return nil
-	}
-	return err
+	group, ctx := errgroup.WithContext(context.Background())
+
+	group.Go(func() error {
+		err := c.httpServer.ListenAndServe()
+		if errors.Is(err, http.ErrServerClosed) {
+			return nil
+		}
+		return err
+	})
+
+	group.Go(func() error {
+		listener, err := net.Listen("tcp", ":"+c.Config.GRPCServerPort)
+		if err != nil {
+			return err
+		}
+		return c.gRPCServer.Serve(listener)
+	})
+
+	// Context is canceled the first time a function passed to Goroutine returns a non-nil error
+	// or the first time Wait returns,
+	// whichever occurs first.
+	group.Go(func() error {
+		<-ctx.Done()
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		return c.Stop(shutdownCtx)
+	})
+
+	return group.Wait()
 }
 
 func (c *Container) Stop(ctx context.Context) error {
-	if err := c.httpServer.Shutdown(ctx); err != nil {
-		return err
-	}
+	var stopErr error
 
-	if err := c.shutdownTracing(ctx); err != nil {
-		return err
-	}
+	c.stopOnce.Do(func() {
+		c.gRPCServer.GracefulStop()
 
-	return nil
+		if err := c.httpServer.Shutdown(ctx); err != nil {
+			stopErr = err
+			return
+		}
+
+		if err := c.shutdownTracing(ctx); err != nil {
+			stopErr = err
+			return
+		}
+	})
+
+	return stopErr
 }

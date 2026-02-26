@@ -128,28 +128,4 @@ paths:
       summary: Unsubscribe current user from a category
       tags:
       - subscription
-    get:
-      description: Returns emails of all users subscribed to the given book category
-      parameters:
-      - description: Category name
-        in: path
-        name: categoryName
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: string
-            type: array
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/dto.Error'
-      summary: Get emails of users subscribed to a book category
-      tags:
-      - internal
 swagger: "2.0"

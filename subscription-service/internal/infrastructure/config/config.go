@@ -8,6 +8,7 @@ type Config struct {
 	Env                      string `env:"ENV"`
 	ServiceName              string `env:"SERVICE_NAME"`
 	HTTPServerPort           string `env:"HTTP_SERVER_PORT"`
+	GRPCServerPort           string `env:"GRPC_SERVER_PORT"`
 	PostgresURL              string `env:"POSTGRES_URL"`
 	JWTSecret                string `env:"JWT_SECRET"`
 	OTelExporterOTLPEndpoint string `env:"OTEL_EXPORTER_OTLP_ENDPOINT"`

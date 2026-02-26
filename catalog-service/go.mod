@@ -3,6 +3,7 @@ module github.com/Yarik7610/library-backend/catalog-service
 go 1.25.6
 
 require (
+	github.com/Yarik7610/library-backend-common v0.0.0-20260225123723-8ad6b90aec9c
 	github.com/gin-gonic/gin v1.11.0
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/segmentio/kafka-go v0.4.50
@@ -12,8 +13,6 @@ require (
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
 )
-
-require github.com/Yarik7610/library-backend-common v0.0.0-20260225123723-8ad6b90aec9c
 
 require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0

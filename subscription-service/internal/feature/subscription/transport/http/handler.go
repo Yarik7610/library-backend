@@ -16,7 +16,6 @@ import (
 )
 
 type SubscriptionHandler interface {
-	GetBookCategorySubscribedUserEmails(c *gin.Context)
 	GetUserSubscribedBookCategories(c *gin.Context)
 	SubscribeToBookCategory(c *gin.Context)
 	UnsubscribeFromBookCategory(c *gin.Context)
@@ -37,35 +36,6 @@ func NewSubscriptionHandler(
 		logger:              logger,
 		subscriptionService: subscriptionService,
 	}
-}
-
-// GetBookCategorySubscribedUserEmails godoc
-//
-//	@Summary		Get emails of users subscribed to a book category
-//	@Description	Returns emails of all users subscribed to the given book category
-//	@Tags			internal
-//	@Param			categoryName	path	string	true	"Category name"
-//	@Produce		json
-//	@Success		200	{array}		string
-//	@Failure		500	{object} 	dto.Error "Internal server error"
-//	@Router			/subscriptions/books/categories/{categoryName} [get]
-func (h *subscriptionHandler) GetBookCategorySubscribedUserEmails(c *gin.Context) {
-	ctx := c.Request.Context()
-
-	bookCategory := c.Param("categoryName")
-
-	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetBookCategorySubscribedUserEmails")
-	defer span.End()
-
-	emails, err := h.subscriptionService.GetBookCategorySubscribedUserEmails(ctx, bookCategory)
-	if err != nil {
-		tracing.Error(span, err)
-		h.logger.Error(ctx, "Get book category subscribed user email error", logging.Error(err))
-		httpInfrastructure.RenderError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, emails)
 }
 
 // GetUserSubscribedBookCategories godoc

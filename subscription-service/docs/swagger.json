@@ -115,42 +115,6 @@
             }
         },
         "/subscriptions/books/categories/{categoryName}": {
-            "get": {
-                "description": "Returns emails of all users subscribed to the given book category",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "internal"
-                ],
-                "summary": "Get emails of users subscribed to a book category",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Category name",
-                        "name": "categoryName",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Error"
-                        }
-                    }
-                }
-            },
             "delete": {
                 "security": [
                     {
