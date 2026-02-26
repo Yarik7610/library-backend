@@ -3,7 +3,7 @@ module github.com/Yarik7610/library-backend/notification-service
 go 1.25.6
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20260219081414-d5334b3d7c53
+	github.com/Yarik7610/library-backend-common v0.0.0-20260226124649-09d2f56c1096
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/lmittmann/tint v1.1.3
 	github.com/prometheus/client_golang v1.23.2
@@ -49,7 +49,7 @@ require (
 	golang.org/x/text v0.33.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260128011058-8636f8732409 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260128011058-8636f8732409 // indirect
-	google.golang.org/grpc v1.78.0 // indirect
+	google.golang.org/grpc v1.79.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect

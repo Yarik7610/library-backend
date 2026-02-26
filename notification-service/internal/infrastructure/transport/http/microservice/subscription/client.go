@@ -23,7 +23,7 @@ type client struct {
 
 func NewClient() Client {
 	return &client{
-		baseURL: microservice.SUBSCRIPTIONS_ADDRESS,
+		baseURL: microservice.SUBSCRIPTIONS_HTTP_ADDRESS,
 		httpClient: &http.Client{
 			Transport: otelhttp.NewTransport(http.DefaultTransport),
 		},

@@ -36,9 +36,9 @@ func NewContainer() *Container {
 		logger.Fatal(context.Background(), "Tracing init error", logging.Error(err))
 	}
 
-	userMicroserviceHandler := core.ForwardTo(logger, microservice.USER_ADDRESS)
-	catalogMicroserviceHandler := core.ForwardTo(logger, microservice.CATALOG_ADDRESS)
-	subscriptionMicroserviceHandler := core.ForwardTo(logger, microservice.SUBSCRIPTIONS_ADDRESS)
+	userMicroserviceHandler := core.ForwardTo(logger, microservice.USER_HTTP_ADDRESS)
+	catalogMicroserviceHandler := core.ForwardTo(logger, microservice.CATALOG_HTTP_ADDRESS)
+	subscriptionMicroserviceHandler := core.ForwardTo(logger, microservice.SUBSCRIPTIONS_HTTP_ADDRESS)
 	metricsHandler, err := metrics.Init()
 	if err != nil {
 		logger.Fatal(context.Background(), "Metrics init error", logging.Error(err))

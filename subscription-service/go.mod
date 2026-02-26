@@ -3,7 +3,7 @@ module github.com/Yarik7610/library-backend/subscription-service
 go 1.25.6
 
 require (
-	github.com/Yarik7610/library-backend-common v0.0.0-20260225123723-8ad6b90aec9c
+	github.com/Yarik7610/library-backend-common v0.0.0-20260226124649-09d2f56c1096
 	github.com/gin-gonic/gin v1.11.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v5 v5.7.5
@@ -24,8 +24,6 @@ require (
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.1
 )
-
-require github.com/felixge/httpsnoop v1.0.4 // indirect
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
@@ -89,7 +87,6 @@ require (
 	github.com/ugorji/go/codec v1.3.1 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.65.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.40.0 // indirect
 	go.opentelemetry.io/otel/metric v1.40.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
