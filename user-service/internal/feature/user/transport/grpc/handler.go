@@ -30,13 +30,13 @@ func NewUserHandler(
 }
 
 func (h *UserHandler) GetEmailsByUserIDs(ctx context.Context, req *pb.GetEmailsByUserIDsRequest) (*pb.GetEmailsByUserIDsResponse, error) {
-	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetEmailsByUserIDs")
-	defer span.End()
-
 	userIDs := make([]uint, len(req.GetUserIds()))
 	for i, userID := range req.UserIds {
 		userIDs[i] = uint(userID)
 	}
+
+	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.GetEmailsByUserIDs")
+	defer span.End()
 
 	emails, err := h.userService.GetEmailsByUserIDs(ctx, userIDs)
 	if err != nil {

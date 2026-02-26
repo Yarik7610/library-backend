@@ -424,31 +424,6 @@ paths:
       summary: List books by category
       tags:
       - catalog
-  /catalog/books/categories/exists/{categoryName}:
-    get:
-      description: Returns boolean flag decribing book category existence
-      parameters:
-      - description: Category name
-        in: path
-        name: categoryName
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: boolean
-            type: array
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/dto.Error'
-      summary: Check book category existence
-      tags:
-      - internal
   /catalog/books/new:
     get:
       description: Returns list of recently added books

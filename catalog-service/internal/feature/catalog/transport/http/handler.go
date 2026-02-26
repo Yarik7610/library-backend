@@ -20,7 +20,6 @@ import (
 
 type CatalogHandler interface {
 	GetBookCategories(c *gin.Context)
-	BookCategoryExists(c *gin.Context)
 	PreviewBook(c *gin.Context)
 	GetBooksByAuthorID(c *gin.Context)
 	GetBookPage(c *gin.Context)
@@ -77,35 +76,6 @@ func (h *catalogHandler) GetBookCategories(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, categories)
-}
-
-// BookCategoryExists godoc
-//
-//	@Summary		Check book category existence
-//	@Description	Returns boolean flag decribing book category existence
-//	@Tags			internal
-//	@Param			categoryName	path	string	true	"Category name"
-//	@Produce		json
-//	@Success		200	{array}		boolean
-//	@Failure		500	{object} 	dto.Error "Internal server error"
-//	@Router			/catalog/books/categories/exists/{categoryName} [get]
-func (h *catalogHandler) BookCategoryExists(c *gin.Context) {
-	ctx := c.Request.Context()
-
-	bookCategory := c.Param("categoryName")
-
-	ctx, span := tracing.Span(ctx, h.config.ServiceName, "service.BookCategoryExists")
-	defer span.End()
-
-	exists, err := h.catalogService.BookCategoryExists(ctx, bookCategory)
-	if err != nil {
-		tracing.Error(span, err)
-		h.logger.Error(ctx, "Book category exists error", logging.Error(err))
-		httpInfrastructure.RenderError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, exists)
 }
 
 // PreviewBook godoc

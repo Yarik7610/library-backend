@@ -270,44 +270,6 @@
                 }
             }
         },
-        "/catalog/books/categories/exists/{categoryName}": {
-            "get": {
-                "description": "Returns boolean flag decribing book category existence",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "internal"
-                ],
-                "summary": "Check book category existence",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Category name",
-                        "name": "categoryName",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "boolean"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/catalog/books/categories/{categoryName}": {
             "get": {
                 "description": "Returns paginated list of books for the given category",

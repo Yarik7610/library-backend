@@ -26,7 +26,7 @@ type Container struct {
 func NewContainer() *Container {
 	config, err := config.Parse()
 	if err != nil {
-		log.Fatalf("Config load error: %v\n", err)
+		log.Fatalf("Config parse error: %v\n", err)
 	}
 
 	logger := logging.NewLogger(config.Env)

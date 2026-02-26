@@ -8,6 +8,7 @@ type Config struct {
 	Env                      string `env:"ENV"`
 	ServiceName              string `env:"SERVICE_NAME"`
 	HTTPServerPort           string `env:"HTTP_SERVER_PORT"`
+	GRPCServerPort           string `env:"GRPC_SERVER_PORT"`
 	PostgresURL              string `env:"POSTGRES_URL"`
 	RedisHost                string `env:"REDIS_HOST"`
 	RedisPort                string `env:"REDIS_PORT"`

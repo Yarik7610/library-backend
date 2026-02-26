@@ -1,22 +1,28 @@
 package catalog
 
 import (
+	"net/http"
+
+	pb "github.com/Yarik7610/library-backend-common/transport/grpc/microservice/catalog"
 	postgresRepositories "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/postgres"
 	redisRepositories "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/repository/redis"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/service"
-	"github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http"
+	grpcTransport "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/grpc"
+	httpTransport "github.com/Yarik7610/library-backend/catalog-service/internal/feature/catalog/transport/http"
 	kafkaInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/broker/kafka"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/metrics"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/storage/postgres/seed"
-	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
 type Feature struct {
-	HTTPRouter *gin.Engine
+	HTTPServer *http.Server
+	GRPCServer *grpc.Server
 }
 
 func NewFeature(
@@ -40,12 +46,22 @@ func NewFeature(
 		bookAddedWriter, redisBookRepository,
 		postgresAuthorRepository, postgresBookRepository, postgresPageRepository,
 	)
-	httpCatalogHandler := http.NewCatalogHandler(config, logger, catalogService)
+
 	metricsHandler, err := metrics.Init()
 	if err != nil {
 		return nil, err
 	}
+	httpCatalogHandler := httpTransport.NewCatalogHandler(config, logger, catalogService)
+	grpcCatalogHandler := grpcTransport.NewCatalogHandler(config, logger, catalogService)
 
-	httpRouter := http.NewRouter(config, metricsHandler, httpCatalogHandler)
-	return &Feature{HTTPRouter: httpRouter}, nil
+	httpRouter := httpTransport.NewRouter(config, metricsHandler, httpCatalogHandler)
+	httpServer := &http.Server{
+		Addr:    ":" + config.HTTPServerPort,
+		Handler: httpRouter,
+	}
+
+	gRPCServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
+	pb.RegisterCatalogServiceServer(gRPCServer, grpcCatalogHandler)
+
+	return &Feature{HTTPServer: httpServer, GRPCServer: gRPCServer}, nil
 }

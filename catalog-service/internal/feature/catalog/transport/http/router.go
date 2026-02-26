@@ -32,7 +32,6 @@ func NewRouter(config *config.Config, metricsHandler http.Handler, catalogHandle
 		{
 			bookGroup.GET(route.CATEGORIES, catalogHandler.GetBookCategories)
 			bookGroup.GET(route.CATEGORIES+"/:categoryName", catalogHandler.ListBooksByCategory)
-			bookGroup.GET(route.CATEGORIES+"/exists"+"/:categoryName", catalogHandler.BookCategoryExists) // REMOVE after switch to gRPC
 			bookGroup.GET("/:bookID"+route.PREVIEW, catalogHandler.PreviewBook)
 			bookGroup.GET("/:bookID", catalogHandler.GetBookPage)
 			bookGroup.GET(route.SEARCH, catalogHandler.SearchBooks)
