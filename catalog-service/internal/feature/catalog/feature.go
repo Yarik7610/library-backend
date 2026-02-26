@@ -52,7 +52,7 @@ func NewFeature(
 		return nil, err
 	}
 	httpCatalogHandler := httpTransport.NewCatalogHandler(config, logger, catalogService)
-	grpcCatalogHandler := grpcTransport.NewCatalogHandler(config, logger, catalogService)
+	gRPCCatalogHandler := grpcTransport.NewCatalogHandler(config, logger, catalogService)
 
 	httpRouter := httpTransport.NewRouter(config, metricsHandler, httpCatalogHandler)
 	httpServer := &http.Server{
@@ -61,7 +61,7 @@ func NewFeature(
 	}
 
 	gRPCServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
-	pb.RegisterCatalogServiceServer(gRPCServer, grpcCatalogHandler)
+	pb.RegisterCatalogServiceServer(gRPCServer, gRPCCatalogHandler)
 
 	return &Feature{HTTPServer: httpServer, GRPCServer: gRPCServer}, nil
 }

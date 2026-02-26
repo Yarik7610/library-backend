@@ -28,3 +28,21 @@ func getGRPCCode(errorCode errs.Code) codes.Code {
 	}
 	return codes.Internal
 }
+
+func ToInfrastctureError(err error) error {
+	st, ok := status.FromError(err)
+	if !ok {
+		return errs.NewInternalServerError().WithCause(err)
+	}
+
+	switch st.Code() {
+	case codes.NotFound:
+		return errs.NewEntityNotFoundError(st.Message())
+	case codes.AlreadyExists:
+		return errs.NewEntityAlreadyExistsError(st.Message())
+	case codes.InvalidArgument:
+		return errs.NewBadRequestError(st.Message())
+	default:
+		return errs.NewInternalServerError().WithCause(err)
+	}
+}

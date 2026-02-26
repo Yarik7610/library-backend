@@ -8,7 +8,7 @@ import (
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/observability/tracing"
-	gRPCInfrastructure "github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/grpc"
+	grpcInfrastructure "github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/grpc"
 )
 
 type SubscriptionHandler struct {
@@ -40,7 +40,7 @@ func (h *SubscriptionHandler) GetBookCategorySubscribedUserEmails(
 	if err != nil {
 		tracing.Error(span, err)
 		h.logger.Error(ctx, "Get book category subscribed user email error", logging.Error(err))
-		return nil, gRPCInfrastructure.NewError(err)
+		return nil, grpcInfrastructure.NewError(err)
 	}
 
 	return &pb.GetBookCategorySubscribedUserEmailsResponse{Emails: emails}, nil

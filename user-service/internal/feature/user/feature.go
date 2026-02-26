@@ -36,7 +36,7 @@ func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.
 		return nil, err
 	}
 	httpUserHandler := httpTransport.NewUserHandler(config, logger, userService)
-	grpcUserHandler := grpcTransport.NewUserHandler(config, logger, userService)
+	gRPCUserHandler := grpcTransport.NewUserHandler(config, logger, userService)
 
 	httpRouter := httpTransport.NewRouter(config, metricsHandler, httpUserHandler)
 	httpServer := &http.Server{
@@ -45,7 +45,7 @@ func NewFeature(config *config.Config, logger *logging.Logger, postgresDB *gorm.
 	}
 
 	gRPCServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
-	pb.RegisterUserServiceServer(gRPCServer, grpcUserHandler)
+	pb.RegisterUserServiceServer(gRPCServer, gRPCUserHandler)
 
 	return &Feature{HTTPServer: httpServer, GRPCServer: gRPCServer}, nil
 }

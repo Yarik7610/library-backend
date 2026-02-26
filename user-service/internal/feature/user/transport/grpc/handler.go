@@ -8,7 +8,7 @@ import (
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/user-service/internal/infrastructure/observability/tracing"
-	gRPCInfrastructure "github.com/Yarik7610/library-backend/user-service/internal/infrastructure/transport/grpc"
+	grpcInfrastructure "github.com/Yarik7610/library-backend/user-service/internal/infrastructure/transport/grpc"
 )
 
 type UserHandler struct {
@@ -42,7 +42,7 @@ func (h *UserHandler) GetEmailsByUserIDs(ctx context.Context, req *pb.GetEmailsB
 	if err != nil {
 		tracing.Error(span, err)
 		h.logger.Error(ctx, "Get emails by user IDs error", logging.Error(err))
-		return nil, gRPCInfrastructure.NewError(err)
+		return nil, grpcInfrastructure.NewError(err)
 	}
 
 	return &pb.GetEmailsByUserIDsResponse{Emails: emails}, nil

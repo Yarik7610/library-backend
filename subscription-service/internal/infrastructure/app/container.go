@@ -9,24 +9,27 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Yarik7610/library-backend-common/microservice"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/observability/tracing"
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/storage/postgres"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/catalog"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/user"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/grpc/client/catalog"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/grpc/client/user"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 )
 
 type Container struct {
-	Config          *config.Config
-	Logger          *logging.Logger
-	httpServer      *http.Server
-	gRPCServer      *grpc.Server
-	stopOnce        sync.Once
-	shutdownTracing func(context.Context) error
+	Config                      *config.Config
+	Logger                      *logging.Logger
+	httpServer                  *http.Server
+	gRPCServer                  *grpc.Server
+	gRPCUserMicroserviceConn    *grpc.ClientConn
+	gRPCCatalogMicroserviceConn *grpc.ClientConn
+	stopOnce                    sync.Once
+	shutdownTracing             func(context.Context) error
 }
 
 func NewContainer() *Container {
@@ -47,8 +50,22 @@ func NewContainer() *Container {
 		logger.Fatal(context.Background(), "Postgres connect error", logging.Error(err))
 	}
 
-	catalogMicroserviceClient := catalog.NewClient()
-	userMicroserviceClient := user.NewClient()
+	userMicroserviceClient, gRPCUserMicroserviceConn, err := user.NewClient()
+	if err != nil {
+		logger.Fatal(context.Background(),
+			"gRPC user microservice client connect error",
+			logging.String("gRPC server address", microservice.USER_GRPC_ADDRESS),
+			logging.Error(err),
+		)
+	}
+	catalogMicroserviceClient, gRPCCatalogMicroserviceConn, err := catalog.NewClient()
+	if err != nil {
+		logger.Fatal(context.Background(),
+			"gRPC catalog microservice client connect error",
+			logging.String("gRPC server address", microservice.CATALOG_GRPC_ADDRESS),
+			logging.Error(err),
+		)
+	}
 
 	subscriptionFeature, err := subscription.NewFeature(
 		config, logger, postgresDB,
@@ -59,11 +76,13 @@ func NewContainer() *Container {
 	}
 
 	return &Container{
-		Config:          config,
-		Logger:          logger,
-		httpServer:      subscriptionFeature.HTTPServer,
-		gRPCServer:      subscriptionFeature.GRPCServer,
-		shutdownTracing: shutdownTracing,
+		Config:                      config,
+		Logger:                      logger,
+		httpServer:                  subscriptionFeature.HTTPServer,
+		gRPCServer:                  subscriptionFeature.GRPCServer,
+		gRPCUserMicroserviceConn:    gRPCUserMicroserviceConn,
+		gRPCCatalogMicroserviceConn: gRPCCatalogMicroserviceConn,
+		shutdownTracing:             shutdownTracing,
 	}
 }
 
@@ -108,6 +127,16 @@ func (c *Container) Stop(ctx context.Context) error {
 		c.gRPCServer.GracefulStop()
 
 		if err := c.httpServer.Shutdown(ctx); err != nil {
+			stopErr = err
+			return
+		}
+
+		if err := c.gRPCUserMicroserviceConn.Close(); err != nil {
+			stopErr = err
+			return
+		}
+
+		if err := c.gRPCCatalogMicroserviceConn.Close(); err != nil {
 			stopErr = err
 			return
 		}

@@ -8,7 +8,7 @@ import (
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/config"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/observability/tracing"
-	gRPCInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/transport/grpc"
+	grpcInfrastructure "github.com/Yarik7610/library-backend/catalog-service/internal/infrastructure/transport/grpc"
 )
 
 type CatalogHandler struct {
@@ -37,7 +37,7 @@ func (h *CatalogHandler) BookCategoryExists(ctx context.Context, req *pb.BookCat
 	if err != nil {
 		tracing.Error(span, err)
 		h.logger.Error(ctx, "Book category exists error", logging.Error(err))
-		return nil, gRPCInfrastructure.NewError(err)
+		return nil, grpcInfrastructure.NewError(err)
 	}
 
 	return &pb.BookCategoryExistsResponse{Exists: exists}, nil

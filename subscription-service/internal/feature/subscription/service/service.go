@@ -9,8 +9,8 @@ import (
 	"github.com/Yarik7610/library-backend/subscription-service/internal/feature/subscription/service/mapper"
 
 	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/errs"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/catalog"
-	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/http/microservice/user"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/grpc/client/catalog"
+	"github.com/Yarik7610/library-backend/subscription-service/internal/infrastructure/transport/grpc/client/user"
 )
 
 type SubscriptionService interface {
