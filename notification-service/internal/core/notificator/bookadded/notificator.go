@@ -19,7 +19,7 @@ import (
 
 type Notificator interface {
 	Run(ctx context.Context)
-	Stop(ctx context.Context)
+	Stop(ctx context.Context) error
 }
 
 type notificator struct {
@@ -43,11 +43,18 @@ func NewNotificator(
 	}
 }
 
-func (n *notificator) Stop(ctx context.Context) {
-	n.bookAddedReader.Close()
+func (n *notificator) Stop(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return nil
+	}
 }
 
 func (n *notificator) Run(ctx context.Context) {
+	defer n.bookAddedReader.Close()
+
 	const (
 		WORKERS_COUNT = 20
 		JOBS_MAX_SIZE = 100

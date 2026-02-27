@@ -2,7 +2,6 @@ package subscription
 
 import (
 	"context"
-	"time"
 
 	pb "github.com/Yarik7610/library-backend-common/transport/grpc/microservice/subscription"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -34,9 +33,7 @@ func NewClient() (Client, *grpc.ClientConn, error) {
 }
 
 func (c *client) GetBookCategorySubscribedUserEmails(ctx context.Context, bookCategory string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
-	defer cancel()
-
+	// WARNING! No context deadline in favor of processing old kafka messages after service reboot
 	resp, err := c.gRPCClient.GetBookCategorySubscribedUserEmails(ctx, &pb.GetBookCategorySubscribedUserEmailsRequest{BookCategory: bookCategory})
 	if err != nil {
 		return nil, err

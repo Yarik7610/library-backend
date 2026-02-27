@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"time"
 
 	"github.com/Yarik7610/library-backend-common/microservice"
 	pb "github.com/Yarik7610/library-backend-common/transport/grpc/microservice/user"
@@ -34,13 +33,11 @@ func NewClient() (Client, *grpc.ClientConn, error) {
 }
 
 func (c *client) GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]string, error) {
+	// WARNING! No context deadline in favor of processing old kafka messages after service reboot
 	userIDsUint64 := make([]uint64, len(userIDs))
 	for i, userID := range userIDs {
 		userIDsUint64[i] = uint64(userID)
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
-	defer cancel()
 
 	resp, err := c.gRPCClient.GetEmailsByUserIDs(ctx, &pb.GetEmailsByUserIDsRequest{UserIds: userIDsUint64})
 	if err != nil {

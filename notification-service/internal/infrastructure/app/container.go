@@ -114,9 +114,12 @@ func (c *Container) Stop(ctx context.Context) error {
 	var stopErr error
 
 	c.stopOnce.Do(func() {
-		c.bookAddedNotificator.Stop(ctx)
-
 		if err := c.httpServer.Shutdown(ctx); err != nil {
+			stopErr = err
+			return
+		}
+
+		if err := c.bookAddedNotificator.Stop(ctx); err != nil {
 			stopErr = err
 			return
 		}

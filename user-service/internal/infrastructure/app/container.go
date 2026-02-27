@@ -97,12 +97,12 @@ func (c *Container) Stop(ctx context.Context) error {
 	var stopErr error
 
 	c.stopOnce.Do(func() {
-		c.gRPCServer.GracefulStop()
-
 		if err := c.httpServer.Shutdown(ctx); err != nil {
 			stopErr = err
 			return
 		}
+
+		c.gRPCServer.GracefulStop()
 
 		if err := c.shutdownTracing(ctx); err != nil {
 			stopErr = err
