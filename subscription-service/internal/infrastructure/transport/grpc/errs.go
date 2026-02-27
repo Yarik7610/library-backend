@@ -37,9 +37,9 @@ func ToInfrastctureError(err error) error {
 
 	switch st.Code() {
 	case codes.NotFound:
-		return errs.NewEntityNotFoundError(st.Message())
+		return errs.NewError(errs.CodeNotFound, st.Message())
 	case codes.AlreadyExists:
-		return errs.NewEntityAlreadyExistsError(st.Message())
+		return errs.NewError(errs.CodeAlreadyExists, st.Message())
 	case codes.InvalidArgument:
 		return errs.NewBadRequestError(st.Message())
 	default:

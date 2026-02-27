@@ -70,6 +70,10 @@ func (s *userService) GetMe(ctx context.Context, userID uint) (*domain.User, err
 }
 
 func (s *userService) GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]string, error) {
+	if len(userIDs) == 0 {
+		return []string{}, nil
+	}
+
 	emails, err := s.userRepository.GetEmailsByUserIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err

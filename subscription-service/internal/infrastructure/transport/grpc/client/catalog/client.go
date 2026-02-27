@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"time"
 
 	"github.com/Yarik7610/library-backend-common/microservice"
 	pb "github.com/Yarik7610/library-backend-common/transport/grpc/microservice/catalog"
@@ -33,6 +34,9 @@ func NewClient() (Client, *grpc.ClientConn, error) {
 }
 
 func (c *client) BookCategoryExists(ctx context.Context, bookCategory string) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
 	resp, err := c.gRPCClient.BookCategoryExists(ctx, &pb.BookCategoryExistsRequest{BookCategory: bookCategory})
 	if err != nil {
 		return false, grpcInfrastructure.ToInfrastctureError(err)

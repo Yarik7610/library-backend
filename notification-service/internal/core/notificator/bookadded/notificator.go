@@ -11,7 +11,7 @@ import (
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/email/template"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/observability/tracing"
-	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/transport/http/microservice/subscription"
+	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/transport/grpc/client/subscription"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/workerpool"
 
 	"github.com/segmentio/kafka-go"

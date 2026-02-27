@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"time"
 
 	"github.com/Yarik7610/library-backend-common/microservice"
 	pb "github.com/Yarik7610/library-backend-common/transport/grpc/microservice/user"
@@ -37,6 +38,9 @@ func (c *client) GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]stri
 	for i, userID := range userIDs {
 		userIDsUint64[i] = uint64(userID)
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
 
 	resp, err := c.gRPCClient.GetEmailsByUserIDs(ctx, &pb.GetEmailsByUserIDsRequest{UserIds: userIDsUint64})
 	if err != nil {

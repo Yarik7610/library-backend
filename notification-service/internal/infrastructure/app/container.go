@@ -9,7 +9,9 @@ import (
 	"time"
 
 	sharedKafka "github.com/Yarik7610/library-backend-common/broker/kafka"
+	"github.com/Yarik7610/library-backend-common/microservice"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 
 	"github.com/Yarik7610/library-backend/notification-service/internal/core/notificator/bookadded"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/broker/kafka"
@@ -17,16 +19,17 @@ import (
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/email"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/observability/logging"
 	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/observability/tracing"
-	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/transport/http/microservice/subscription"
+	"github.com/Yarik7610/library-backend/notification-service/internal/infrastructure/transport/grpc/client/subscription"
 )
 
 type Container struct {
-	Config               *config.Config
-	Logger               *logging.Logger
-	bookAddedNotificator bookadded.Notificator
-	httpServer           *http.Server
-	stopOnce             sync.Once
-	shutdownTracing      func(context.Context) error
+	Config                           *config.Config
+	Logger                           *logging.Logger
+	bookAddedNotificator             bookadded.Notificator
+	httpServer                       *http.Server
+	gRPCSubscriptionMicroserviceConn *grpc.ClientConn
+	stopOnce                         sync.Once
+	shutdownTracing                  func(context.Context) error
 }
 
 func NewContainer() *Container {
@@ -42,13 +45,20 @@ func NewContainer() *Container {
 		logger.Fatal(context.Background(), "Tracing init error", logging.Error(err))
 	}
 
-	subscriptionClient := subscription.NewClient()
+	subscriptionMicroserviceClient, gRPCSubscriptionMicroserviceConn, err := subscription.NewClient()
+	if err != nil {
+		logger.Fatal(context.Background(),
+			"gRPC subscription microservice client connect error",
+			logging.String("gRPC server address", microservice.SUBSCRIPTIONS_GRPC_ADDRESS),
+			logging.Error(err),
+		)
+	}
 
 	bookAddedReader := kafka.NewOtelReader(config, sharedKafka.BOOK_ADDED_TOPIC, sharedKafka.BOOK_ADDED_CONSUMER_GROUP_ID)
 	bookAddedEmailSender := email.NewSender(config.Mail, config.MailPassword)
 	bookAddedEmailSender.WithSubject("Book category subscription notification")
 
-	bookAddedNotificator := bookadded.NewNotificator(logger, bookAddedReader, bookAddedEmailSender, subscriptionClient)
+	bookAddedNotificator := bookadded.NewNotificator(logger, bookAddedReader, bookAddedEmailSender, subscriptionMicroserviceClient)
 
 	httpServer, err := newHTTPServer(config)
 	if err != nil {
@@ -56,11 +66,12 @@ func NewContainer() *Container {
 	}
 
 	return &Container{
-		Config:               config,
-		Logger:               logger,
-		bookAddedNotificator: bookAddedNotificator,
-		httpServer:           httpServer,
-		shutdownTracing:      shutdownTracing,
+		Config:                           config,
+		Logger:                           logger,
+		bookAddedNotificator:             bookAddedNotificator,
+		httpServer:                       httpServer,
+		gRPCSubscriptionMicroserviceConn: gRPCSubscriptionMicroserviceConn,
+		shutdownTracing:                  shutdownTracing,
 	}
 }
 
@@ -106,6 +117,11 @@ func (c *Container) Stop(ctx context.Context) error {
 		c.bookAddedNotificator.Stop(ctx)
 
 		if err := c.httpServer.Shutdown(ctx); err != nil {
+			stopErr = err
+			return
+		}
+
+		if err := c.gRPCSubscriptionMicroserviceConn.Close(); err != nil {
 			stopErr = err
 			return
 		}
