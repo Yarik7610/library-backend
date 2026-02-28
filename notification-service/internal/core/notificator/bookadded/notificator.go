@@ -3,6 +3,7 @@ package bookadded
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/Yarik7610/library-backend-common/broker/kafka/event"
 	"github.com/Yarik7610/library-backend/notification-service/internal/core/job"
@@ -121,7 +122,11 @@ func (n *notificator) processMessage(ctx context.Context, workerPool workerpool.
 		return err
 	}
 
-	emails, err := n.subscriptionMicroserviceClient.GetBookCategorySubscribedUserEmails(ctx, addedBook.Category)
+	// To not inherit kafka's cancelled context already, for cases to process old messages on microservice reboot
+	gRPCCallCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+	defer cancel()
+
+	emails, err := n.subscriptionMicroserviceClient.GetBookCategorySubscribedUserEmails(gRPCCallCtx, addedBook.Category)
 	if err != nil {
 		return err
 	}

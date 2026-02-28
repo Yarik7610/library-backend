@@ -33,7 +33,7 @@ func NewClient() (Client, *grpc.ClientConn, error) {
 }
 
 func (c *client) GetBookCategorySubscribedUserEmails(ctx context.Context, bookCategory string) ([]string, error) {
-	// WARNING! No context deadline in favor of processing old kafka messages after service reboot
+	// Timeout is set outside for kafka's correct work
 	resp, err := c.gRPCClient.GetBookCategorySubscribedUserEmails(ctx, &pb.GetBookCategorySubscribedUserEmailsRequest{BookCategory: bookCategory})
 	if err != nil {
 		return nil, err

@@ -33,7 +33,7 @@ func NewClient() (Client, *grpc.ClientConn, error) {
 }
 
 func (c *client) GetEmailsByUserIDs(ctx context.Context, userIDs []uint) ([]string, error) {
-	// WARNING! No context deadline in favor of processing old kafka messages after service reboot
+	// Timeout is set outside for kafka's correct work
 	userIDsUint64 := make([]uint64, len(userIDs))
 	for i, userID := range userIDs {
 		userIDsUint64[i] = uint64(userID)
