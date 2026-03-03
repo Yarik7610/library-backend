@@ -148,12 +148,28 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
-    restart: unless-stopped
+    restart: always
     ports:
       - "9090:9090"
     volumes:
-      - prometheus_data:/prometheus
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - e-commerce-backend
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
     networks:
       - e-commerce-backend
 
@@ -323,11 +339,11 @@ networks:
     driver: bridge
 
 volumes:
+  grafana-data:
   redis-data:
   kafka-1-data:
   kafka-2-data:
   kafka-3-data:
-  prometheus_data:
   postgres-user-data:
   postgres-catalog-data:
   postgres-subscription-data:

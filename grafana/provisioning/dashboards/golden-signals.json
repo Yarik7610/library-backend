@@ -1,0 +1,112 @@
+{
+  "title": "Golden Signals",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(http_server_request_duration_seconds_count, job)",
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {},
+        "refresh": 2,
+        "label": "Service"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Traffic — Requests per second (RPS)",
+      "description": "Number of requests processed by the service per second",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum by (job)(rate(http_server_request_duration_seconds_count{job=~\"$service\"}[1m]))",
+          "legendFormat": "{{job}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Errors — 4xx and 5xx rate",
+      "description": "Rate of client errors (4xx) and server errors (5xx) per second",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum by (job)(rate(http_server_request_duration_seconds_count{job=~\"$service\", http_response_status_code=~\"4..\"}[1m]))",
+          "legendFormat": "{{job}} 4xx"
+        },
+        {
+          "datasource": "Prometheus",
+          "expr": "sum by (job)(rate(http_server_request_duration_seconds_count{job=~\"$service\", http_response_status_code=~\"5..\"}[1m]))",
+          "legendFormat": "{{job}} 5xx"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency — P95 (ms)",
+      "description": "95th percentile response time — 95% of requests complete faster than this",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.95, sum by (job, le)(rate(http_server_request_duration_seconds_bucket{job=~\"$service\"}[5m]))) * 1000",
+          "legendFormat": "{{job}} p95"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency — P50 (ms)",
+      "description": "Median response time — 50th percentile",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.50, sum by (job, le)(rate(http_server_request_duration_seconds_bucket{job=~\"$service\"}[5m]))) * 1000",
+          "legendFormat": "{{job}} p50"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Saturation — Goroutines",
+      "description": "Number of goroutines — indicator of runtime load",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "go_goroutines{job=~\"$service\"}",
+          "legendFormat": "{{job}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Saturation — Heap Memory (MB)",
+      "description": "Heap memory currently in use",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "go_memstats_heap_inuse_bytes{job=~\"$service\"} / 1024 / 1024",
+          "legendFormat": "{{job}}"
+        }
+      ]
+    }
+  ]
+}
