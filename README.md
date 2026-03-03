@@ -6,8 +6,6 @@ Overall project architecture:
 
 <img width="901" height="588" alt="изображение" src="https://github.com/user-attachments/assets/d6473b6f-0ed7-4c8f-8ce2-971c6364de99" />
 
----
-
 ## Core Features
 
 ### API Gateway
@@ -40,8 +38,6 @@ Overall project architecture:
 - Distributes email notifications to all users subscribed to the added book's category
 - Worker pool for concurrent email delivery
 
----
-
 ## Tech Stack
 
 - **Docker** — containerization and orchestration via Docker Compose
@@ -55,8 +51,6 @@ Overall project architecture:
 - **Jaeger** — tracing backend and UI
 - **Prometheus** — metrics collection
 - **Grafana** — metrics visualization and dashboards
-
----
 
 ## Architecture Overview
 
@@ -82,7 +76,8 @@ Error mapping is handled in both directions — infrastructure errors are mapped
 
 ### Observability
 
-**Tracing** is implemented end-to-end using OpenTelemetry. Every incoming HTTP request starts a trace. The trace context is propagated:
+#### Tracing
+Tracing is implemented end-to-end using OpenTelemetry. Every incoming HTTP request starts a trace. The trace context is propagated:
 
 - Via HTTP headers when the API Gateway forwards requests to microservices
 - Via gRPC metadata when microservices call each other
@@ -92,7 +87,8 @@ This means a single `POST /catalog/books` request produces a single trace visibl
 
 <img width="1920" height="572" alt="изображение" src="https://github.com/user-attachments/assets/6b94953c-33f0-4cc8-8707-ee93f57d1a82" />
 
-**Metrics** are exposed via Prometheus on each service's `/metrics` endpoint. Grafana dashboards track the 4 Golden Signals:
+#### Metrics & Grafana
+Metrics are exposed via Prometheus on each service's `/metrics` endpoint. Grafana dashboards track the 4 Golden Signals:
 
 - **Traffic** — requests per second (RPS)
 - **Errors** — 4xx and 5xx error rates
@@ -101,7 +97,8 @@ This means a single `POST /catalog/books` request produces a single trace visibl
 
 <img width="1612" height="805" alt="изображение" src="https://github.com/user-attachments/assets/99646cad-02c7-498d-a9a6-273391c8fdba" />
 
-**Logging** uses structured JSON / Text logging with trace and span IDs injected into every log entry, making it easy to correlate logs with traces in Jaeger.
+#### Logging
+Logging uses structured JSON / Text logging with trace and span IDs injected into every log entry, making it easy to correlate logs with traces in Jaeger.
 
 ### Graceful Shutdown
 
@@ -116,8 +113,6 @@ All services handle OS signals (SIGTERM, SIGINT) and shut down gracefully:
 ### Graceful Bootstrap
 
 Services declare healthchecks in Docker Compose and use `depends_on` with `condition: service_healthy` to ensure dependencies (PostgreSQL, Kafka) are ready before the service starts. Kafka topics are pre-created by a dedicated `kafka-init` container.
-
----
 
 ## Getting Started
 
@@ -154,8 +149,6 @@ To stop and remove volumes:
 make down
 ```
 
----
-
 ## API
 
 Swagger UI with aggregated docs from all services is available at:
@@ -164,8 +157,6 @@ Swagger UI with aggregated docs from all services is available at:
 http://localhost:80/swagger/index.html
 ```
 
----
-
 ## Related
 
-- [library-backend-common](https://github.com/Yarik7610/library-backend-common) — shared proto definitions, generated gRPC code, Kafka topic constants, HTTP route constants, and transport utilities used across all services.
+[library-backend-common](https://github.com/Yarik7610/library-backend-common) — shared proto definitions, generated gRPC code, Kafka topic constants, HTTP route constants, and transport utilities used across all services.
